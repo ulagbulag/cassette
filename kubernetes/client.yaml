@@ -1,0 +1,75 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: client
+  namespace: cassette-operator
+  labels:
+    app: client
+    serviceType: public
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: client
+  template:
+    metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-sdk: "true"
+      labels:
+        app: client
+        serviceType: public
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 1
+              preference:
+                matchExpressions:
+                  - key: node-role.kubernetes.io/kiss
+                    operator: In
+                    values:
+                      - Gateway
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node-role.kubernetes.io/kiss
+                    operator: In
+                    values:
+                      - Compute
+                      - Gateway
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: server
+          image: quay.io/ulagbulag/cassette:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              protocol: TCP
+              containerPort: 6080
+          resources:
+            requests:
+              cpu: 30m
+              memory: 200Mi
+            limits:
+              cpu: 100m
+              memory: 500Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: client
+  namespace: cassette-operator
+spec:
+  selector:
+    app: client
+  ports:
+    - name: http
+      port: 80
+      targetPort: 6080
+      protocol: TCP
