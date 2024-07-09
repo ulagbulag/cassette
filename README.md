@@ -1,4 +1,4 @@
-# Cassette
+# 📼 Cassette
 
 ![Cassette logo](/assets/logo.webp)
 
