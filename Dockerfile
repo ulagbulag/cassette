@@ -45,6 +45,8 @@ RUN \
     --mount=type=cache,target=/usr/local/cargo/registry \
     # Create an output directory
     mkdir /out \
+    # Create an empty assets directory
+    && mkdir assets \
     # Build
     && trunk build './crates/cassette/index.html' --dist '/out' --release
 
