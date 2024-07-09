@@ -118,6 +118,8 @@ spec:
           command:
             - cassette-gateway
           env:
+            - name: BASE_URL
+              value: /v1/cassette
             - name: BIND_ADDR
               value: 0.0.0.0:8080
             - name: RUST_LOG

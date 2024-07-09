@@ -1,4 +1,8 @@
-use actix_web::{get, middleware, web::Data, App, HttpResponse, HttpServer, Responder};
+use actix_web::{
+    get, middleware,
+    web::{self, Data},
+    App, HttpResponse, HttpServer, Responder,
+};
 use actix_web_opentelemetry::{RequestMetrics, RequestTracing};
 use anyhow::{anyhow, Result};
 use ark_core::signal::FunctionSignal;
@@ -7,7 +11,6 @@ use tracing::{error, info, instrument, Level};
 use crate::agent::Agent;
 
 #[instrument(level = Level::INFO)]
-#[get("/")]
 async fn home() -> impl Responder {
     HttpResponse::Ok().json("cassette-gateway")
 }
@@ -33,17 +36,19 @@ async fn try_loop_forever(agent: Agent) -> Result<()> {
 
     // Initialize pipe
     let addr = agent.bind_addr();
+    let base_url = agent.base_url();
 
     let agent = Data::new(agent);
 
     // Create a http server
     let server = HttpServer::new(move || {
         let app = App::new().app_data(Data::clone(&agent));
-        let app = app
-            .service(home)
-            .service(health)
-            .service(crate::routes::cassette::get)
-            .service(crate::routes::cassette::list);
+        let app = app.route(&base_url, web::to(home)).service(
+            web::scope(&base_url)
+                .service(health)
+                .service(crate::routes::cassette::get)
+                .service(crate::routes::cassette::list),
+        );
         app.wrap(middleware::NormalizePath::new(
             middleware::TrailingSlash::Trim,
         ))
