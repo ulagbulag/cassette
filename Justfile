@@ -30,7 +30,7 @@ init:
   @which wasm-bindgen >/dev/null || cargo install wasm-bindgen-cli
 
 _trunk command *ARGS: init
-  trunk "{{ command }}" './crates/cassette/index.html' {{ ARGS }}
+  trunk "{{ command }}" --dist './dist' './crates/cassette/index.html' {{ ARGS }}
 
 build *ARGS: ( _trunk "build" ARGS )
 
