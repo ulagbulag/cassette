@@ -16,12 +16,8 @@ WORKDIR /usr/local/bin
 ENTRYPOINT [ "/usr/bin/env" ]
 CMD [ "trunk", "serve" ]
 
-# Be ready for building
+# Be ready for building dependencies
 FROM docker.io/library/rust:1-${DEBIAN_VERSION} as builder-dep
-
-# Load source files
-ADD . /src
-WORKDIR /src
 
 # Install dependencies
 RUN true \
@@ -36,8 +32,14 @@ RUN true \
 FROM server
 COPY --from=builder /usr/local/bin/* /usr/local/bin/
 
-# Build it!
+# Be ready for building
 FROM builder-dep as builder
+
+# Load source files
+ADD . /src
+WORKDIR /src
+
+# Build it!
 RUN \
     # Cache build outputs
     --mount=type=cache,target=/src/target \
