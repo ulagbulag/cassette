@@ -10,15 +10,20 @@ ARG PACKAGE="cassette-server"
 FROM docker.io/library/debian:${DEBIAN_VERSION} as server
 
 # Server Configuration
-EXPOSE 6080/tcp
+EXPOSE 8080/tcp
 WORKDIR /usr/local/bin
 CMD [ "/bin/sh" ]
+
+# Copy static files
+ARG PACKAGE
+ADD ./LICENSE /usr/share/licenses/${PACKAGE}/LICENSE
 
 # Be ready for building
 FROM docker.io/library/rust:1-${DEBIAN_VERSION} as builder
 
 # Load source files
-ADD . /src
+ADD ./Cargo.toml /src/
+ADD ./crates /src/crates
 WORKDIR /src
 
 # Build it!
@@ -35,12 +40,8 @@ RUN \
     && find ./ -type f -name Cargo.toml -exec sed -i "s/^\( *\)\# *\(.*\# *include *( *$(uname -m) *)\)$/\1\2/g" {} + \
     # Build
     && cargo build --all --workspace --release \
-    && find ./target/release/ -maxdepth 1 -type f -perm -a=x -print0 | xargs -0 -I {} mv {} /out \
-    && cp ./Trunk.toml /out \
-    && mv ./LICENSE /LICENSE
+    && find ./target/release/ -maxdepth 1 -type f -perm -a=x -print0 | xargs -0 -I {} mv {} /out
 
 # Copy executable files
 FROM server
-ARG PACKAGE
 COPY --from=builder /out/* /usr/local/bin/
-COPY --from=builder /LICENSE /usr/share/licenses/${PACKAGE}/LICENSE
