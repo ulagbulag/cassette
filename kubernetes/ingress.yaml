@@ -10,6 +10,7 @@ metadata:
     # nginx.ingress.kubernetes.io/auth-url: https://example.com/oauth2/auth
     # nginx.ingress.kubernetes.io/auth-signin: https://example.com/oauth2/start?rd=$escaped_request_uri
     # nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/use-regex: "true"
 spec:
   tls:
     - secretName: example.com-certs
@@ -22,6 +23,48 @@ spec:
         paths:
           - path: /
             pathType: Prefix
+            backend:
+              service:
+                name: client
+                port:
+                  number: 80
+          - path: /$
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: client
+                port:
+                  number: 80
+          - path: /([0-9a-z_-]*).css$
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: client
+                port:
+                  number: 80
+          - path: /([0-9a-z_-]*).js$
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: client
+                port:
+                  number: 80
+          - path: /([0-9a-z_-]*).wasm$
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: client
+                port:
+                  number: 80
+          - path: /favicon.svg$
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: client
+                port:
+                  number: 80
+          - path: /logo.png$
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: client
