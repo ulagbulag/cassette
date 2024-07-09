@@ -1,6 +1,6 @@
 # Template-based dynamic declarative Web UI Framework
 
-This is a ㅅemplate-based dynamic declarative web UI framework built with [Yew].
+This is a Template-based dynamic declarative web UI framework built with [Yew].
 
 ## Tutorial
 
