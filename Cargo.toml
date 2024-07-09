@@ -11,7 +11,7 @@ resolver = "2"
 
 [workspace.package]
 authors = ["Ho Kim <ho.kim@ulagbulag.io>"]
-description = "Template-based dynamic declarative Web UI Framework"
+description = "Cloud-native Template-based dynamic declarative Web UI Framework"
 documentation = "https://docs.rs/cassette"
 edition = "2021"
 include = ["src/**/*.rs", "Cargo.toml"]
