@@ -1,5 +1,7 @@
 # Cassette
 
+![Cassette logo](/assets/logo.webp)
+
 This is a Template-based dynamic declarative web UI framework built with [Yew].
 
 ## Tutorial

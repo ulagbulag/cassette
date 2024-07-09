@@ -56,15 +56,15 @@ spec:
                 name: client
                 port:
                   number: 80
-          - path: /favicon.svg$
+          - path: /favicon.ico$
             pathType: ImplementationSpecific
             backend:
               service:
                 name: client
                 port:
                   number: 80
-          - path: /logo.png$
-            pathType: ImplementationSpecific
+          - path: /assets/
+            pathType: Prefix
             backend:
               service:
                 name: client
