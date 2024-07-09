@@ -1,0 +1,43 @@
+[package]
+name = "cassette-gateway"
+
+authors = { workspace = true }
+description = "Cloud-native Cassette Web API Gateway"
+documentation = "https://docs.rs/cassette-gateway"
+edition = { workspace = true }
+include = { workspace = true }
+keywords = { workspace = true }
+license = { workspace = true }
+readme = { workspace = true }
+rust-version = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+version = { workspace = true }
+
+[lints]
+workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+default = []
+
+[dependencies]
+cassette-core = { path = "../cassette-core" }
+
+actix-web = { workspace = true }
+actix-web-opentelemetry = { workspace = true }
+anyhow = { workspace = true }
+ark-core = { workspace = true, features = ["signal"] }
+clap = { workspace = true }
+futures = { workspace = true }
+kube = { workspace = true, features = [
+    "client",
+    "runtime",
+    "rustls-tls",
+    "ws",
+] }
+serde = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
+tracing = { workspace = true }
+uuid = { workspace = true, features = ["serde"] }

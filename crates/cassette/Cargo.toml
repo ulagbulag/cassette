@@ -1,0 +1,36 @@
+[package]
+name = "cassette"
+
+authors = { workspace = true }
+description = { workspace = true }
+documentation = { workspace = true }
+edition = { workspace = true }
+include = { workspace = true }
+keywords = { workspace = true }
+license = { workspace = true }
+readme = { workspace = true }
+rust-version = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+version = { workspace = true }
+
+[lints]
+workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+default = ["full"]
+full = ["kubernetes"]
+
+# plugins
+kubernetes = ["dep:cassette-plugin-kubernetes"]
+
+[dependencies]
+cassette-core = { path = "../cassette-core" }
+cassette-plugin-kubernetes = { path = "../cassette-plugin-kubernetes", optional = true }
+
+regex = { workspace = true }
+uuid = { workspace = true }
+yew = { workspace = true }
+yew-router = { workspace = true }

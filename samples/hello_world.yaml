@@ -1,0 +1,18 @@
+---
+apiVersion: cassette.ulagbulag.io/v1alpha1
+kind: Cassette
+metadata:
+  name: hello-world
+spec:
+  component: hello-world
+---
+apiVersion: cassette.ulagbulag.io/v1alpha1
+kind: CassetteComponent
+metadata:
+  name: hello-world
+spec:
+  tasks:
+    - name: show-hello-message
+      kind: text
+      spec:
+        msg: "Hello World!"

@@ -1,0 +1,29 @@
+[package]
+name = "cassette-core"
+
+authors = { workspace = true }
+description = { workspace = true }
+documentation = "https://docs.rs/cassette-core"
+edition = { workspace = true }
+include = { workspace = true }
+keywords = { workspace = true }
+license = { workspace = true }
+readme = { workspace = true }
+rust-version = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+version = { workspace = true }
+
+[lints]
+workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+garde = { workspace = true }
+k8s-openapi = { workspace = true }
+kube = { workspace = true, features = ["derive"] }
+schemars = { workspace = true, features = ["derive"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+uuid = { workspace = true }
