@@ -37,6 +37,10 @@ impl Agent {
         self.args.bind_addr
     }
 
+    pub(crate) fn redirect_error_404(&self) -> Option<String> {
+        self.args.redirect_error_404.clone()
+    }
+
     pub(crate) const fn db(&self) -> &CassetteDB {
         &self.db
     }
@@ -61,6 +65,9 @@ pub struct AgentArgs {
 
     #[arg(long, env, default_value_t = AgentArgs::default_bind_addr())]
     pub bind_addr: SocketAddr,
+
+    #[arg(long, env)]
+    pub redirect_error_404: Option<String>,
 }
 
 impl AgentArgs {

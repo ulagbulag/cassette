@@ -27,6 +27,20 @@ spec:
                 name: client
                 port:
                   number: 80
+          - path: /c/
+            pathType: Prefix
+            backend:
+              service:
+                name: client
+                port:
+                  number: 80
+          - path: /error/
+            pathType: Prefix
+            backend:
+              service:
+                name: client
+                port:
+                  number: 80
           - path: /v1/cassette/
             pathType: Prefix
             backend:

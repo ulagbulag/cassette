@@ -37,18 +37,25 @@ async fn try_loop_forever(agent: Agent) -> Result<()> {
     // Initialize pipe
     let addr = agent.bind_addr();
     let base_url = agent.base_url();
+    let redirect_error_404 = agent.redirect_error_404();
 
     let agent = Data::new(agent);
 
     // Create a http server
     let server = HttpServer::new(move || {
         let app = App::new().app_data(Data::clone(&agent));
-        let app = app.route(&base_url, web::to(home)).service(
+        let mut app = app.route(&base_url, web::to(home)).service(
             web::scope(&base_url)
                 .service(health)
                 .service(crate::routes::cassette::get)
                 .service(crate::routes::cassette::list),
         );
+        if let Some(redirect_to) = redirect_error_404.clone() {
+            app = app.default_service(web::to(move || {
+                let redirect_to = redirect_to.clone();
+                async { web::Redirect::to(redirect_to) }
+            }));
+        }
         app.wrap(middleware::NormalizePath::new(
             middleware::TrailingSlash::Trim,
         ))

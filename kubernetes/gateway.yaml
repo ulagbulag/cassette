@@ -122,6 +122,8 @@ spec:
               value: /v1/cassette
             - name: BIND_ADDR
               value: 0.0.0.0:8080
+            - name: REDIRECT_ERROR_404
+              value: /error/404
             - name: RUST_LOG
               value: INFO
           ports:
