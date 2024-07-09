@@ -7,6 +7,7 @@ set dotenv-load
 
 # Configure environment variables
 export DEBIAN_VERSION := env_var_or_default('DEBIAN_VERSION', 'bookworm')
+export NGINX_VERSION := env_var_or_default('NGINX_VERSION', "stable-bookworm-otel")
 export OCI_BUILD_LOG_DIR := env_var_or_default('OCI_BUILD_LOG_DIR', './logs/')
 export OCI_IMAGE := env_var_or_default('OCI_IMAGE', 'quay.io/ulagbulag/cassette')
 export OCI_IMAGE_VERSION := env_var_or_default('OCI_IMAGE_VERSION', 'latest')
@@ -41,15 +42,22 @@ run-gateway *ARGS:
 run-operator *ARGS:
   cargo run --package 'cassette-operator' --release
 
-oci-build *ARGS:
+_oci-build file oci_suffix *ARGS:
   mkdir -p "${OCI_BUILD_LOG_DIR}"
   docker buildx build \
-    --file './Dockerfile' \
-    --tag "${OCI_IMAGE}:${OCI_IMAGE_VERSION}" \
+    --file "{{ file }}" \
+    --tag "${OCI_IMAGE}{{ oci_suffix }}:${OCI_IMAGE_VERSION}" \
     --build-arg DEBIAN_VERSION="${DEBIAN_VERSION}" \
+    --build-arg NGINX_VERSION="${NGINX_VERSION}" \
     --platform "${OCI_PLATFORMS}" \
     --pull \
     {{ ARGS }} \
     . 2>&1 | tee "${OCI_BUILD_LOG_DIR}/build-base-$( date -u +%s ).log"
 
-oci-push: (oci-build "--push")
+oci-build: (_oci-build './Dockerfile' '')
+
+oci-build-server: (_oci-build '-server' './Dockerfile.server')
+
+oci-push: (_oci-build './Dockerfile' '' "--push")
+
+oci-push-server: (_oci-build './Dockerfile.server' '-server' "--push")

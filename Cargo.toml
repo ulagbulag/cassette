@@ -1,11 +1,13 @@
 [workspace]
-default-members = ["crates/cassette"]
+default-members = [
+    "crates/cassette", # exclude(server)
+]
 members = [
-    "crates/cassette",
+    "crates/cassette",                   # exclude(server)
     "crates/cassette-core",
-    "crates/cassette-gateway",
-    "crates/cassette-operator",
-    "crates/cassette-plugin-kubernetes",
+    "crates/cassette-gateway",           # exclude(client)
+    "crates/cassette-operator",          # exclude(client)
+    "crates/cassette-plugin-kubernetes", # exclude(server)
 ]
 resolver = "2"
 
