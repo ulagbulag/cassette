@@ -1,0 +1,8 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cassette-operator
+  labels:
+    cassette.ulagbulag.io/inject-nats: "false"
+    cassette.ulagbulag.io/inject-otlp: "true"

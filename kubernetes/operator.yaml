@@ -1,0 +1,133 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cassette-system
+  namespace: cassette-operator
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: cassette-system
+  namespace: cassette-operator
+rules:
+  - apiGroups:
+      - cassette.ulagbulag.io
+    resources:
+      - cassettes
+      - cassettecomponents
+    verbs:
+      - "*"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: cassette-system
+  namespace: cassette-operator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: cassette-system
+subjects:
+  - apiGroup: ""
+    kind: ServiceAccount
+    name: cassette-system
+    namespace: cassette
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cassette-operator:cassette-system
+rules:
+  - apiGroups:
+      - apiextensions.k8s.io
+    resources:
+      - customresourcedefinitions
+    verbs:
+      - apply
+      - create
+      - get
+      - patch
+      - replace
+  - apiGroups:
+      - cassette.ulagbulag.io
+    resources:
+      - cassettes
+      - cassettecomponents
+    verbs:
+      - "*"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cassette-operator:cassette-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cassette-operator:cassette-system
+subjects:
+  - apiGroup: ""
+    kind: ServiceAccount
+    name: cassette-system
+    namespace: cassette-operator
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: operator
+  namespace: cassette-operator
+  labels:
+    name: operator
+    serviceType: internal
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      name: operator
+  template:
+    metadata:
+      annotations:
+        instrumentation.opentelemetry.io/inject-sdk: "true"
+      labels:
+        name: operator
+        serviceType: internal
+    spec:
+      affinity:
+        nodeAffinity:
+          # KISS normal control plane nodes should be preferred
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 1
+              preference:
+                matchExpressions:
+                  - key: node-role.kubernetes.io/kiss-ephemeral-control-plane
+                    operator: DoesNotExist
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node-role.kubernetes.io/kiss
+                    operator: In
+                    values:
+                      - ControlPlane
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccount: cassette-system
+      containers:
+        - name: operator
+          image: quay.io/ulagbulag/cassette-server:latest
+          imagePullPolicy: Always
+          command:
+            - cassette-operator
+          env:
+            - name: RUST_LOG
+              value: INFO
+          resources:
+            requests:
+              cpu: 30m
+              memory: 20Mi
+            limits:
+              cpu: 100m
+              memory: 100Mi

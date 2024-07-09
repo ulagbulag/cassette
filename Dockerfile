@@ -43,9 +43,6 @@ RUN \
     --mount=type=cache,target=/usr/local/cargo/registry \
     # Create an output directory
     mkdir /out \
-    # Exclude non-client packages
-    && find ./ -type f -name Cargo.toml -exec sed -i 's/^\( *\)\(.*\# *exclude *( *client *)\)$/\1# \2/g' {} + \
-    && find ./ -type f -name Cargo.toml -exec sed -i 's/^\( *\)\# *\(.*\# *include *( *client *)\)$/\1\2/g' {} + \
     # Build
     && trunk build './crates/cassette/index.html' --dist '/out' --release
 
