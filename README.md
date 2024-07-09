@@ -1,4 +1,4 @@
-# Template-based dynamic declarative Web UI Framework
+# Cassette
 
 This is a Template-based dynamic declarative web UI framework built with [Yew].
 
