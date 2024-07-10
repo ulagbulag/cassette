@@ -34,6 +34,7 @@ RUN true \
     wasm-bindgen-cli
 
 # Load source files
+ADD ./LICENSE /src/LICENSE
 ADD ./Cargo.toml /src/
 ADD ./crates /src/crates
 WORKDIR /src
