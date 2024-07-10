@@ -73,7 +73,7 @@ impl<Url> FetchRequest<Url> {
                     },
                     Err(error) => FetchState::Error(format!("Failed to fetch the {name}: {error}")),
                 };
-                if matches!(&*state, FetchState::Fetching) {
+                if matches!(&*state, FetchState::Pending | FetchState::Fetching) {
                     state.set(value);
                 }
             })
