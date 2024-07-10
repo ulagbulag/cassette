@@ -54,7 +54,7 @@ pub fn use_gateway() -> String {
     use_query()
         .get("gateway")
         .cloned()
-        .unwrap_or_else(|| "/v1/casette".into())
+        .unwrap_or_else(|| "/v1/cassette".into())
 }
 
 #[hook]
