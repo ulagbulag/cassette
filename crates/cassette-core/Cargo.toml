@@ -21,9 +21,11 @@ workspace = true
 
 [features]
 default = []
+actix-web = ["dep:actix-web"]
 ui = ["dep:gloo-net", "dep:yew", "dep:yew-router"]
 
 [dependencies]
+actix-web = { workspace = true, optional = true }
 garde = { workspace = true }
 gloo-net = { workspace = true, optional = true }
 k8s-openapi = { workspace = true }

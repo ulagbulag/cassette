@@ -3,7 +3,7 @@ use actix_web::{
     web::{Data, Path},
     HttpResponse, Responder,
 };
-use ark_core::result::Result;
+use cassette_core::result::Result;
 use tracing::{instrument, Level};
 use uuid::Uuid;
 

@@ -1,8 +1,5 @@
 use cassette_core::net::gateway::{use_gateway, use_gateway_status};
 use yew::prelude::*;
-use yew_router::prelude::*;
-
-use crate::route::Route;
 
 #[function_component(Profile)]
 pub fn profile() -> Html {

@@ -11,36 +11,69 @@ pub struct FetchRequest<Url> {
 }
 
 impl<Url> FetchRequest<Url> {
-    pub fn try_fetch<Res, UrlOut>(
-        self,
-        base_url: &str,
-        state: UseStateHandle<self::sealed::FetchState<Res>>,
-    ) where
+    pub fn try_fetch<Res>(self, base_url: &str, state: UseStateHandle<FetchState<Res>>)
+    where
         Res: 'static + DeserializeOwned,
-        Url: FnOnce() -> UrlOut,
-        UrlOut: fmt::Display,
+        Url: fmt::Display,
     {
-        if matches!(&*state, self::sealed::FetchState::Pending) {
-            state.set(self::sealed::FetchState::Fetching);
+        if matches!(&*state, FetchState::Pending) {
+            state.set(FetchState::Fetching);
 
-            let Self { method, name, url } = self;
-            let url = format!("{base_url}/{url}", url = url());
+            let Self {
+                method,
+                name,
+                url: suffix_url,
+            } = self;
+            let url = format!("{base_url}/{suffix_url}");
 
             let state = state.clone();
             spawn_local(async move {
                 let request = RequestBuilder::new(&url).method(method);
                 let value = match request.send().await {
                     Ok(response) => match response.json().await {
-                        Ok(data) => self::sealed::FetchState::Completed(data),
-                        Err(error) => self::sealed::FetchState::Error(format!(
-                            "Failed to parse the {name}: {error}"
-                        )),
+                        Ok(crate::result::Result::Ok(data)) => FetchState::Completed(data),
+                        Ok(crate::result::Result::Err(error)) => FetchState::Error(error),
+                        Err(error) => {
+                            FetchState::Error(format!("Failed to parse the {name}: {error}"))
+                        }
                     },
-                    Err(error) => self::sealed::FetchState::Error(format!(
-                        "Failed to fetch the {name}: {error}"
-                    )),
+                    Err(error) => FetchState::Error(format!("Failed to fetch the {name}: {error}")),
                 };
-                if matches!(&*state, self::sealed::FetchState::Fetching) {
+                if matches!(&*state, FetchState::Pending | FetchState::Fetching) {
+                    state.set(value);
+                }
+            })
+        }
+    }
+
+    pub fn try_fetch_unchecked<Res>(self, base_url: &str, state: UseStateHandle<FetchState<Res>>)
+    where
+        Res: 'static + DeserializeOwned,
+        Url: fmt::Display,
+    {
+        if matches!(&*state, FetchState::Pending) {
+            state.set(FetchState::Fetching);
+
+            let Self {
+                method,
+                name,
+                url: suffix_url,
+            } = self;
+            let url = format!("{base_url}/{suffix_url}");
+
+            let state = state.clone();
+            spawn_local(async move {
+                let request = RequestBuilder::new(&url).method(method);
+                let value = match request.send().await {
+                    Ok(response) => match response.json().await {
+                        Ok(data) => FetchState::Completed(data),
+                        Err(error) => {
+                            FetchState::Error(format!("Failed to parse the {name}: {error}"))
+                        }
+                    },
+                    Err(error) => FetchState::Error(format!("Failed to fetch the {name}: {error}")),
+                };
+                if matches!(&*state, FetchState::Fetching) {
                     state.set(value);
                 }
             })
@@ -48,29 +81,25 @@ impl<Url> FetchRequest<Url> {
     }
 }
 
-pub(super) mod sealed {
-    use std::fmt;
+#[derive(Clone, Debug, Default)]
+pub enum FetchState<T> {
+    #[default]
+    Pending,
+    Fetching,
+    Completed(T),
+    Error(String),
+}
 
-    #[derive(Debug, Default)]
-    pub enum FetchState<T> {
-        #[default]
-        Pending,
-        Fetching,
-        Completed(T),
-        Error(String),
-    }
-
-    impl<T> fmt::Display for FetchState<T>
-    where
-        T: fmt::Display,
-    {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            match self {
-                FetchState::Pending => "pending".fmt(f),
-                FetchState::Fetching => "loading".fmt(f),
-                FetchState::Completed(data) => data.fmt(f),
-                FetchState::Error(error) => error.fmt(f),
-            }
+impl<T> fmt::Display for FetchState<T>
+where
+    T: fmt::Display,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            FetchState::Pending => "pending".fmt(f),
+            FetchState::Fetching => "loading".fmt(f),
+            FetchState::Completed(data) => data.fmt(f),
+            FetchState::Error(error) => error.fmt(f),
         }
     }
 }

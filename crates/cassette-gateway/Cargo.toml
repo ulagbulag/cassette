@@ -27,7 +27,7 @@ full = ["kubernetes"]
 kubernetes = ["dep:cassette-plugin-kubernetes"]
 
 [dependencies]
-cassette-core = { path = "../cassette-core" }
+cassette-core = { path = "../cassette-core", features = ["actix-web"] }
 cassette-plugin-kubernetes = { path = "../cassette-plugin-kubernetes", optional = true, features = [
     "api",
 ] }
