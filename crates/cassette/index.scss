@@ -28,6 +28,23 @@ main {
   height: 20em;
 }
 
+// Error
+
+main.error {
+  height: 100vh;
+
+  align-items: center;
+  font-family: sans-serif;
+  justify-content: center;
+
+  display: flex;
+  font-size: 1.5rem;
+}
+
+h1.error + .subtitle {
+  display: block;
+}
+
 // Home
 
 main.home {
