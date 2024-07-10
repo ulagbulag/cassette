@@ -130,6 +130,20 @@ spec:
             - name: http
               protocol: TCP
               containerPort: 8080
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            httpGet:
+              path: /v1/cassette/
+              port: http
+          readinessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            httpGet:
+              path: /v1/cassette/_health
+              port: http
           resources:
             requests:
               cpu: 50m
