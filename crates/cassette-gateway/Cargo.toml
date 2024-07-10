@@ -20,10 +20,17 @@ workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = []
+default = ["full"]
+full = ["kubernetes"]
+
+# plugins
+kubernetes = ["dep:cassette-plugin-kubernetes"]
 
 [dependencies]
 cassette-core = { path = "../cassette-core" }
+cassette-plugin-kubernetes = { path = "../cassette-plugin-kubernetes", optional = true, features = [
+    "api",
+] }
 
 actix-cors = { workspace = true }
 actix-web = { workspace = true }

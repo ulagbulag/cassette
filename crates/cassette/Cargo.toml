@@ -28,8 +28,9 @@ kubernetes = ["dep:cassette-plugin-kubernetes"]
 
 [dependencies]
 cassette-core = { path = "../cassette-core", features = ["ui"] }
-cassette-core = { path = "../cassette-core" }
-cassette-plugin-kubernetes = { path = "../cassette-plugin-kubernetes", optional = true }
+cassette-plugin-kubernetes = { path = "../cassette-plugin-kubernetes", optional = true, features = [
+    "ui",
+] }
 
 regex = { workspace = true }
 uuid = { workspace = true }
