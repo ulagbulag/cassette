@@ -19,11 +19,18 @@ workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+default = []
+ui = ["dep:gloo-net", "dep:yew", "dep:yew-router"]
+
 [dependencies]
 garde = { workspace = true }
+gloo-net = { workspace = true, optional = true }
 k8s-openapi = { workspace = true }
 kube = { workspace = true, features = ["derive"] }
 schemars = { workspace = true, features = ["derive"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 uuid = { workspace = true }
+yew = { workspace = true, optional = true }
+yew-router = { workspace = true, optional = true }

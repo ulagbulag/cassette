@@ -1,3 +1,4 @@
+use actix_cors::Cors;
 use actix_web::{
     get, middleware,
     web::{self, Data},
@@ -43,24 +44,37 @@ async fn try_loop_forever(agent: Agent) -> Result<()> {
 
     // Create a http server
     let server = HttpServer::new(move || {
+        let cors = Cors::default()
+            .allow_any_header()
+            .allow_any_method()
+            .allow_any_origin();
+
         let app = App::new().app_data(Data::clone(&agent));
-        let mut app = app.route(&base_url, web::to(home)).service(
-            web::scope(&base_url)
+        let mut app = match &base_url {
+            Some(base_url) => app.route(&base_url, web::to(home)).service(
+                web::scope(&base_url)
+                    .service(health)
+                    .service(crate::routes::cassette::get)
+                    .service(crate::routes::cassette::list),
+            ),
+            None => app
+                .service(health)
                 .service(health)
                 .service(crate::routes::cassette::get)
                 .service(crate::routes::cassette::list),
-        );
+        };
         if let Some(redirect_to) = redirect_error_404.clone() {
             app = app.default_service(web::to(move || {
                 let redirect_to = redirect_to.clone();
                 async { web::Redirect::to(redirect_to) }
             }));
         }
-        app.wrap(middleware::NormalizePath::new(
-            middleware::TrailingSlash::Trim,
-        ))
-        .wrap(RequestTracing::default())
-        .wrap(RequestMetrics::default())
+        app.wrap(cors)
+            .wrap(middleware::NormalizePath::new(
+                middleware::TrailingSlash::Trim,
+            ))
+            .wrap(RequestTracing::default())
+            .wrap(RequestMetrics::default())
     })
     .bind(addr)
     .map_err(|error| anyhow!("failed to bind to {addr}: {error}"))?;

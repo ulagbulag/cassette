@@ -8,6 +8,8 @@ pub enum Route {
     Home,
     #[at("/c/:id")]
     Cassette { id: Uuid },
+    #[at("/license")]
+    License,
     #[at("/error/404")]
     NotFound,
     #[at("/error/_404")]
@@ -21,6 +23,7 @@ pub fn switch(route: Route) -> Html {
     match route {
         Route::Home => html! { <crate::pages::home::Home /> },
         Route::Cassette { id } => html! { <crate::pages::home::Home /> },
+        Route::License => html! { <crate::pages::license::License /> },
         Route::NotFound => html! { <crate::pages::error_404::Error404 /> },
         Route::NotFoundRedirect => redirect_to_404_notfound(),
         Route::Profile => html! { <crate::pages::profile::Profile /> },

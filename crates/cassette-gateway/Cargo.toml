@@ -25,6 +25,7 @@ default = []
 [dependencies]
 cassette-core = { path = "../cassette-core" }
 
+actix-cors = { workspace = true }
 actix-web = { workspace = true }
 actix-web-opentelemetry = { workspace = true }
 anyhow = { workspace = true }

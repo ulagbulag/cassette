@@ -29,7 +29,7 @@ impl Agent {
         })
     }
 
-    pub(crate) fn base_url(&self) -> String {
+    pub(crate) fn base_url(&self) -> Option<String> {
         self.args.base_url.clone()
     }
 
@@ -60,8 +60,8 @@ impl Agent {
 
 #[derive(Clone, Debug, PartialEq, Parser)]
 pub struct AgentArgs {
-    #[arg(long, env, default_value = AgentArgs::default_base_url())]
-    pub base_url: String,
+    #[arg(long, env)]
+    pub base_url: Option<String>,
 
     #[arg(long, env, default_value_t = AgentArgs::default_bind_addr())]
     pub bind_addr: SocketAddr,
@@ -71,10 +71,6 @@ pub struct AgentArgs {
 }
 
 impl AgentArgs {
-    const fn default_base_url() -> &'static str {
-        "/"
-    }
-
     const fn default_bind_addr() -> SocketAddr {
         SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 8080))
     }

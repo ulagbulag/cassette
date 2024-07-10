@@ -2,28 +2,24 @@
 
 html,
 body {
-  height: 100%;
   margin: 0;
 }
 
 body {
-  align-items: center;
   display: flex;
-  justify-content: center;
-
-  font-size: 1.5rem;
 }
 
 main {
-  height: 100%;
-  margin: 0;
   width: 100%;
 
-  color: #fff6d5;
+  align-items: center;
   font-family: sans-serif;
-  text-align: center;
+  justify-content: center;
 
   background: linear-gradient(to bottom right, #444444, #009a5b);
+
+  color: #fff6d5;
+  text-align: center;
 }
 
 // Assets
@@ -34,21 +30,45 @@ main {
 
 // Home
 
+main.home {
+  height: 100vh;
+
+  display: flex;
+  font-size: 1.5rem;
+}
+
 .heart:after {
   content: "❤️";
 
   font-size: 1.75em;
 }
 
-h1 + .subtitle {
+h1.home + .subtitle {
   display: block;
-  margin-top: -1em;
+}
+
+// License
+
+main.license {
+  margin: 0;
+
+  background: #bbbbbb;
+  color: black;
+  font-size: 1rem;
+}
+
+div.license {
+  margin-top: 2%;
+  margin-left: 5%;
+
+  text-align: left;
+  white-space: pre-wrap;
 }
 
 // Profile
 
 main.profile {
-  height: 100%;
+  height: 100vh;
   margin: 0;
 
   background: #bbbbbb;

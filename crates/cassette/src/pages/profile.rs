@@ -1,10 +1,13 @@
+use cassette_core::net::gateway::{use_gateway, use_gateway_status};
 use yew::prelude::*;
+use yew_router::prelude::*;
 
-use crate::hooks::gateway::use_gateway;
+use crate::route::Route;
 
 #[function_component(Profile)]
 pub fn profile() -> Html {
-    let gateway = use_gateway();
+    let gateway_url = use_gateway();
+    let gateway_status = use_gateway_status();
 
     html! {
         <main class="profile">
@@ -30,7 +33,7 @@ pub fn profile() -> Html {
                 </tr>
                 <tr>
                     <td class="profile-table-key">{ "License" }</td>
-                    <td class="profile-table-value">{ env!("CARGO_PKG_LICENSE") }</td>
+                    <td class="profile-table-value"><a href="/license">{ env!("CARGO_PKG_LICENSE") }</a></td>
                 </tr>
                 <tr>
                     <td class="profile-table-key">{ "Version" }</td>
@@ -38,11 +41,11 @@ pub fn profile() -> Html {
                 </tr>
                 <tr>
                     <td class="profile-table-key">{ "Homepage" }</td>
-                    <td class="profile-table-value"><a href={ env!("CARGO_PKG_HOMEPAGE") } /></td>
+                    <td class="profile-table-value"><a href={ env!("CARGO_PKG_HOMEPAGE") }>{ env!("CARGO_PKG_HOMEPAGE") }</a></td>
                 </tr>
                 <tr>
                     <td class="profile-table-key">{ "Repository" }</td>
-                    <td class="profile-table-value"><a href={ env!("CARGO_PKG_REPOSITORY") } /></td>
+                    <td class="profile-table-value"><a href={ env!("CARGO_PKG_REPOSITORY") }>{ env!("CARGO_PKG_REPOSITORY") }</a></td>
                 </tr>
             </table>
 
@@ -54,7 +57,11 @@ pub fn profile() -> Html {
                 </tr>
                 <tr>
                     <td class="profile-table-key">{ "Gateway URL" }</td>
-                    <td class="profile-table-value">{ gateway }</td>
+                    <td class="profile-table-value">{ gateway_url }</td>
+                </tr>
+                <tr>
+                    <td class="profile-table-key">{ "Gateway Status" }</td>
+                    <td class="profile-table-value">{ gateway_status }</td>
                 </tr>
             </table>
         </main>
