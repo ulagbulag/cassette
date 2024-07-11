@@ -1,13 +1,21 @@
 use cassette_core::net::gateway::{use_gateway, use_gateway_status};
+use tracing::info;
 use yew::prelude::*;
 
 #[function_component(Profile)]
 pub fn profile() -> Html {
+    info!("Beginning loading profile...");
+
+    let title = "License";
+    let subtitle = "This page can be used to check the system or share the problem situation with experts when there is a problem.";
+
     let gateway_url = use_gateway();
     let gateway_status = use_gateway_status();
 
+    info!("Completed loading profile");
+
     html! {
-        <main class="profile">
+        <super::PageBody {title} {subtitle} >
             <h1>{ "System Profile" }</h1>
 
             <h2>{ "Build Information" }</h2>
@@ -61,6 +69,6 @@ pub fn profile() -> Html {
                     <td class="profile-table-value">{ gateway_status }</td>
                 </tr>
             </table>
-        </main>
+        </super::PageBody>
     }
 }

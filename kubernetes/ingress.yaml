@@ -84,10 +84,24 @@ spec:
                 name: client
                 port:
                   number: 80
+          - path: /snippets/
+            pathType: Prefix
+            backend:
+              service:
+                name: client
+                port:
+                  number: 80
           - path: /v1/cassette/
             pathType: Prefix
             backend:
               service:
                 name: gateway
+                port:
+                  number: 80
+          - path: /webfonts/
+            pathType: Prefix
+            backend:
+              service:
+                name: client
                 port:
                   number: 80

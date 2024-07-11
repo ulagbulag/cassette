@@ -3,11 +3,17 @@
 # found in the LICENSE file.
 
 # Configure environment variables
-ARG DEBIAN_VERSION="bookworm"
 ARG PACKAGE="cassette-server"
 
+ARG DEBIAN_IMAGE="${docker.io/library/debian}"
+ARG DEBIAN_VERSION="bookworm"
+ARG RUST_IMAGE="docker.io/library/rust"
+ARG RUST_VERSION="1"
+
+ARG _OS_VERSION="${DEBIAN_VERSION}"
+
 # Be ready for serving
-FROM docker.io/library/debian:${DEBIAN_VERSION} as server
+FROM "${DEBIAN_IMAGE}:${DEBIAN_VERSION}" AS server
 
 # Server Configuration
 EXPOSE 8080/tcp
@@ -19,7 +25,7 @@ ARG PACKAGE
 ADD ./LICENSE /usr/share/licenses/${PACKAGE}/LICENSE
 
 # Be ready for building
-FROM docker.io/library/rust:1-${DEBIAN_VERSION} as builder
+FROM "${RUST_IMAGE}:${RUST_VERSION}-${_OS_VERSION}" AS builder
 
 # Load source files
 ADD ./Cargo.toml /src/

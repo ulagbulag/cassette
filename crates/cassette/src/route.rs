@@ -1,35 +1,87 @@
+use patternfly_yew::prelude::*;
 use uuid::Uuid;
-use yew::prelude::*;
-use yew_router::prelude::*;
+use yew::{prelude::*, virtual_dom::VChild};
+use yew_nested_router::prelude::*;
 
-#[derive(Copy, Clone, PartialEq, Eq, Routable)]
-pub enum Route {
-    #[at("/")]
+use crate::app::AppPage;
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Target)]
+pub enum AppRoute {
+    #[target(rename = "")]
     Home,
-    #[at("/c/:id")]
-    Cassette { id: Uuid },
-    #[at("/license")]
+    #[target(rename = "c")]
+    Cassette {
+        id: Uuid,
+    },
     License,
-    #[at("/error/404")]
-    NotFound,
-    #[at("/error/_404")]
-    #[not_found]
-    NotFoundRedirect,
-    #[at("/profile")]
+    Error(Errors),
     Profile,
 }
 
-pub fn switch(route: Route) -> Html {
-    match route {
-        Route::Home => html! { <crate::pages::home::Home /> },
-        Route::Cassette { id } => html! { <crate::pages::home::Home /> },
-        Route::License => html! { <crate::pages::license::License /> },
-        Route::NotFound => html! { <crate::pages::error_404::Error404 /> },
-        Route::NotFoundRedirect => redirect_to_404_notfound(),
-        Route::Profile => html! { <crate::pages::profile::Profile /> },
+impl Default for AppRoute {
+    fn default() -> Self {
+        Self::Error(Errors::NotFound)
     }
 }
 
-pub fn redirect_to_404_notfound() -> Html {
-    html! { <Redirect<Route> to={Route::NotFound}/> }
+impl AppRoute {
+    pub fn side_bar() -> VChild<PageSidebar> {
+        let nav_home = html! {
+            <NavExpandable title="Basics">
+                <NavRouterItem<AppRoute> to={AppRoute::Home}>{"Home"}</NavRouterItem<AppRoute>>
+            </NavExpandable>
+        };
+
+        let nav_about = html! {
+            <NavExpandable title="About">
+                <NavRouterItem<AppRoute> to={AppRoute::Profile}>{"Profile"}</NavRouterItem<AppRoute>>
+                <NavRouterItem<AppRoute> to={AppRoute::License}>{"License"}</NavRouterItem<AppRoute>>
+            </NavExpandable>
+        };
+
+        html_nested! {
+            <PageSidebar>
+                <Nav>
+                    <NavList>
+                        {nav_home}
+                        {nav_about}
+                    </NavList>
+                </Nav>
+            </PageSidebar>
+        }
+    }
+
+    pub fn switch(self) -> Html {
+        let page = match self {
+            Self::Home => html! { <crate::pages::home::Home /> },
+            Self::Cassette { id } => html! { <crate::pages::home::Home /> },
+            Self::License => html! { <crate::pages::license::License /> },
+            Self::Error(route) => route.switch(),
+            Self::Profile => html! { <crate::pages::profile::Profile /> },
+        };
+        html! {
+            <AppPage>
+                {page}
+            </AppPage>
+        }
+    }
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Target)]
+pub enum Errors {
+    #[target(rename = "404")]
+    NotFound,
+}
+
+impl Errors {
+    fn switch(self) -> Html {
+        use crate::pages::error::{Error, ErrorKind};
+
+        let kind = match self {
+            Self::NotFound => ErrorKind::NotFound,
+        };
+        html! {
+            <Error {kind} />
+        }
+    }
 }

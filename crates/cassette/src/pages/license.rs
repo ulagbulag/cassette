@@ -2,9 +2,16 @@ use yew::prelude::*;
 
 #[function_component(License)]
 pub fn license() -> Html {
+    let title = "License";
+
     html! {
-        <main class="license">
-            <div class="license">{ include_str!("../../../../LICENSE") }</div>
-        </main>
+        <super::PageBody {title} >
+            <div style="
+                text-align: left;
+                white-space: pre-wrap;
+            ">
+                { include_str!("../../../../LICENSE") }
+            </div>
+        </super::PageBody>
     }
 }

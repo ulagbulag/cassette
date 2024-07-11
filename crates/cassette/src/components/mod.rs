@@ -7,6 +7,8 @@ pub fn route(kind: &str) -> Html {
         "text" => html! { <self::text::Component /> },
         #[cfg(feature = "kubernetes")]
         "kubernetes" => todo!(),
-        _ => html! { <crate::pages::error_404::Error404 /> },
+        _ => {
+            html! { <crate::pages::error::Error kind={ crate::pages::error::ErrorKind::NotFound } /> }
+        }
     }
 }

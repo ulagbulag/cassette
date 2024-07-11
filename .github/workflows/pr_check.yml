@@ -30,7 +30,7 @@ jobs:
           version: "latest"
 
       - name: Build
-        run: trunk build './crates/cassette/index.html'
+        run: trunk build
 
   build-server:
     runs-on: ubuntu-latest

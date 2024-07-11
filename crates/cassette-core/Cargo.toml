@@ -22,7 +22,7 @@ workspace = true
 [features]
 default = []
 actix-web = ["dep:actix-web"]
-ui = ["dep:gloo-net", "dep:yew", "dep:yew-router"]
+ui = ["dep:gloo-net", "dep:yew"]
 
 [dependencies]
 actix-web = { workspace = true, optional = true }
@@ -34,5 +34,5 @@ schemars = { workspace = true, features = ["derive"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 uuid = { workspace = true }
+web-sys = { workspace = true }
 yew = { workspace = true, optional = true }
-yew-router = { workspace = true, optional = true }

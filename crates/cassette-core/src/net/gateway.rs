@@ -1,9 +1,8 @@
-use std::{collections::HashMap, fmt};
+use std::fmt;
 
 pub use gloo_net::http::Method;
 use serde::de::DeserializeOwned;
 use yew::prelude::*;
-use yew_router::prelude::*;
 
 use super::fetch::{FetchRequest, FetchState};
 
@@ -42,19 +41,25 @@ where
 }
 
 #[hook]
-pub fn use_query() -> HashMap<String, String> {
-    let location = use_location();
-    location
-        .and_then(|location| location.query::<HashMap<String, String>>().ok())
-        .unwrap_or_default()
+pub fn use_query(key: &str) -> Option<String> {
+    // Load current window object
+    let window = ::web_sys::window()?;
+    // Load current URL
+    let href = window.location().href().ok()?;
+
+    // Create an URL object
+    let url = ::web_sys::Url::new(&href).ok()?;
+
+    // Take query parameters
+    let search_params = url.search_params();
+
+    // Get specific query parameter
+    search_params.get(key)
 }
 
 #[hook]
 pub fn use_gateway() -> String {
-    use_query()
-        .get("gateway")
-        .cloned()
-        .unwrap_or_else(|| "/v1/cassette".into())
+    use_query("gateway").unwrap_or_else(|| "/v1/cassette".into())
 }
 
 #[hook]
@@ -69,8 +74,5 @@ pub fn use_gateway_status() -> String {
 
 #[hook]
 pub fn use_namespace() -> String {
-    use_query()
-        .get("namespace")
-        .cloned()
-        .unwrap_or_else(|| "default".into())
+    use_query("namespace").unwrap_or_else(|| "default".into())
 }

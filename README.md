@@ -1,6 +1,6 @@
 # 📼 Cassette
 
-![Cassette logo](/assets/logo.webp)
+![Cassette logo](/assets/images/icons/logo.webp)
 
 This is a Cloud-native Template-based dynamic declarative web UI framework built with [Yew].
 
@@ -13,6 +13,11 @@ TBD
 TBD
 
 ## Building
+
+### Dependencies
+
+- node (npm)
+- rustup
 
 ### Install dependencies
 
@@ -36,6 +41,20 @@ just run  # or, just type "just"
 
 ```bash
 just test
+```
+
+## Building Container Images
+
+### Build
+
+```bash
+just oci-build
+```
+
+### Deploy
+
+```bash
+just oci-push
 ```
 
 ## LICENSE
