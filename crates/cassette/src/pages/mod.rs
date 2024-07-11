@@ -7,7 +7,7 @@ pub mod profile;
 use patternfly_yew::prelude::*;
 use yew::prelude::*;
 
-use crate::build_info::{DEBUG, GIT_DIRTY};
+use crate::build_info::{CI_PLATFORM, DEBUG, GIT_DIRTY};
 
 #[derive(Clone, Debug, PartialEq, Properties)]
 pub struct Props {
@@ -97,7 +97,7 @@ exist.
 
             if DEBUG {
                 { alert_debug() }
-            } else if GIT_DIRTY.unwrap_or_default() {
+            } else if CI_PLATFORM.is_none() && GIT_DIRTY.unwrap_or_default() {
                 { alert_git_dirty() }
             }
 
