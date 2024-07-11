@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: install toolchain
+      - name: Install toolchain
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
@@ -29,6 +29,14 @@ jobs:
         with:
           version: "latest"
 
+      - name: Install node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install node dependencies
+        run: npm clean-install
+
       - name: Build
         run: trunk build
 
@@ -38,7 +46,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: install toolchain
+      - name: Install toolchain
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
