@@ -1,4 +1,9 @@
-use cassette_core::net::gateway::{use_gateway, use_gateway_status};
+use std::borrow::Cow;
+
+use cassette_core::net::{
+    fetch::FetchState,
+    gateway::{use_gateway, use_gateway_status},
+};
 use patternfly_yew::prelude::*;
 use tracing::info;
 use yew::prelude::*;
@@ -10,30 +15,215 @@ pub fn profile() -> Html {
     info!("Beginning loading profile...");
 
     // Application
-
     let title = "Profile";
     let subtitle = "This page can be used to check the system or share the problem situation with experts when there is a problem.";
 
+    let entries_app = use_memo((), |()| {
+        vec![
+            Entry {
+                key: "Name",
+                value: Cow::Borrowed(PKG_NAME),
+                link: None,
+            },
+            Entry {
+                key: "Description",
+                value: Cow::Borrowed(PKG_DESCRIPTION),
+                link: None,
+            },
+            Entry {
+                key: "Authors",
+                value: Cow::Borrowed(PKG_AUTHORS),
+                link: None,
+            },
+            Entry {
+                key: "Homepage",
+                value: Cow::Borrowed(PKG_HOMEPAGE),
+                link: Some(Cow::Borrowed(PKG_HOMEPAGE)),
+            },
+            Entry {
+                key: "Repository",
+                value: Cow::Borrowed(PKG_REPOSITORY),
+                link: Some(Cow::Borrowed(PKG_REPOSITORY)),
+            },
+            Entry {
+                key: "License",
+                value: Cow::Borrowed(PKG_LICENSE),
+                link: Some(Cow::Borrowed("/license")),
+            },
+        ]
+    });
+    let (entries_app, _) = use_table_data(MemoizedTableModel::new(entries_app));
+
     // Build
-    let git_dirty = GIT_DIRTY.unwrap_or_default();
+    let entries_build = use_memo((), |()| {
+        vec![
+            Entry {
+                key: "Build CI",
+                value: Cow::Borrowed(CI_PLATFORM.unwrap_or("Unknown")),
+                link: None,
+            },
+            Entry {
+                key: "Build Features",
+                value: Cow::Borrowed(FEATURES_LOWERCASE_STR),
+                link: None,
+            },
+            Entry {
+                key: "Build Jobs",
+                value: Cow::Owned(NUM_JOBS.to_string()),
+                link: None,
+            },
+            Entry {
+                key: "Build Profile",
+                value: Cow::Borrowed(PROFILE),
+                link: None,
+            },
+            Entry {
+                key: "Build Time",
+                value: Cow::Borrowed(BUILT_TIME_UTC),
+                link: None,
+            },
+            Entry {
+                key: "Build Version",
+                value: Cow::Borrowed(PKG_VERSION),
+                link: None,
+            },
+            Entry {
+                key: "Debug Mode",
+                value: Cow::Owned(DEBUG.to_string()),
+                link: None,
+            },
+            Entry {
+                key: "Git Commit",
+                value: Cow::Borrowed(GIT_COMMIT_HASH.unwrap_or_default()),
+                link: None,
+            },
+            Entry {
+                key: "Git Dirty",
+                value: Cow::Owned(GIT_DIRTY.unwrap_or_default().to_string()),
+                link: None,
+            },
+            Entry {
+                key: "Git Head ref",
+                value: Cow::Borrowed(GIT_HEAD_REF.unwrap_or_default()),
+                link: None,
+            },
+            Entry {
+                key: "Git Version",
+                value: Cow::Borrowed(GIT_VERSION.unwrap_or_default()),
+                link: None,
+            },
+            Entry {
+                key: "Optimization Level",
+                value: Cow::Borrowed(OPT_LEVEL),
+                link: None,
+            },
+            Entry {
+                key: "Rustc",
+                value: Cow::Borrowed(RUSTC),
+                link: None,
+            },
+            Entry {
+                key: "Rustc Version",
+                value: Cow::Borrowed(RUSTC_VERSION),
+                link: None,
+            },
+            Entry {
+                key: "Target Arch",
+                value: Cow::Borrowed(CFG_TARGET_ARCH),
+                link: None,
+            },
+            Entry {
+                key: "Target Endian",
+                value: Cow::Borrowed(CFG_ENDIAN),
+                link: None,
+            },
+            Entry {
+                key: "Target Environment",
+                value: Cow::Borrowed(CFG_ENV),
+                link: None,
+            },
+            Entry {
+                key: "Target OS",
+                value: Cow::Borrowed(CFG_OS),
+                link: None,
+            },
+            Entry {
+                key: "Target OS Family",
+                value: Cow::Borrowed(CFG_FAMILY),
+                link: None,
+            },
+            Entry {
+                key: "Target Pointer Width",
+                value: Cow::Borrowed(CFG_POINTER_WIDTH),
+                link: None,
+            },
+        ]
+    });
+    let (entries_build, _) = use_table_data(MemoizedTableModel::new(entries_build));
 
     // Dependencies
-
-    let dependencies = DEPENDENCIES.into_iter().map(|(name, version)| {
-        html! {
-            <tr>
-                <td class="profile-table-key">{ name }</td>
-                <td class="profile-table-value">{ version }</td>
-            </tr>
-        }
+    let entries_deps = use_memo((), |()| {
+        DEPENDENCIES
+            .into_iter()
+            .map(|(name, version)| Entry {
+                key: name,
+                value: Cow::Borrowed(version),
+                link: None,
+            })
+            .collect()
     });
+    let (entries_deps, _) = use_table_data(MemoizedTableModel::new(entries_deps));
 
     // Runtime
-
     let gateway_url = use_gateway();
     let gateway_status = use_gateway_status();
 
+    let entries_rt = use_state_eq(|| {
+        vec![
+            Entry {
+                key: "Gateway URL",
+                value: Cow::Owned(gateway_url),
+                link: None,
+            },
+            Entry {
+                key: "Gateway Status",
+                value: Cow::Owned(FetchState::<String>::Pending.to_string()),
+                link: None,
+            },
+        ]
+    });
+    if let Some(index) = entries_rt
+        .iter()
+        .enumerate()
+        .find(|(_, entry)| entry.key == "Gateway Status")
+        .map(|(index, _)| index)
+    {
+        entries_rt.set({
+            let mut entries = (*entries_rt).clone();
+            entries[index].value = Cow::Owned(gateway_status);
+            entries
+        });
+    }
+
+    let (entries_rt, _) = use_table_data(UseStateTableModel::new(entries_rt));
+
+    // Table
     info!("Completed loading profile");
+
+    let header_key = html_nested! (
+        <TableHeader<KeyColumns>>
+            <TableColumn<KeyColumns> label="Key" index={ KeyColumns::Key } />
+            <TableColumn<KeyColumns> label="Value" index={ KeyColumns::Value } />
+        </TableHeader<KeyColumns>>
+    );
+    let header_version = html_nested! (
+        <TableHeader<VersionColumns>>
+            <TableColumn<VersionColumns> label="Name" index={ VersionColumns::Name } />
+            <TableColumn<VersionColumns> label="Version" index={ VersionColumns::Version } />
+        </TableHeader<VersionColumns>>
+    );
+
+    let mode = TableMode::Compact;
 
     html! {
         <super::PageBody {title} {subtitle} >
@@ -41,146 +231,104 @@ pub fn profile() -> Html {
                 <h1>{ "System Profile" }</h1>
 
                 <h2>{ "Application Information" }</h2>
-                <table class="profile">
-                    <tr>
-                        <th class="profile-table-key">{ "Key" }</th>
-                        <th class="profile-table-value">{ "Value" }</th>
-                    </tr>
-                    <tr>
-                        <td class="profile-table-key">{ "Name" }</td>
-                        <td class="profile-table-value">{ PKG_NAME }</td>
-                    </tr>
-                    <tr>
-                        <td class="profile-table-key">{ "Description" }</td>
-                        <td class="profile-table-value">{ PKG_DESCRIPTION }</td>
-                    </tr>
-                    <tr>
-                        <td class="profile-table-key">{ "Authors" }</td>
-                        <td class="profile-table-value">{ PKG_AUTHORS }</td>
-                    </tr>
-                    <tr>
-                        <td class="profile-table-key">{ "Homepage" }</td>
-                        <td class="profile-table-value"><a href={ PKG_HOMEPAGE }>{ PKG_HOMEPAGE }</a></td>
-                    </tr>
-                    <tr>
-                        <td class="profile-table-key">{ "Repository" }</td>
-                        <td class="profile-table-value"><a href={ PKG_REPOSITORY }>{ PKG_REPOSITORY }</a></td>
-                    </tr>
-                    <tr>
-                        <td class="profile-table-key">{ "License" }</td>
-                        <td class="profile-table-value"><a href="/license">{ PKG_LICENSE }</a></td>
-                    </tr>
-                </table>
+                <Table<KeyColumns, UseTableData<KeyColumns, MemoizedTableModel<Entry>>>
+                    { mode }
+                    header={ header_key.clone() }
+                    entries={ entries_app }
+                />
 
                 <h2>{ "Build Information" }</h2>
-                <table class="profile">
-                    <tr>
-                        <td class="profile-table-key">{ "Build CI" }</td>
-                        <td class="profile-table-value">{ CI_PLATFORM.unwrap_or("Unknown") }</td>
-                    </tr>
-                    <tr>
-                        <td class="profile-table-key">{ "Build Features" }</td>
-                        <td class="profile-table-value">{ FEATURES_LOWERCASE_STR }</td>
-                    </tr>
-                    <tr>
-                        <td class="profile-table-key">{ "Build Jobs" }</td>
-                        <td class="profile-table-value">{ NUM_JOBS }</td>
-                    </tr>
-                    <tr>
-                        <td class="profile-table-key">{ "Build Profile" }</td>
-                        <td class="profile-table-value">{ PROFILE }</td>
-                    </tr>
-                    <tr>
-                        <td class="profile-table-key">{ "Build Time" }</td>
-                        <td class="profile-table-value">{ BUILT_TIME_UTC }</td>
-                    </tr>
-                    <tr>
-                        <td class="profile-table-key">{ "Build Version" }</td>
-                        <td class="profile-table-value">{ PKG_VERSION }</td>
-                    </tr>
-                    <tr>
-                        <td class="profile-table-key">{ "Debug Mode" }</td>
-                        <td class="profile-table-value">{ DEBUG }</td>
-                    </tr>
-                    <tr>
-                        <td class="profile-table-key">{ "Git Commit" }</td>
-                        <td class="profile-table-value">{ GIT_COMMIT_HASH.unwrap_or_default() }</td>
-                    </tr>
-                    <tr>
-                        <td class="profile-table-key">{ "Git Dirty" }</td>
-                        <td class="profile-table-value">{ git_dirty }</td>
-                    </tr>
-                    <tr>
-                        <td class="profile-table-key">{ "Git Head ref" }</td>
-                        <td class="profile-table-value">{ GIT_HEAD_REF.unwrap_or_default() }</td>
-                    </tr>
-                    <tr>
-                        <td class="profile-table-key">{ "Git Version" }</td>
-                        <td class="profile-table-value">{ GIT_VERSION.unwrap_or_default() }</td>
-                    </tr>
-                    <tr>
-                        <td class="profile-table-key">{ "Optimization Level" }</td>
-                        <td class="profile-table-value">{ OPT_LEVEL }</td>
-                    </tr>
-                    <tr>
-                        <td class="profile-table-key">{ "Pointer Width" }</td>
-                        <td class="profile-table-value">{ CFG_POINTER_WIDTH }</td>
-                    </tr>
-                    <tr>
-                        <td class="profile-table-key">{ "Rustc" }</td>
-                        <td class="profile-table-value">{ RUSTC }</td>
-                    </tr>
-                    <tr>
-                        <td class="profile-table-key">{ "Rustc Version" }</td>
-                        <td class="profile-table-value">{ RUSTC_VERSION }</td>
-                    </tr>
-                    <tr>
-                        <td class="profile-table-key">{ "Target Arch" }</td>
-                        <td class="profile-table-value">{ CFG_TARGET_ARCH }</td>
-                    </tr>
-                    <tr>
-                        <td class="profile-table-key">{ "Target Endian" }</td>
-                        <td class="profile-table-value">{ CFG_ENDIAN }</td>
-                    </tr>
-                    <tr>
-                        <td class="profile-table-key">{ "Target Environment" }</td>
-                        <td class="profile-table-value">{ CFG_ENV }</td>
-                    </tr>
-                    <tr>
-                        <td class="profile-table-key">{ "Target OS" }</td>
-                        <td class="profile-table-value">{ CFG_OS }</td>
-                    </tr>
-                    <tr>
-                        <td class="profile-table-key">{ "Target OS Family" }</td>
-                        <td class="profile-table-value">{ CFG_FAMILY }</td>
-                    </tr>
-                </table>
+                <Table<KeyColumns, UseTableData<KeyColumns, MemoizedTableModel<Entry>>>
+                    { mode }
+                    header={ header_key.clone() }
+                    entries={ entries_build }
+                />
 
                 <h2>{ "Runtime Information" }</h2>
-                <table class="profile">
-                    <tr>
-                        <th class="profile-table-key">{ "Key" }</th>
-                        <th class="profile-table-value">{ "Value" }</th>
-                    </tr>
-                    <tr>
-                        <td class="profile-table-key">{ "Gateway URL" }</td>
-                        <td class="profile-table-value">{ gateway_url }</td>
-                    </tr>
-                    <tr>
-                        <td class="profile-table-key">{ "Gateway Status" }</td>
-                        <td class="profile-table-value">{ gateway_status }</td>
-                    </tr>
-                </table>
+                <Table<KeyColumns, UseTableData<KeyColumns, UseStateTableModel<Entry>>>
+                    { mode }
+                    header={ header_key }
+                    entries={ entries_rt }
+                />
 
                 <h2>{ "Dependency Information" }</h2>
-                <table class="profile">
-                    <tr>
-                        <th class="profile-table-key">{ "Name" }</th>
-                        <th class="profile-table-value">{ "Version" }</th>
-                    </tr>
-                    { for dependencies }
-                </table>
+                <Table<VersionColumns, UseTableData<VersionColumns, MemoizedTableModel<Entry>>>
+                    { mode }
+                    header={ header_version }
+                    entries={ entries_deps }
+                />
             </Content>
         </super::PageBody>
+    }
+}
+
+#[derive(Clone, PartialEq, Debug)]
+struct Entry<'a> {
+    key: &'a str,
+    value: Cow<'a, str>,
+    link: Option<Cow<'a, str>>,
+}
+
+#[derive(Copy, Clone, Eq, PartialEq)]
+enum KeyColumns {
+    Key,
+    Value,
+}
+
+impl<'a> TableEntryRenderer<KeyColumns> for Entry<'a> {
+    fn render_cell(&self, ctx: CellContext<KeyColumns>) -> Cell {
+        let Self { key, value, link } = self;
+        match ctx.column {
+            KeyColumns::Key => html!({ key }),
+            KeyColumns::Value => html!({ value }),
+        }
+        .into()
+    }
+
+    fn render_details(&self) -> Vec<Span> {
+        vec![Span::max(html! (
+            <>
+                { &self.key }
+            </>
+        ))]
+    }
+
+    fn render_column_details(&self, column: &KeyColumns) -> Vec<Span> {
+        vec![Span::max(match column {
+            KeyColumns::Key => html!({ "Key" }),
+            KeyColumns::Value => html!({ "Value" }),
+        })]
+    }
+}
+
+#[derive(Copy, Clone, Eq, PartialEq)]
+enum VersionColumns {
+    Name,
+    Version,
+}
+
+impl<'a> TableEntryRenderer<VersionColumns> for Entry<'a> {
+    fn render_cell(&self, ctx: CellContext<VersionColumns>) -> Cell {
+        let Self { key, value, link } = self;
+        match ctx.column {
+            VersionColumns::Name => html!({ key }),
+            VersionColumns::Version => html!({ value }),
+        }
+        .into()
+    }
+
+    fn render_details(&self) -> Vec<Span> {
+        vec![Span::max(html! (
+            <>
+                { &self.key }
+            </>
+        ))]
+    }
+
+    fn render_column_details(&self, column: &VersionColumns) -> Vec<Span> {
+        vec![Span::max(match column {
+            VersionColumns::Name => html!({ "Name" }),
+            VersionColumns::Version => html!({ "Version" }),
+        })]
     }
 }
