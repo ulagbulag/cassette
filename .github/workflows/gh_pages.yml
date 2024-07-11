@@ -55,7 +55,7 @@ jobs:
         run: sed -i '/\[\[hooks\]\]/,$d' 'Trunk.toml'
 
       - name: Build
-        run: trunk build
+        run: trunk build --release
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
