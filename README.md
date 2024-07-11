@@ -4,6 +4,8 @@
 
 This is a Cloud-native Template-based dynamic declarative web UI framework built with [Yew].
 
+You can get started by experiencing the various features here: https://api.ulagbulag.io
+
 ## Tutorial
 
 TBD
