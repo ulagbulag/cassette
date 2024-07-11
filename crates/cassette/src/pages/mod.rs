@@ -52,7 +52,7 @@ pub fn page_body(props: &Props) -> Html {
         alert_warning(
             "
 This application is built under debugging mode.
-Many features are not completed, and you can experience significant performance.
+Some features may not be completed, and you can experience significant performance.
 We strongly suggest not using it for production purposes.",
         )
     };
