@@ -114,7 +114,7 @@ docker run --name cassette --rm \
 
 ```bash
 docker run --name cassette --rm \
-    -p 8080:8080 \
+    -v ~/.kube:/root/.kube:ro \
     "quay.io/ulagbulag/cassette-server:latest" \
     'cassette-operator'
 ```
