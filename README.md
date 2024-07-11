@@ -14,30 +14,74 @@ TBD
 
 ## Building
 
-### Dependencies
+### Cassette Client
+
+#### Dependencies
 
 - node (npm)
 - rustup
 
-### Install dependencies
+#### Install dependencies
 
 ```bash
 cargo install just  # for Justfile
 ```
 
-### Build
+#### Build
 
 ```bash
 just build
 ```
 
-### Run a local server
+#### Run a local server
 
 ```bash
 just run  # or, just type "just"
 ```
 
-### Test
+### Cassette Gateway
+
+#### Dependencies
+
+- rustup
+
+#### Install dependencies
+
+```bash
+cargo install just  # for Justfile
+```
+
+#### Run a local server
+
+```bash
+just run-gateway
+```
+
+#### Test
+
+```bash
+just test
+```
+
+### Cassette K8S Operator
+
+#### Dependencies
+
+- rustup
+
+#### Install dependencies
+
+```bash
+cargo install just  # for Justfile
+```
+
+#### Run a local server
+
+```bash
+just run-operator
+```
+
+#### Test
 
 ```bash
 just test
@@ -49,6 +93,30 @@ just test
 
 ```bash
 just oci-build
+```
+
+### Run a local server
+
+```bash
+# Gateway
+docker run --name cassette --rm \
+    -p 8080:8080 \
+    "quay.io/ulagbulag/cassette-server:latest" \
+    'cassette-gateway'
+
+# Client
+docker run --name cassette --rm \
+    -p 6080:6080 \
+    "quay.io/ulagbulag/cassette:latest"
+```
+
+### Run a local K8S operator
+
+```bash
+docker run --name cassette --rm \
+    -p 8080:8080 \
+    "quay.io/ulagbulag/cassette-server:latest" \
+    'cassette-operator'
 ```
 
 ### Deploy
