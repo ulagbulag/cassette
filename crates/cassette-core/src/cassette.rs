@@ -39,6 +39,9 @@ pub struct CassetteSpec {
     #[garde(length(min = 1, max = 1024))]
     #[serde(default)]
     pub description: Option<String>,
+    #[garde(length(min = 1, max = 1024))]
+    #[serde(default)]
+    pub group: Option<String>,
     #[garde(skip)]
     #[serde(default)]
     pub priority: Option<u32>,
@@ -50,6 +53,8 @@ pub struct CassetteRef<Component = Uuid> {
     pub id: Uuid,
     pub component: Component,
     pub name: String,
+    #[serde(default)]
+    pub group: Option<String>,
     #[serde(default)]
     pub description: Option<String>,
     #[serde(default)]

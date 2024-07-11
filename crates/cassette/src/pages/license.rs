@@ -1,3 +1,4 @@
+use patternfly_yew::prelude::*;
 use yew::prelude::*;
 
 #[function_component(License)]
@@ -6,12 +7,14 @@ pub fn license() -> Html {
 
     html! {
         <super::PageBody {title} >
-            <div style="
-                text-align: left;
-                white-space: pre-wrap;
-            ">
-                { include_str!("../../../../LICENSE") }
-            </div>
+            <Content>
+                <div style="
+                    text-align: left;
+                    white-space: pre-wrap;
+                ">
+                    { include_str!("../../../../LICENSE") }
+                </div>
+            </Content>
         </super::PageBody>
     }
 }

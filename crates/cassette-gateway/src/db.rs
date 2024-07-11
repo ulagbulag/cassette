@@ -83,6 +83,7 @@ impl CassetteDBInner {
             id,
             component: cr.spec.component,
             name,
+            group: cr.spec.group,
             description: cr.spec.description,
             priority: cr.spec.priority,
         };
@@ -118,6 +119,7 @@ impl CassetteDBInner {
             id,
             component,
             name,
+            group,
             description,
             priority,
         } = cassette;
@@ -132,6 +134,7 @@ impl CassetteDBInner {
             id,
             component,
             name,
+            group,
             description,
             priority,
         })

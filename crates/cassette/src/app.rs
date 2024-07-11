@@ -1,9 +1,14 @@
-use patternfly_yew::prelude::*;
+use cassette_core::net::fetch::FetchState;
+use inflector::Inflector;
+use patternfly_yew::prelude::{Switch as ToggleSwitch, *};
 use yew::prelude::*;
 use yew_nested_router::prelude::{Switch as RouterSwitch, *};
 
 use crate::{
-    hooks::redirect::{use_open, OpenTarget},
+    hooks::{
+        gateway::use_cassette_list,
+        redirect::{use_open, OpenTarget},
+    },
     route::AppRoute,
 };
 
@@ -29,11 +34,26 @@ pub struct AppPageProps {
 
 #[function_component(AppPage)]
 pub fn app_page(props: &AppPageProps) -> Html {
-    let sidebar = AppRoute::side_bar();
+    let cassette_list = use_cassette_list();
+    let cassette_list = match &*cassette_list {
+        FetchState::Pending | FetchState::Fetching => Err(html! { <p>{ "Loading..." }</p> }),
+        FetchState::Completed(list) => Ok(list.as_slice()),
+        FetchState::Error(error) => Err(html! { <p>{ format!("Error: {error}") }</p> }),
+    };
 
+    let sidebar = AppRoute::use_side_bar(cassette_list);
+
+    let title = env!("CARGO_PKG_NAME")
+        .to_screaming_snake_case()
+        .replace('_', " ");
     let brand = html! (
         <MastheadBrand>
-            <Brand src="assets/images/icons/logo.webp" alt="Main Logo" style="--pf-v5-c-brand--Height: 36px;"/>
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; user-select: none;">
+                <Brand src="assets/images/icons/logo.webp" alt="Main Logo" style="--pf-v5-c-brand--Height: 36px;"/>
+                <Title size={Size::XLarge} >
+                    { title }
+                </Title>
+            </div>
         </MastheadBrand>
     );
 
@@ -41,7 +61,7 @@ pub fn app_page(props: &AppPageProps) -> Html {
 
     // track dark mode state
     let darkmode = use_state_eq(|| {
-        gloo_utils::window()
+        ::gloo_utils::window()
             .match_media("(prefers-color-scheme: dark)")
             .ok()
             .flatten()
@@ -51,8 +71,8 @@ pub fn app_page(props: &AppPageProps) -> Html {
 
     // apply dark mode
     use_effect_with(*darkmode, |state| match state {
-        true => gloo_utils::document_element().set_class_name("pf-v5-theme-dark"),
-        false => gloo_utils::document_element().set_class_name(""),
+        true => ::gloo_utils::document_element().set_class_name("pf-v5-theme-dark"),
+        false => ::gloo_utils::document_element().set_class_name(""),
     });
 
     // toggle dark mode
@@ -66,7 +86,7 @@ pub fn app_page(props: &AppPageProps) -> Html {
                     variant={GroupVariant::IconButton}
                 >
                     <ToolbarItem>
-                        <patternfly_yew::prelude::Switch checked={*darkmode} onchange={onthemeswitch} label="Dark Theme" />
+                        <ToggleSwitch checked={*darkmode} onchange={onthemeswitch} label="Dark Theme" />
                     </ToolbarItem>
                     <ToolbarItem>
                         <Button variant={ButtonVariant::Plain} icon={Icon::Github} onclick={callback_github}/>

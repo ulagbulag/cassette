@@ -1,32 +1,16 @@
-use cassette_core::{cassette::CassetteRef, net::fetch::FetchState};
+use inflector::Inflector;
+use patternfly_yew::prelude::*;
 use yew::prelude::*;
-
-use crate::hooks::gateway::use_cassette_list;
 
 #[function_component(Home)]
 pub fn home() -> Html {
-    let title = "Cassette";
+    let title = env!("CARGO_PKG_NAME").to_title_case();
     let subtitle = env!("CARGO_PKG_DESCRIPTION");
-
-    let cassette_list = match &*use_cassette_list() {
-        FetchState::Pending | FetchState::Fetching => html! { <p>{ "Loading..." }</p> },
-        FetchState::Completed(list) => render_cassette_list(list),
-        FetchState::Error(error) => html! { <p>{ format!("Error: {error}") }</p> },
-    };
 
     html! {
         <super::PageBody {title} {subtitle} >
-            <div class="home">
-                <img class="logo" src="/assets/images/icons/logo.webp" alt="Cassette logo" style="
-                    width: 5vw;
-                    height: 5vw;
-                "/>
-                { cassette_list }
-            </div>
+            <Content>
+            </Content>
         </super::PageBody>
     }
-}
-
-fn render_cassette_list(list: &[CassetteRef]) -> Html {
-    html! { <p>{ format!("{list:?}") }</p> }
 }
