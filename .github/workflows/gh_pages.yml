@@ -1,14 +1,27 @@
-name: pr_check
+name: gh_pages
 
 on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+  # Runs on pushes targeting the default branch
   push:
-  pull_request:
-    branches: [master]
+    branches:
+      - master
 
 env:
   CARGO_TERM_COLOR: always
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -44,24 +57,15 @@ jobs:
       - name: Build
         run: trunk build
 
-  build-server:
-    runs-on: ubuntu-latest
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
 
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Install toolchain
-        uses: actions-rs/toolchain@v1
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          toolchain: stable
-          override: true
-          profile: minimal
+          # Upload output repository
+          path: dist
 
-      - name: Check clippy
-        run: cargo clippy --all --verbose
-
-      - name: Build
-        run: cargo build --all --verbose
-
-      - name: Run tests
-        run: cargo test --all --verbose
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
