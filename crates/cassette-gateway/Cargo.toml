@@ -20,11 +20,16 @@ workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = ["full"]
+default = ["default-tls", "full"]
 full = ["kubernetes"]
 
 # plugins
 kubernetes = ["dep:cassette-plugin-kubernetes"]
+
+# TLS
+default-tls = ["openssl-tls"]
+openssl-tls = ["actix-web/openssl", "kube/openssl-tls"]
+rustls-tls = ["actix-web/rustls", "kube/rustls-tls"]
 
 [dependencies]
 cassette-core = { path = "../cassette-core", features = ["actix-web"] }
@@ -39,12 +44,7 @@ anyhow = { workspace = true }
 ark-core = { workspace = true, features = ["signal"] }
 clap = { workspace = true }
 futures = { workspace = true }
-kube = { workspace = true, features = [
-    "client",
-    "runtime",
-    "rustls-tls",
-    "ws",
-] }
+kube = { workspace = true, features = ["client", "runtime", "ws"] }
 serde = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
 tracing = { workspace = true }

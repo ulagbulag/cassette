@@ -19,17 +19,20 @@ workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+default = ["default-tls"]
+
+# TLS
+default-tls = ["openssl-tls"]
+openssl-tls = ["kube/openssl-tls"]
+rustls-tls = ["kube/rustls-tls"]
+
 [dependencies]
 cassette-core = { path = "../cassette-core" }
 
 anyhow = { workspace = true }
 ark-core-k8s = { workspace = true, features = ["manager"] }
 async-trait = { workspace = true }
-kube = { workspace = true, features = [
-    "client",
-    "runtime",
-    "rustls-tls",
-    "ws",
-] }
+kube = { workspace = true, features = ["client", "runtime", "ws"] }
 tokio = { workspace = true, features = ["full"] }
 tracing = { workspace = true }

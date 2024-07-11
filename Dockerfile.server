@@ -20,6 +20,13 @@ EXPOSE 8080/tcp
 WORKDIR /usr/local/bin
 CMD [ "/bin/bash" ]
 
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    libssl3 \
+    # Cleanup
+    && apt-get clean all \
+    && rm -rf /var/lib/apt/lists/*
+
 # Copy static files
 ARG PACKAGE
 ADD ./LICENSE /usr/share/licenses/${PACKAGE}/LICENSE

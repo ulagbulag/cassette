@@ -31,10 +31,7 @@ ark-core = { git = "https://github.com/ulagbulag/OpenARK" }
 ark-core-k8s = { git = "https://github.com/ulagbulag/OpenARK" }
 
 actix-cors = { version = "0.7" }
-actix-web = { version = "4.8", default-features = false, features = [
-    "macros",
-    "rustls",
-] }
+actix-web = { version = "4.8", default-features = false, features = ["macros"] }
 actix-web-opentelemetry = { version = "0.18", features = ["metrics"] }
 anyhow = { version = "1.0", features = ["backtrace"] }
 async-trait = { version = "0.1" }
