@@ -48,7 +48,7 @@ pub fn app_page(props: &AppPageProps) -> Html {
         .replace('_', " ");
     let brand = html! (
         <MastheadBrand>
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; user-select: none;">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; user-select: none; color: #DEDEDE;">
                 <Brand src="assets/images/icons/logo.webp" alt="Main Logo" style="--pf-v5-c-brand--Height: 36px;"/>
                 <Title size={Size::XLarge} >
                     { title }
