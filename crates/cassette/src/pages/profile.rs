@@ -6,7 +6,7 @@ use yew::prelude::*;
 pub fn profile() -> Html {
     info!("Beginning loading profile...");
 
-    let title = "License";
+    let title = "Profile";
     let subtitle = "This page can be used to check the system or share the problem situation with experts when there is a problem.";
 
     let gateway_url = use_gateway();
