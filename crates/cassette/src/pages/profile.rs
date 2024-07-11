@@ -14,6 +14,9 @@ pub fn profile() -> Html {
     let title = "Profile";
     let subtitle = "This page can be used to check the system or share the problem situation with experts when there is a problem.";
 
+    // Build
+    let git_dirty = GIT_DIRTY.unwrap_or_default();
+
     // Dependencies
 
     let dependencies = DEPENDENCIES.into_iter().map(|(name, version)| {
@@ -72,6 +75,10 @@ pub fn profile() -> Html {
                 <h2>{ "Build Information" }</h2>
                 <table class="profile">
                     <tr>
+                        <td class="profile-table-key">{ "Build CI" }</td>
+                        <td class="profile-table-value">{ CI_PLATFORM.unwrap_or("Unknown") }</td>
+                    </tr>
+                    <tr>
                         <td class="profile-table-key">{ "Build Features" }</td>
                         <td class="profile-table-value">{ FEATURES_LOWERCASE_STR }</td>
                     </tr>
@@ -96,12 +103,28 @@ pub fn profile() -> Html {
                         <td class="profile-table-value">{ DEBUG }</td>
                     </tr>
                     <tr>
-                        <td class="profile-table-key">{ "Pointer Width" }</td>
-                        <td class="profile-table-value">{ CFG_POINTER_WIDTH }</td>
+                        <td class="profile-table-key">{ "Git Commit" }</td>
+                        <td class="profile-table-value">{ GIT_COMMIT_HASH.unwrap_or_default() }</td>
+                    </tr>
+                    <tr>
+                        <td class="profile-table-key">{ "Git Dirty" }</td>
+                        <td class="profile-table-value">{ git_dirty }</td>
+                    </tr>
+                    <tr>
+                        <td class="profile-table-key">{ "Git Head ref" }</td>
+                        <td class="profile-table-value">{ GIT_HEAD_REF.unwrap_or_default() }</td>
+                    </tr>
+                    <tr>
+                        <td class="profile-table-key">{ "Git Version" }</td>
+                        <td class="profile-table-value">{ GIT_VERSION.unwrap_or_default() }</td>
                     </tr>
                     <tr>
                         <td class="profile-table-key">{ "Optimization Level" }</td>
                         <td class="profile-table-value">{ OPT_LEVEL }</td>
+                    </tr>
+                    <tr>
+                        <td class="profile-table-key">{ "Pointer Width" }</td>
+                        <td class="profile-table-value">{ CFG_POINTER_WIDTH }</td>
                     </tr>
                     <tr>
                         <td class="profile-table-key">{ "Rustc" }</td>
@@ -133,15 +156,6 @@ pub fn profile() -> Html {
                     </tr>
                 </table>
 
-                <h2>{ "Dependency Information" }</h2>
-                <table class="profile">
-                    <tr>
-                        <th class="profile-table-key">{ "Name" }</th>
-                        <th class="profile-table-value">{ "Version" }</th>
-                    </tr>
-                    { for dependencies }
-                </table>
-
                 <h2>{ "Runtime Information" }</h2>
                 <table class="profile">
                     <tr>
@@ -156,6 +170,15 @@ pub fn profile() -> Html {
                         <td class="profile-table-key">{ "Gateway Status" }</td>
                         <td class="profile-table-value">{ gateway_status }</td>
                     </tr>
+                </table>
+
+                <h2>{ "Dependency Information" }</h2>
+                <table class="profile">
+                    <tr>
+                        <th class="profile-table-key">{ "Name" }</th>
+                        <th class="profile-table-value">{ "Version" }</th>
+                    </tr>
+                    { for dependencies }
                 </table>
             </Content>
         </super::PageBody>

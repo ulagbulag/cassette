@@ -7,6 +7,8 @@ pub mod profile;
 use patternfly_yew::prelude::*;
 use yew::prelude::*;
 
+use crate::build_info::{DEBUG, GIT_DIRTY};
+
 #[derive(Clone, Debug, PartialEq, Properties)]
 pub struct Props {
     pub title: AttrValue,
@@ -39,6 +41,30 @@ pub fn page_body(props: &Props) -> Html {
         </PageSection>
     };
 
+    let alert_warning = |msg| {
+        html! {
+            <Alert inline=true title="Warning" r#type={AlertType::Warning}>
+                <p>{ msg }</p>
+            </Alert>
+        }
+    };
+    let alert_debug = || {
+        alert_warning(
+            "
+This application is built under debugging mode.
+Many features are not completed, and you can experience significant performance.
+We strongly suggest not using it for production purposes.",
+        )
+    };
+    let alert_git_dirty = || {
+        alert_warning(
+            "
+This application was built in a dirty git environment.
+It implies that this is a development build, and you may experience unexpected side effects.
+We strongly suggest not using it for production purposes.",
+        )
+    };
+
     let alert_experimental = || {
         html! {
             <PageSection>
@@ -68,6 +94,12 @@ exist.
     html! (
         <PageSectionGroup>
             { header }
+
+            if DEBUG {
+                { alert_debug() }
+            } else if GIT_DIRTY.unwrap_or_default() {
+                { alert_git_dirty() }
+            }
 
             if props.experimental {
                 { alert_experimental() }
