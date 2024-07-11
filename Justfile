@@ -26,7 +26,7 @@ fmt:
   cargo fmt --all
 
 clippy: fmt
-  cargo clippy --all --workspace
+  cargo clippy --all --workspace -- -D warnings
 
 test: clippy
   cargo test --all --workspace

@@ -58,10 +58,29 @@ jobs:
           profile: minimal
 
       - name: Check clippy
-        run: cargo clippy --all --verbose
+        run: cargo clippy --all --verbose -- -D warnings
 
       - name: Build
         run: cargo build --all --verbose
 
       - name: Run tests
         run: cargo test --all --verbose
+
+  cargo-deny:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+
+      - name: Install cargo-deny
+        run: cargo install cargo-deny
+
+      - name: Check cargo-deny
+        run: cargo deny check --show-stats
