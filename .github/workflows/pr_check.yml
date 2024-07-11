@@ -37,6 +37,9 @@ jobs:
       - name: Install node dependencies
         run: npm clean-install
 
+      - name: Disable terminal hooks
+        run: sed -i '/\[\[hooks\]\]/,$d' 'Trunk.toml'
+
       - name: Build
         run: trunk build
 
