@@ -125,6 +125,10 @@ docker run --name cassette --rm \
 just oci-push
 ```
 
+## Building on K8S
+
+Please check [sample kubernetes](/kubernetes) files.
+
 ## LICENSE
 
 It is licensed under [AGPL v3.0 OR LATER](LICENSE).
