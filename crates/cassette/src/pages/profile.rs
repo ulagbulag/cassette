@@ -280,7 +280,10 @@ impl<'a> TableEntryRenderer<KeyColumns> for Entry<'a> {
         let Self { key, value, link } = self;
         match ctx.column {
             KeyColumns::Key => html!({ key }),
-            KeyColumns::Value => html!({ value }),
+            KeyColumns::Value => match link {
+                Some(link) => html! {<a href={ link.to_string() }>{ value }</a>},
+                None => html!({ value }),
+            },
         }
         .into()
     }
@@ -311,7 +314,10 @@ impl<'a> TableEntryRenderer<VersionColumns> for Entry<'a> {
     fn render_cell(&self, ctx: CellContext<VersionColumns>) -> Cell {
         let Self { key, value, link } = self;
         match ctx.column {
-            VersionColumns::Name => html!({ key }),
+            VersionColumns::Name => match link {
+                Some(link) => html! {<a href={ link.to_string() }>{ key }</a>},
+                None => html!({ value }),
+            },
             VersionColumns::Version => html!({ value }),
         }
         .into()
