@@ -59,7 +59,17 @@ pub fn use_query(key: &str) -> Option<String> {
 
 #[hook]
 pub fn use_gateway() -> String {
-    use_query("gateway").unwrap_or_else(|| "/v1/cassette".into())
+    use_query("gateway").unwrap_or_else(|| {
+        #[cfg(debug_assertions)]
+        {
+            "http://localhost:8080".into()
+        }
+
+        #[cfg(not(debug_assertions))]
+        {
+            "/v1/cassette".into()
+        }
+    })
 }
 
 #[hook]
