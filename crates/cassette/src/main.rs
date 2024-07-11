@@ -1,4 +1,5 @@
 mod app;
+mod build_info;
 mod components;
 mod hooks;
 mod pages;
@@ -8,10 +9,13 @@ mod tracer;
 
 use tracing::Level;
 
-#[cfg(not(debug_assertions))]
-const LOG_LEVEL: Level = Level::INFO;
-#[cfg(debug_assertions)]
-const LOG_LEVEL: Level = Level::DEBUG;
+const LOG_LEVEL: Level = if self::build_info::CI_PLATFORM.is_some() {
+    Level::TRACE
+} else if cfg!(debug_assertions) {
+    Level::DEBUG
+} else {
+    Level::INFO
+};
 
 fn main() {
     crate::tracer::init(LOG_LEVEL);

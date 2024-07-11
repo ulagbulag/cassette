@@ -27,6 +27,9 @@ experimental = []
 # plugins
 kubernetes = ["dep:cassette-plugin-kubernetes"]
 
+[build-dependencies]
+built = { workspace = true }
+
 [dependencies]
 cassette-core = { path = "../cassette-core", features = ["ui"] }
 cassette-plugin-kubernetes = { path = "../cassette-plugin-kubernetes", optional = true, features = [
