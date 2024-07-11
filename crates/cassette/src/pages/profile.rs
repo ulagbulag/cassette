@@ -316,7 +316,7 @@ impl<'a> TableEntryRenderer<VersionColumns> for Entry<'a> {
         match ctx.column {
             VersionColumns::Name => match link {
                 Some(link) => html! {<a href={ link.to_string() }>{ key }</a>},
-                None => html!({ value }),
+                None => html!({ key }),
             },
             VersionColumns::Version => html!({ value }),
         }
