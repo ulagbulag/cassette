@@ -125,7 +125,7 @@ docker run --name cassette --rm \
 just oci-push
 ```
 
-## Building on K8S
+## Deploy on K8S
 
 Please check [sample kubernetes](/kubernetes) files.
 
