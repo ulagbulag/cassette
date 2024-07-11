@@ -51,8 +51,8 @@ async fn try_loop_forever(agent: Agent) -> Result<()> {
 
         let app = App::new().app_data(Data::clone(&agent));
         let mut app = match &base_url {
-            Some(base_url) => app.route(&base_url, web::to(home)).service(
-                web::scope(&base_url)
+            Some(base_url) => app.route(base_url, web::to(home)).service(
+                web::scope(base_url)
                     .service(health)
                     .service(crate::routes::cassette::get)
                     .service(crate::routes::cassette::list),

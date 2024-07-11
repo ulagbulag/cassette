@@ -9,6 +9,10 @@ pub struct Props {
 
 #[function_component(Cassette)]
 pub fn cassette(props: &Props) -> Html {
+    let Props { id } = props;
+    let _ = id;
+
+    #[allow(clippy::match_single_binding)]
     match () {
         () => html! { <CassetteFallback /> },
     }
