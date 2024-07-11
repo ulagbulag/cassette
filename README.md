@@ -16,7 +16,7 @@ TBD
 
 ## Building
 
-### Cassette Client
+### Cassette App
 
 #### Dependencies
 
@@ -106,7 +106,7 @@ docker run --name cassette --rm \
     "quay.io/ulagbulag/cassette-server:latest" \
     'cassette-gateway'
 
-# Client
+# App
 docker run --name cassette --rm \
     -p 6080:6080 \
     "quay.io/ulagbulag/cassette:latest"
