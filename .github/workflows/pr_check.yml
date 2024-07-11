@@ -79,8 +79,5 @@ jobs:
           override: true
           profile: minimal
 
-      - name: Install cargo-deny
-        run: cargo install cargo-deny
-
       - name: Check cargo-deny
-        run: cargo deny check --show-stats
+        uses: EmbarkStudios/cargo-deny-action@v1
