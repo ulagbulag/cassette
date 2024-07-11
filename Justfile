@@ -38,12 +38,18 @@ init:
   @# Rust
   @rustup target list | grep wasm32-unknown-unknown | grep -q '(installed)' || rustup target add wasm32-unknown-unknown
 
+  @# Rust Deny
+  @which cargo-deny >/dev/null || cargo install cargo-deny
+
   @# Rust Trunk
   @which trunk >/dev/null || cargo install trunk
   @which wasm-bindgen >/dev/null || cargo install wasm-bindgen-cli
 
 _trunk command *ARGS: init
   trunk "{{ command }}" {{ ARGS }}
+
+check: init
+  cargo deny check --show-stats
 
 build *ARGS: ( _trunk "build" ARGS )
 
