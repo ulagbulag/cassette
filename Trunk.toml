@@ -28,6 +28,7 @@ no_sri = false
 watch = [
     "assets",
     "crates",
+    "examples",
     "node_modules",
     "static",
     "Cargo.toml",
