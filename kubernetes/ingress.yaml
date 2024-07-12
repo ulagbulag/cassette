@@ -25,70 +25,70 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: app
+                name: player
                 port:
                   number: 80
           - path: /$
             pathType: ImplementationSpecific
             backend:
               service:
-                name: app
+                name: player
                 port:
                   number: 80
           - path: /([0-9a-z_-]*).css$
             pathType: ImplementationSpecific
             backend:
               service:
-                name: app
+                name: player
                 port:
                   number: 80
           - path: /([0-9a-z_-]*).js$
             pathType: ImplementationSpecific
             backend:
               service:
-                name: app
+                name: player
                 port:
                   number: 80
           - path: /([0-9a-z_-]*).wasm$
             pathType: ImplementationSpecific
             backend:
               service:
-                name: app
+                name: player
                 port:
                   number: 80
           - path: /favicon.ico$
             pathType: ImplementationSpecific
             backend:
               service:
-                name: app
+                name: player
                 port:
                   number: 80
           - path: /assets/
             pathType: Prefix
             backend:
               service:
-                name: app
+                name: player
                 port:
                   number: 80
           - path: /c/
             pathType: Prefix
             backend:
               service:
-                name: app
+                name: player
                 port:
                   number: 80
           - path: /error/
             pathType: Prefix
             backend:
               service:
-                name: app
+                name: player
                 port:
                   number: 80
           - path: /snippets/
             pathType: Prefix
             backend:
               service:
-                name: app
+                name: player
                 port:
                   number: 80
           - path: /v1/cassette/
@@ -102,6 +102,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: app
+                name: player
                 port:
                   number: 80

@@ -2,10 +2,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: app
+  name: player
   namespace: cassette-operator
   labels:
-    app: app
+    app: player
     serviceType: public
 spec:
   replicas: 1
@@ -14,13 +14,13 @@ spec:
       maxUnavailable: 1
   selector:
     matchLabels:
-      app: app
+      app: player
   template:
     metadata:
       annotations:
         instrumentation.opentelemetry.io/inject-sdk: "true"
       labels:
-        app: app
+        app: player
         serviceType: public
     spec:
       affinity:
@@ -77,11 +77,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: app
+  name: player
   namespace: cassette-operator
 spec:
   selector:
-    app: app
+    app: player
   ports:
     - name: http
       port: 80
