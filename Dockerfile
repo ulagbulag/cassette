@@ -74,6 +74,8 @@ RUN \
     --mount=type=cache,target=/usr/local/cargo/registry \
     # Create an output directory
     mkdir /out \
+    # Create an empty placeholder directories
+    mkdir ./examples \
     # Disable terminal hooks
     && sed -i '/\[\[hooks\]\]/,$d' 'Trunk.toml' \
     # Build
