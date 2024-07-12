@@ -163,7 +163,7 @@ pub fn profile() -> Html {
 
     // Dependencies
     let entries_deps = use_memo((), |()| {
-        DEPENDENCIES
+        DIRECT_DEPENDENCIES
             .into_iter()
             .map(|(name, version)| Entry {
                 key: name,
