@@ -25,7 +25,7 @@ full = ["kubernetes"]
 experimental = []
 
 # for demo ONLY
-examples = ["cassette-core/examples", "cassette-loader-file"]
+examples = ["cassette-core/examples", "dep:cassette-loader-file"]
 
 # plugins
 kubernetes = ["dep:cassette-plugin-kubernetes"]
