@@ -1,7 +1,7 @@
 use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
 
 use anyhow::Result;
-use cassette_core::{cassette::CassetteRef, component::CassetteComponentSpec};
+use cassette_core::cassette::{Cassette, CassetteRef};
 use clap::Parser;
 use tracing::{instrument, Level};
 use uuid::Uuid;
@@ -48,7 +48,7 @@ impl Agent {
 
 impl Agent {
     #[instrument(level = Level::INFO, skip(self))]
-    pub async fn get(&self, namespace: &str, id: Uuid) -> Option<CassetteComponentSpec> {
+    pub async fn get(&self, namespace: &str, id: Uuid) -> Option<Cassette> {
         self.db.get(namespace, id).await
     }
 

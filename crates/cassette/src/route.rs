@@ -108,15 +108,15 @@ fn render_cassette_list(cassettes: &[CassetteRef], group: &str, is_default: bool
 
 fn render_cassette(cassette: &CassetteRef) -> Html {
     let CassetteRef {
-        id: _,
-        component,
+        id,
+        component: _,
         name,
         group: _,
         description: _,
         priority: _,
     } = cassette;
 
-    let id = *component;
+    let id = *id;
     let name = name.to_title_case();
 
     html! {

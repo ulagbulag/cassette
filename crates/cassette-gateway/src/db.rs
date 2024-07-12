@@ -4,8 +4,8 @@ use std::{
 };
 
 use cassette_core::{
-    cassette::{CassetteCrd, CassetteRef},
-    component::{CassetteComponentCrd, CassetteComponentSpec},
+    cassette::{Cassette, CassetteCrd, CassetteRef},
+    component::CassetteComponentCrd,
 };
 use kube::ResourceExt;
 use tokio::sync::RwLock;
@@ -15,7 +15,7 @@ use uuid::Uuid;
 pub(crate) struct CassetteDB(Arc<RwLock<CassetteDBInner>>);
 
 impl CassetteDB {
-    pub(crate) async fn get(&self, namespace: &str, id: Uuid) -> Option<CassetteComponentSpec> {
+    pub(crate) async fn get(&self, namespace: &str, id: Uuid) -> Option<Cassette> {
         self.0.read().await.get(namespace, id)
     }
 
@@ -46,14 +46,43 @@ impl CassetteDB {
 
 #[derive(Default)]
 struct CassetteDBInner {
-    cassettes: BTreeMap<String, BTreeSet<CassetteRef<String>>>,
+    cassettes: BTreeMap<String, BTreeSet<Cassette<String>>>,
     components: BTreeMap<Uuid, CassetteComponentCrd>,
     components_scopes: BTreeMap<Scope, Uuid>,
 }
 
 impl CassetteDBInner {
-    fn get(&self, _namespace: &str, id: Uuid) -> Option<CassetteComponentSpec> {
-        self.components.get(&id).map(|cr| cr.spec.clone())
+    fn get(&self, namespace: &str, id: Uuid) -> Option<Cassette> {
+        let Cassette {
+            id,
+            component: component_name,
+            name,
+            group,
+            description,
+            priority,
+        } = self
+            .cassettes
+            .get(namespace)
+            .and_then(|cassettes| cassettes.iter().find(|cassette| cassette.id == id).cloned())?;
+
+        let scope = Scope {
+            namespace: namespace.into(),
+            name: component_name,
+        };
+        let component_id = self.components_scopes.get(&scope)?;
+        let component = self
+            .components
+            .get(component_id)
+            .map(|cr| cr.spec.clone())?;
+
+        Some(Cassette {
+            id,
+            component,
+            name,
+            group,
+            description,
+            priority,
+        })
     }
 
     fn list(&self, namespace: &str) -> Vec<CassetteRef> {
@@ -79,7 +108,7 @@ impl CassetteDBInner {
         let namespace = cr.namespace().unwrap_or_else(|| "default".into());
         let name = cr.name_any();
 
-        let cassette = CassetteRef {
+        let cassette = Cassette {
             id,
             component: cr.spec.component,
             name,
@@ -110,12 +139,8 @@ impl CassetteDBInner {
 }
 
 impl CassetteDBInner {
-    fn find_component(
-        &self,
-        namespace: &str,
-        cassette: CassetteRef<String>,
-    ) -> Option<CassetteRef> {
-        let CassetteRef {
+    fn find_component(&self, namespace: &str, cassette: Cassette<String>) -> Option<CassetteRef> {
+        let Cassette {
             id,
             component,
             name,
@@ -130,7 +155,7 @@ impl CassetteDBInner {
         };
         let component = self.components_scopes.get(&scope).copied()?;
 
-        Some(CassetteRef {
+        Some(Cassette {
             id,
             component,
             name,

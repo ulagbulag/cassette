@@ -10,6 +10,8 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use crate::component::CassetteComponentSpec;
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, JsonSchema, Validate, CustomResource)]
 #[kube(
     group = "cassette.ulagbulag.io",
@@ -47,9 +49,11 @@ pub struct CassetteSpec {
     pub priority: Option<u32>,
 }
 
+pub type CassetteRef = Cassette<Uuid>;
+
 #[derive(Clone, Debug, Default, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct CassetteRef<Component = Uuid> {
+pub struct Cassette<Component = CassetteComponentSpec> {
     pub id: Uuid,
     pub component: Component,
     pub name: String,
@@ -61,45 +65,45 @@ pub struct CassetteRef<Component = Uuid> {
     pub priority: Option<u32>,
 }
 
-impl<ComponentId> PartialEq for CassetteRef<ComponentId>
+impl<Component> PartialEq for Cassette<Component>
 where
-    ComponentId: PartialEq,
+    Component: PartialEq,
 {
     fn eq(&self, other: &Self) -> bool {
         self.id.eq(&other.id)
     }
 }
 
-impl<ComponentId> Eq for CassetteRef<ComponentId> where ComponentId: Eq {}
+impl<Component> Eq for Cassette<Component> where Component: Eq {}
 
-impl<ComponentId> PartialOrd for CassetteRef<ComponentId>
+impl<Component> PartialOrd for Cassette<Component>
 where
-    ComponentId: PartialOrd,
+    Component: PartialOrd,
 {
     fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
         self.id.partial_cmp(&other.id)
     }
 }
 
-impl<ComponentId> Ord for CassetteRef<ComponentId>
+impl<Component> Ord for Cassette<Component>
 where
-    ComponentId: Ord,
+    Component: Ord,
 {
     fn cmp(&self, other: &Self) -> cmp::Ordering {
         self.id.cmp(&other.id)
     }
 }
 
-impl<ComponentId> Hash for CassetteRef<ComponentId>
+impl<Component> Hash for Cassette<Component>
 where
-    ComponentId: Hash,
+    Component: Hash,
 {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.id.hash(state)
     }
 }
 
-impl<ComponentId> Borrow<Uuid> for CassetteRef<ComponentId> {
+impl<Component> Borrow<Uuid> for Cassette<Component> {
     fn borrow(&self) -> &Uuid {
         &self.id
     }
