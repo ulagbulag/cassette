@@ -108,13 +108,13 @@ just oci-build-server  # Gateway, Operator
 
 ```bash
 # Gateway
-docker run --name cassette --rm \
+docker run --name cassette-gateway --rm \
     -p 8080:8080 \
     "quay.io/ulagbulag/cassette-server:latest" \
     'cassette-gateway'
 
 # Player (App)
-docker run --name cassette --rm \
+docker run --name cassette-player --rm \
     -p 6080:6080 \
     "quay.io/ulagbulag/cassette:latest"
 ```
@@ -122,7 +122,7 @@ docker run --name cassette --rm \
 ### Run a local K8S operator
 
 ```bash
-docker run --name cassette --rm \
+docker run --name cassette-operator --rm \
     -v ~/.kube:/root/.kube:ro \
     "quay.io/ulagbulag/cassette-server:latest" \
     'cassette-operator'
