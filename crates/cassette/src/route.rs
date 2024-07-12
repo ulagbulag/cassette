@@ -1,4 +1,4 @@
-use cassette_core::{cassette::CassetteRef, net::gateway::use_namespace};
+use cassette_core::cassette::CassetteRef;
 use inflector::Inflector;
 use patternfly_yew::prelude::*;
 use uuid::Uuid;
@@ -39,20 +39,19 @@ impl AppRoute {
             </NavExpandable>
         };
 
-        let namespace = use_namespace();
         let cassettes_namespaced = match cassettes.as_ref() {
             Ok(cassettes) => {
                 if cassettes.is_empty() {
                     None
                 } else {
-                    Some(render_cassette_list(cassettes, &namespace, true))
+                    Some(render_cassette_list(cassettes, "my-cassettes", true))
                 }
             }
             Err(error) => Some(render_cassette_fallback(error)),
         };
         let nav_namespaced = cassettes_namespaced.map(|cassettes| {
             html! {
-                <NavExpandable title={ namespace.to_title_case() }>
+                <NavExpandable title="My Cassettes">
                     { cassettes }
                 </NavExpandable>
             }
