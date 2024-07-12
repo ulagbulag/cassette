@@ -17,7 +17,7 @@ pub struct Props {
     pub experimental: bool,
 
     #[prop_or_default]
-    pub subtitle: Children,
+    pub subtitle: Option<AttrValue>,
 
     #[prop_or_default]
     pub children: Children,
@@ -25,6 +25,13 @@ pub struct Props {
 
 #[function_component(PageBody)]
 pub fn page_body(props: &Props) -> Html {
+    let Props {
+        title,
+        experimental,
+        subtitle,
+        children,
+    } = props;
+
     let header = html! {
         <PageSection
             r#type={PageSectionType::Default}
@@ -34,9 +41,9 @@ pub fn page_body(props: &Props) -> Html {
         >
             <Content>
                 <Title size={Size::XXXXLarge}>
-                    { props.title.clone() }
+                    { title.clone() }
                 </Title>
-                { for props.subtitle.iter() }
+                { for subtitle }
             </Content>
         </PageSection>
     };
@@ -86,8 +93,7 @@ exist.
         }
     };
 
-    let children = props
-        .children
+    let children = children
         .iter()
         .map(|child| html!(<PageSection>{child}</PageSection>));
 
@@ -101,7 +107,7 @@ exist.
                 { alert_git_dirty() }
             }
 
-            if props.experimental {
+            if *experimental {
                 { alert_experimental() }
             }
 

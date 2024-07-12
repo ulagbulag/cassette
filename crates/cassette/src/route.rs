@@ -31,35 +31,41 @@ impl AppRoute {
     pub fn use_side_bar(cassettes: Result<&[CassetteRef], Html>) -> VChild<PageSidebar> {
         let cassettes_home = cassettes
             .as_ref()
-            .map(|list| render_cassette_list(list, "home", false))
-            .unwrap_or_else(|_| html! {});
+            .map(|list| render_cassette_list(list, "home", false));
         let nav_home = html! {
             <NavExpandable title={ env!("CARGO_PKG_NAME").to_title_case() }>
                 <NavRouterItem<AppRoute> to={AppRoute::Home}>{"Home"}</NavRouterItem<AppRoute>>
-                { cassettes_home }
+                { for cassettes_home }
             </NavExpandable>
         };
 
         let namespace = use_namespace();
-        let cassettes_namespaced = cassettes
-            .as_ref()
-            .map(|list| render_cassette_list(list, &namespace, true))
-            .unwrap_or_else(render_cassette_fallback);
-        let nav_namespaced = html! {
-            <NavExpandable title={ namespace.to_title_case() }>
-                { cassettes_namespaced }
-            </NavExpandable>
+        let cassettes_namespaced = match cassettes.as_ref() {
+            Ok(cassettes) => {
+                if cassettes.is_empty() {
+                    None
+                } else {
+                    Some(render_cassette_list(cassettes, &namespace, true))
+                }
+            }
+            Err(error) => Some(render_cassette_fallback(error)),
         };
+        let nav_namespaced = cassettes_namespaced.map(|cassettes| {
+            html! {
+                <NavExpandable title={ namespace.to_title_case() }>
+                    { cassettes }
+                </NavExpandable>
+            }
+        });
 
         let cassettes_about = cassettes
             .as_ref()
-            .map(|list| render_cassette_list(list, "about", false))
-            .unwrap_or_else(|_| html! {});
+            .map(|list| render_cassette_list(list, "about", false));
         let nav_about = html! {
             <NavExpandable title="About">
                 <NavRouterItem<AppRoute> to={AppRoute::Profile}>{"Profile"}</NavRouterItem<AppRoute>>
                 <NavRouterItem<AppRoute> to={AppRoute::License}>{"License"}</NavRouterItem<AppRoute>>
-                    { cassettes_about }
+                    { for cassettes_about }
             </NavExpandable>
         };
 

@@ -1,14 +1,27 @@
 mod text;
 
-// use yew::prelude::*;
+use cassette_core::{
+    cassette::CassetteState,
+    task::{CassetteTask, TaskRenderer, TaskResult},
+};
+use yew::prelude::*;
 
-// pub fn route(kind: &str) -> Html {
-//     match kind {
-//         "text" => html! { <self::text::Component /> },
-//         #[cfg(feature = "kubernetes")]
-//         "kubernetes" => todo!(),
-//         _ => {
-//             html! { <crate::pages::error::Error kind={ crate::pages::error::ErrorKind::NotFound } /> }
-//         }
-//     }
-// }
+pub struct RootCassetteTask<'a>(pub(crate) &'a CassetteTask);
+
+impl TaskRenderer for RootCassetteTask<'_> {
+    fn render(&self, state: &UseStateHandle<CassetteState>) -> TaskResult {
+        let Self { 0: task } = self;
+
+        let CassetteTask {
+            name,
+            kind,
+            metadata: _,
+            spec,
+        } = task;
+
+        match kind.as_str() {
+            "Text" => self::text::render(state, spec),
+            _ => Err(format!("Unknown type: {name:?} as {kind}")),
+        }
+    }
+}

@@ -34,6 +34,8 @@ pub struct AppPageProps {
 
 #[function_component(AppPage)]
 pub fn app_page(props: &AppPageProps) -> Html {
+    let AppPageProps { children } = props;
+
     let cassette_list = use_cassette_list();
     let cassette_list = match &*cassette_list {
         FetchState::Pending | FetchState::Fetching => Err(html! { <p>{ "Loading..." }</p> }),
@@ -98,7 +100,7 @@ pub fn app_page(props: &AppPageProps) -> Html {
 
     html! {
         <Page {brand} {sidebar} {tools}>
-            { for props.children.iter() }
+            { for children.iter() }
         </Page>
     }
 }

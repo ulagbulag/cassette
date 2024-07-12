@@ -1,11 +1,30 @@
+use cassette_core::{
+    cassette::CassetteState,
+    task::{TaskResult, TaskSpec, TaskState},
+};
+use patternfly_yew::prelude::*;
 use yew::prelude::*;
 
-#[function_component(Component)]
-pub fn component() -> Html {
+pub fn render(_state: &UseStateHandle<CassetteState>, spec: &TaskSpec) -> TaskResult {
+    let msg = spec.get_string("/msg")?;
+
+    Ok(TaskState::Continue {
+        body: html! { <ComponentBody { msg } /> },
+    })
+}
+
+#[derive(Clone, Debug, PartialEq, Properties)]
+struct BodyProps {
+    msg: String,
+}
+
+#[function_component(ComponentBody)]
+fn component_body(props: &BodyProps) -> Html {
+    let BodyProps { msg } = props;
+
     html! {
-        <main>
-            <h1>{ "404" }</h1>
-            <span class="subtitle">{ "Not Found :/" }</span>
-        </main>
+        <Content>
+            <p>{ msg }</p>
+        </Content>
     }
 }

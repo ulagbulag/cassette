@@ -12,13 +12,13 @@ pub enum ErrorKind {
 }
 
 impl ErrorKind {
-    fn as_str(&self) -> &str {
+    const fn as_str(&self) -> &str {
         match self {
             Self::NotFound => "Not Found :/",
         }
     }
 
-    // fn code(&self) -> u16 {
+    // const fn code(&self) -> u16 {
     //     match self {
     //         Self::NotFound => 404,
     //     }
@@ -27,11 +27,13 @@ impl ErrorKind {
 
 #[function_component(Error)]
 pub fn error(props: &Props) -> Html {
+    let Props { kind } = props;
+
     html! {
         <PageSectionGroup>
             <PageSection>
                 <Alert inline=true title="Error" r#type={AlertType::Danger}>
-                    { props.kind.as_str() }
+                    { kind.as_str() }
                 </Alert>
             </PageSection>
         </PageSectionGroup>

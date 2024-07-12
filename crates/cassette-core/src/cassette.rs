@@ -10,7 +10,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::component::CassetteComponentSpec;
+use crate::{component::CassetteComponentSpec, task::TaskSpec};
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, JsonSchema, Validate, CustomResource)]
 #[kube(
@@ -35,7 +35,7 @@ use crate::component::CassetteComponentSpec;
 )]
 #[serde(rename_all = "camelCase")]
 pub struct CassetteSpec {
-    #[garde(length(min = 1, max = 253), pattern("^[0-9][0-9-]*[0-9]*$"))]
+    #[garde(length(min = 1, max = 253), pattern("^[a-z][a-z0-9-]*[a-z0-9]*$"))]
     #[serde(default)]
     pub component: String,
     #[garde(length(min = 1, max = 1024))]
@@ -106,5 +106,20 @@ where
 impl<Component> Borrow<Uuid> for Cassette<Component> {
     fn borrow(&self) -> &Uuid {
         &self.id
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, JsonSchema)]
+pub struct CassetteState {
+    cassette: Cassette,
+    data: TaskSpec,
+}
+
+impl CassetteState {
+    pub fn new(cassette: Cassette) -> Self {
+        Self {
+            cassette,
+            data: TaskSpec::default(),
+        }
     }
 }

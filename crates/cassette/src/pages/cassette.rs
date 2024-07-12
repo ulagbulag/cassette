@@ -1,10 +1,14 @@
-use cassette_core::{cassette::Cassette as CassetteData, net::fetch::FetchState};
+use cassette_core::{
+    cassette::{Cassette as CassetteData, CassetteState},
+    net::fetch::FetchState,
+    task::{TaskRenderer, TaskState},
+};
 use inflector::Inflector;
 use patternfly_yew::prelude::*;
 use uuid::Uuid;
 use yew::prelude::*;
 
-use crate::{hooks::gateway::use_cassette, pages::error::ErrorKind};
+use crate::{components::RootCassetteTask, hooks::gateway::use_cassette, pages::error::ErrorKind};
 
 #[derive(Clone, Debug, PartialEq, Properties)]
 pub struct Props {
@@ -43,10 +47,38 @@ fn cassette_data(props: &DataProps) -> Html {
     let DataProps { data } = props;
 
     let title = data.name.to_title_case();
-    let subtitle = data.description.clone().unwrap_or_default();
+    let subtitle = data.description.clone();
+
+    let state = use_state(|| CassetteState::new(data.clone()));
+    let mut contents = vec![];
+    for task in data.component.tasks.iter().map(RootCassetteTask) {
+        match task.render(&state) {
+            Ok(TaskState::Break { body }) => {
+                contents.push(body);
+                break;
+            }
+            Ok(TaskState::Continue { body }) => {
+                contents.push(body);
+                continue;
+            }
+            Ok(TaskState::Skip) => {
+                continue;
+            }
+            Err(error) => {
+                let body = html! {
+                    <Alert inline=true title="Error" r#type={AlertType::Danger}>
+                        { error }
+                    </Alert>
+                };
+                contents.push(body);
+                break;
+            }
+        }
+    }
 
     html! {
         <super::PageBody {title} {subtitle} >
+            { for contents }
         </super::PageBody>
     }
 }
@@ -59,21 +91,26 @@ struct FallbackProps {
 
 #[function_component(CassetteFallback)]
 fn cassette_fallback(props: &FallbackProps) -> Html {
-    let title = "A Cassette";
-    let subtitle = "Loading...";
+    let FallbackProps { error } = props;
 
-    let error = match props.error.as_deref() {
-        Some(error) => html! {
+    let title = if error.is_some() { "Error" } else { "" };
+    let subtitle = if error.is_some() {
+        None
+    } else {
+        Some("Loading...")
+    };
+
+    let error = props.error.as_deref().map(|error| {
+        html! {
             <Alert inline=true title="Error" r#type={AlertType::Danger}>
                 { error }
             </Alert>
-        },
-        None => html! {},
-    };
+        }
+    });
 
     html! {
         <super::PageBody {title} {subtitle} >
-            { error }
+            { for error }
         </super::PageBody>
     }
 }
