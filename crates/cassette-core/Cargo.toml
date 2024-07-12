@@ -24,6 +24,9 @@ default = []
 actix-web = ["dep:actix-web"]
 ui = ["dep:gloo-net", "dep:yew"]
 
+# for demo ONLY
+examples = []
+
 [dependencies]
 actix-web = { workspace = true, optional = true }
 garde = { workspace = true }

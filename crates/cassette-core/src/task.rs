@@ -71,6 +71,7 @@ pub enum TaskState {
 #[serde(transparent)]
 pub struct TaskSpec(Map<String, Value>);
 
+#[cfg(feature = "ui")]
 impl TaskSpec {
     pub fn get_string(&self, key: &str) -> TaskResult<String> {
         self.0

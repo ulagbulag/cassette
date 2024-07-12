@@ -1,0 +1,37 @@
+[package]
+name = "cassette-loader-file"
+
+authors = { workspace = true }
+description = { workspace = true }
+documentation = "https://docs.rs/cassette-loader-file"
+edition = { workspace = true }
+include = { workspace = true }
+keywords = { workspace = true }
+license = { workspace = true }
+readme = { workspace = true }
+rust-version = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+version = { workspace = true }
+
+[lints]
+workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[build-dependencies]
+cassette-core = { path = "../cassette-core" }
+
+include_dir = { workspace = true }
+serde_json = { workspace = true }
+serde_yml = { workspace = true }
+
+[dependencies]
+cassette-core = { path = "../cassette-core" }
+cassette-loader-core = { path = "../cassette-loader-core" }
+
+kube = { workspace = true }
+once_cell = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true }

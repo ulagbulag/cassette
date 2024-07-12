@@ -6,6 +6,12 @@ This is a Cloud-native Template-based dynamic declarative web UI framework built
 
 You can get started by experiencing the various features here: https://api.ulagbulag.io
 
+You can also deploy your own example app using one-line simple command:
+
+```bash
+just run-examples  # trunk serve --features examples
+```
+
 ## Tutorial
 
 TBD

@@ -24,6 +24,9 @@ default = ["full"]
 full = ["kubernetes"]
 experimental = []
 
+# for demo ONLY
+examples = ["cassette-core/examples", "cassette-loader-file"]
+
 # plugins
 kubernetes = ["dep:cassette-plugin-kubernetes"]
 
@@ -32,6 +35,7 @@ built = { workspace = true }
 
 [dependencies]
 cassette-core = { path = "../cassette-core", features = ["ui"] }
+cassette-loader-file = { path = "../cassette-loader-file", optional = true }
 cassette-plugin-kubernetes = { path = "../cassette-plugin-kubernetes", optional = true, features = [
     "ui",
 ] }

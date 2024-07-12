@@ -33,6 +33,7 @@ rustls-tls = ["actix-web/rustls", "kube/rustls-tls"]
 
 [dependencies]
 cassette-core = { path = "../cassette-core", features = ["actix-web"] }
+cassette-loader-core = { path = "../cassette-loader-core" }
 cassette-plugin-kubernetes = { path = "../cassette-plugin-kubernetes", optional = true, features = [
     "api",
 ] }

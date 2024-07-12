@@ -59,30 +59,59 @@ pub fn use_query(key: &str) -> Option<String> {
 
 #[hook]
 pub fn use_gateway() -> String {
-    use_query("gateway").unwrap_or_else(|| {
-        #[cfg(debug_assertions)]
-        {
-            "http://localhost:8080".into()
-        }
+    #[cfg(feature = "examples")]
+    {
+        "(embedded)".into()
+    }
 
-        #[cfg(not(debug_assertions))]
-        {
-            "/v1/cassette".into()
-        }
-    })
+    #[cfg(not(feature = "examples"))]
+    {
+        use_query("gateway").unwrap_or_else(|| {
+            #[cfg(debug_assertions)]
+            {
+                "http://localhost:8080".into()
+            }
+
+            #[cfg(not(debug_assertions))]
+            {
+                "/v1/cassette".into()
+            }
+        })
+    }
 }
 
 #[hook]
 pub fn use_gateway_status() -> String {
-    let state = use_fetch_unchecked::<String, _>(move || FetchRequest {
-        method: Method::GET,
-        name: "gateway health",
-        url: "/_health",
-    });
-    state.to_string()
+    #[cfg(feature = "examples")]
+    {
+        "healthy".into()
+    }
+
+    #[cfg(not(feature = "examples"))]
+    {
+        let state = use_fetch_unchecked::<String, _>(move || FetchRequest {
+            method: Method::GET,
+            name: "gateway health",
+            url: "/_health",
+        });
+        state.to_string()
+    }
 }
 
 #[hook]
 pub fn use_namespace() -> String {
-    use_query("namespace").unwrap_or_else(|| "default".into())
+    #[cfg(feature = "examples")]
+    {
+        DEFAULT_NAMESPACE.into()
+    }
+
+    #[cfg(not(feature = "examples"))]
+    {
+        use_query("namespace").unwrap_or_else(|| DEFAULT_NAMESPACE.into())
+    }
 }
+
+#[cfg(feature = "examples")]
+pub const DEFAULT_NAMESPACE: &str = "examples";
+#[cfg(not(feature = "examples"))]
+pub const DEFAULT_NAMESPACE: &str = "default";

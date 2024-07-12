@@ -55,6 +55,8 @@ build *ARGS: ( _trunk "build" ARGS )
 
 run *ARGS: ( _trunk "serve" ARGS )
 
+run-examples *ARGS: ( _trunk "serve" "--features" "examples" ARGS )
+
 run-gateway *ARGS:
   cargo run --package 'cassette-gateway' --release
 
