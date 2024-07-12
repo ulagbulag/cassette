@@ -7,8 +7,9 @@ use cassette_core::net::{
 use patternfly_yew::prelude::*;
 use tracing::info;
 use yew::prelude::*;
+use yew_nested_router::components::Link;
 
-use crate::build_info::*;
+use crate::{build_info::*, route::AppRoute};
 
 #[function_component(Profile)]
 pub fn profile() -> Html {
@@ -38,17 +39,17 @@ pub fn profile() -> Html {
             Entry {
                 key: "Homepage",
                 value: Cow::Borrowed(PKG_HOMEPAGE),
-                link: Some(Cow::Borrowed(PKG_HOMEPAGE)),
+                link: Some(EntryLink::String(Cow::Borrowed(PKG_HOMEPAGE))),
             },
             Entry {
                 key: "Repository",
                 value: Cow::Borrowed(PKG_REPOSITORY),
-                link: Some(Cow::Borrowed(PKG_REPOSITORY)),
+                link: Some(EntryLink::String(Cow::Borrowed(PKG_REPOSITORY))),
             },
             Entry {
                 key: "License",
                 value: Cow::Borrowed(PKG_LICENSE),
-                link: Some(Cow::Borrowed("/license")),
+                link: Some(EntryLink::Route(AppRoute::License)),
             },
         ]
     });
@@ -262,11 +263,17 @@ pub fn profile() -> Html {
     }
 }
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 struct Entry<'a> {
     key: &'a str,
     value: Cow<'a, str>,
-    link: Option<Cow<'a, str>>,
+    link: Option<EntryLink<'a>>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+enum EntryLink<'a> {
+    Route(AppRoute),
+    String(Cow<'a, str>),
 }
 
 #[derive(Copy, Clone, Eq, PartialEq)]
@@ -281,7 +288,10 @@ impl<'a> TableEntryRenderer<KeyColumns> for Entry<'a> {
         match ctx.column {
             KeyColumns::Key => html!({ key }),
             KeyColumns::Value => match link {
-                Some(link) => html! {<a href={ link.to_string() }>{ value }</a>},
+                Some(EntryLink::Route(to)) => {
+                    html! {<Link<AppRoute> to={ to.clone() }>{ value }</Link<AppRoute>>}
+                }
+                Some(EntryLink::String(link)) => html! {<a href={ link.to_string() }>{ value }</a>},
                 None => html!({ value }),
             },
         }
@@ -315,7 +325,10 @@ impl<'a> TableEntryRenderer<VersionColumns> for Entry<'a> {
         let Self { key, value, link } = self;
         match ctx.column {
             VersionColumns::Name => match link {
-                Some(link) => html! {<a href={ link.to_string() }>{ key }</a>},
+                Some(EntryLink::Route(to)) => {
+                    html! {<Link<AppRoute> to={ to.clone() }>{ key }</Link<AppRoute>>}
+                }
+                Some(EntryLink::String(link)) => html! {<a href={ link.to_string() }>{ key }</a>},
                 None => html!({ key }),
             },
             VersionColumns::Version => html!({ value }),
