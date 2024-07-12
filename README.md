@@ -100,7 +100,8 @@ just test
 ### Build
 
 ```bash
-just oci-build
+just oci-build  # Player (App)
+just oci-build-server  # Gateway, Operator
 ```
 
 ### Run a local server
@@ -130,7 +131,8 @@ docker run --name cassette --rm \
 ### Deploy
 
 ```bash
-just oci-push
+just oci-push  # Player (App)
+just oci-push-server  # Gateway, Operator
 ```
 
 ## Deploy on K8S
