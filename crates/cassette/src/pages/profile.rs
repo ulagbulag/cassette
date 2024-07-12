@@ -289,7 +289,7 @@ impl<'a> TableEntryRenderer<KeyColumns> for Entry<'a> {
             KeyColumns::Key => html!({ key }),
             KeyColumns::Value => match link {
                 Some(EntryLink::Route(to)) => {
-                    html! {<Link<AppRoute> to={ to.clone() }>{ value }</Link<AppRoute>>}
+                    html! {<Link<AppRoute> to={ *to }>{ value }</Link<AppRoute>>}
                 }
                 Some(EntryLink::String(link)) => html! {<a href={ link.to_string() }>{ value }</a>},
                 None => html!({ value }),
@@ -326,7 +326,7 @@ impl<'a> TableEntryRenderer<VersionColumns> for Entry<'a> {
         match ctx.column {
             VersionColumns::Name => match link {
                 Some(EntryLink::Route(to)) => {
-                    html! {<Link<AppRoute> to={ to.clone() }>{ key }</Link<AppRoute>>}
+                    html! {<Link<AppRoute> to={ *to }>{ key }</Link<AppRoute>>}
                 }
                 Some(EntryLink::String(link)) => html! {<a href={ link.to_string() }>{ key }</a>},
                 None => html!({ key }),
