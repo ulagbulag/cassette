@@ -45,6 +45,9 @@ init:
   @which trunk >/dev/null || cargo install trunk
   @which wasm-bindgen >/dev/null || cargo install wasm-bindgen-cli
 
+  @# Rust Watch
+  @which cargo-watch >/dev/null || cargo install cargo-watch
+
 _trunk command *ARGS: init
   trunk "{{ command }}" {{ ARGS }}
 
@@ -58,10 +61,10 @@ run *ARGS: ( _trunk "serve" ARGS )
 run-examples *ARGS: ( _trunk "serve" "--features" "examples" ARGS )
 
 run-gateway *ARGS:
-  cargo run --package 'cassette-gateway' --release
+  cargo watch -s 'clear && cargo run --package cassette-gateway'
 
 run-operator *ARGS:
-  cargo run --package 'cassette-operator' --release
+  cargo watch -s 'clear && cargo run --package cassette-operator'
 
 _oci-build file oci_suffix *ARGS:
   mkdir -p "${OCI_BUILD_LOG_DIR}"
