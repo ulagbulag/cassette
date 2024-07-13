@@ -63,6 +63,7 @@ schemars = { version = "0.8", default-features = false, features = ["uuid1"] }
 serde = { version = "1.0", default-features = false }
 serde_json = { version = "1.0", default-features = false }
 serde_yml = { version = "0.0", default-features = false }
+sha2 = { version = "0.10" }
 tokio = { version = "1.38", default-features = false }
 tracing = { version = "0.1" }
 tracing-subscriber = { version = "0.3" }

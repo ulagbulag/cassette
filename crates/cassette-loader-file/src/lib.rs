@@ -2,6 +2,7 @@ use cassette_core::document::Document;
 use cassette_loader_core::CassetteDB;
 use kube::ResourceExt;
 use once_cell::sync::OnceCell;
+use sha2::{Digest, Sha256};
 use tracing::error;
 use uuid::Uuid;
 
@@ -22,13 +23,10 @@ pub fn db() -> &'static CassetteDB {
         };
 
         // insert all documents
-        documents
-            .into_iter()
-            .enumerate()
-            .for_each(|(id, document)| match document {
-                Document::Cassette(cr) => db.insert(cr.generate_uid(id)),
-                Document::CassetteComponent(cr) => db.insert_component(cr.generate_uid(id)),
-            });
+        documents.into_iter().for_each(|document| match document {
+            Document::Cassette(cr) => db.insert(cr.generate_uid()),
+            Document::CassetteComponent(cr) => db.insert_component(cr.generate_uid()),
+        });
         db
     });
 
@@ -36,20 +34,30 @@ pub fn db() -> &'static CassetteDB {
 }
 
 trait GenerateUid {
-    fn generate_uid(self, id: usize) -> Self;
+    fn generate_uid(self) -> Self;
 }
 
 impl<T> GenerateUid for T
 where
     Self: ResourceExt,
 {
-    fn generate_uid(mut self, id: usize) -> Self {
+    fn generate_uid(mut self) -> Self {
+        let name = self.name_any();
+
         let uid = &mut self.meta_mut().uid;
         if uid.is_none() {
-            *uid = id
-                .try_into()
+            // create a Sha256 object
+            let mut hasher = Sha256::new();
+
+            // write input message
+            hasher.update(name);
+
+            // read hash digest and consume hasher
+            let hash = hasher.finalize();
+
+            // convert the hash digest prefix into UUID
+            *uid = Uuid::from_slice_le(&hash[..16])
                 .ok()
-                .map(Uuid::from_u128)
                 .map(|id| id.to_string());
         }
         self
