@@ -13,7 +13,7 @@ metadata:
     nginx.ingress.kubernetes.io/use-regex: "true"
 spec:
   tls:
-    - secretName: example.com-certs
+    - secretName: api.example.com-certs
       hosts:
         - example.com
   ingressClassName: example.com

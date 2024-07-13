@@ -5,14 +5,14 @@ use cassette_core::net::{
 };
 use cassette_core::{
     cassette::{Cassette, CassetteRef},
-    net::{fetch::FetchState, gateway::use_namespace},
+    net::{fetch::FetchState, gateway::get_namespace},
 };
 use uuid::Uuid;
 use yew::prelude::*;
 
 #[hook]
 pub fn use_cassette(id: Uuid) -> UseStateHandle<FetchState<Option<Cassette>>> {
-    let namespace = use_namespace();
+    let namespace = get_namespace();
 
     #[cfg(feature = "examples")]
     {
@@ -31,7 +31,7 @@ pub fn use_cassette(id: Uuid) -> UseStateHandle<FetchState<Option<Cassette>>> {
 
 #[hook]
 pub fn use_cassette_list() -> UseStateHandle<FetchState<Vec<CassetteRef>>> {
-    let namespace = use_namespace();
+    let namespace = get_namespace();
 
     #[cfg(feature = "examples")]
     {

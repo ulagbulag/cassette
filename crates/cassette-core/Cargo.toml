@@ -21,7 +21,7 @@ workspace = true
 
 [features]
 default = []
-actix-web = ["dep:actix-web"]
+api = ["dep:actix-web"]
 ui = ["dep:gloo-net", "dep:yew"]
 
 # for demo ONLY

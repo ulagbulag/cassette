@@ -20,6 +20,8 @@ impl TaskRenderer for RootCassetteTask<'_> {
         } = task;
 
         match kind.as_str() {
+            #[cfg(feature = "kubernetes-list")]
+            "KubernetesList" => ::cassette_plugin_kubernetes_list::render(state, spec),
             "Text" => self::text::render(state, spec),
             _ => Err(format!("Unknown type: {name:?} as {kind}")),
         }

@@ -1,0 +1,18 @@
+---
+apiVersion: cassette.ulagbulag.io/v1alpha1
+kind: Cassette
+metadata:
+  name: kubernetes-list
+spec:
+  component: kubernetes-list
+---
+apiVersion: cassette.ulagbulag.io/v1alpha1
+kind: CassetteComponent
+metadata:
+  name: kubernetes-list
+spec:
+  tasks:
+    - name: list
+      kind: KubernetesList
+      spec:
+        msg: "Hello World 123!"

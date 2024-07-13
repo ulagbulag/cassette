@@ -28,7 +28,10 @@ experimental = []
 examples = ["cassette-core/examples", "dep:cassette-loader-file"]
 
 # plugins
-kubernetes = ["dep:cassette-plugin-kubernetes"]
+
+## Kubernetes
+kubernetes = ["kubernetes-list"]
+kubernetes-list = ["dep:cassette-plugin-kubernetes-list"]
 
 [build-dependencies]
 built = { workspace = true }
@@ -36,9 +39,7 @@ built = { workspace = true }
 [dependencies]
 cassette-core = { path = "../cassette-core", features = ["ui"] }
 cassette-loader-file = { path = "../cassette-loader-file", optional = true }
-cassette-plugin-kubernetes = { path = "../cassette-plugin-kubernetes", optional = true, features = [
-    "ui",
-] }
+cassette-plugin-kubernetes-list = { path = "../cassette-plugin-kubernetes-list", optional = true }
 
 browser-panic-hook = { workspace = true }
 gloo-utils = { workspace = true }

@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use cassette_core::net::{
     fetch::FetchState,
-    gateway::{use_gateway, use_gateway_status},
+    gateway::{get_gateway, is_gateway_embedded, use_gateway_status},
 };
 use patternfly_yew::prelude::*;
 use tracing::info;
@@ -176,7 +176,7 @@ pub fn profile() -> Html {
     let (entries_deps, _) = use_table_data(MemoizedTableModel::new(entries_deps));
 
     // Runtime
-    let gateway_url = use_gateway();
+    let gateway_url = get_gateway();
     let gateway_status = use_gateway_status();
 
     let entries_rt = use_state_eq(|| {
@@ -184,6 +184,11 @@ pub fn profile() -> Html {
             Entry {
                 key: "Gateway URL",
                 value: Cow::Owned(gateway_url),
+                link: None,
+            },
+            Entry {
+                key: "Gateway Embedded",
+                value: Cow::Owned(is_gateway_embedded().to_string()),
                 link: None,
             },
             Entry {

@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use cassette_core::{
     cassette::{Cassette, CassetteCrd, CassetteRef},
     component::CassetteComponentCrd,
-    net::gateway::DEFAULT_NAMESPACE,
+    net::DEFAULT_NAMESPACE,
 };
 use kube::ResourceExt;
 use uuid::Uuid;

@@ -1,8 +1,7 @@
 use actix_cors::Cors;
 use actix_web::{
-    get, middleware,
-    web::{self, Data},
-    App, HttpResponse, HttpServer, Responder,
+    dev::{ServiceFactory, ServiceRequest},
+    get, middleware, web, App, HttpResponse, HttpServer, Responder, Scope,
 };
 use actix_web_opentelemetry::{RequestMetrics, RequestTracing};
 use anyhow::{anyhow, Result};
@@ -40,36 +39,16 @@ async fn try_loop_forever(agent: Agent) -> Result<()> {
     let base_url = agent.base_url();
     let redirect_error_404 = agent.redirect_error_404();
 
-    let agent = Data::new(agent);
+    let agent = web::Data::new(agent);
 
     // Create a http server
     let server = HttpServer::new(move || {
-        let cors = Cors::default()
-            .allow_any_header()
-            .allow_any_method()
-            .allow_any_origin();
+        let app = App::new().app_data(agent.clone());
+        let app = build_core_services(app, base_url.as_deref());
+        let app = build_default_service(app, redirect_error_404.clone());
+        let app = app.service(build_plugins(base_url.as_deref()));
 
-        let app = App::new().app_data(Data::clone(&agent));
-        let mut app = match &base_url {
-            Some(base_url) => app.route(base_url, web::to(home)).service(
-                web::scope(base_url)
-                    .service(health)
-                    .service(crate::routes::cassette::get)
-                    .service(crate::routes::cassette::list),
-            ),
-            None => app
-                .service(health)
-                .service(health)
-                .service(crate::routes::cassette::get)
-                .service(crate::routes::cassette::list),
-        };
-        if let Some(redirect_to) = redirect_error_404.clone() {
-            app = app.default_service(web::to(move || {
-                let redirect_to = redirect_to.clone();
-                async { web::Redirect::to(redirect_to) }
-            }));
-        }
-        app.wrap(cors)
+        app.wrap(build_cors())
             .wrap(middleware::NormalizePath::new(
                 middleware::TrailingSlash::Trim,
             ))
@@ -81,4 +60,55 @@ async fn try_loop_forever(agent: Agent) -> Result<()> {
 
     // Start http server
     server.run().await.map_err(Into::into)
+}
+
+fn build_cors() -> Cors {
+    Cors::default()
+        .allow_any_header()
+        .allow_any_method()
+        .allow_any_origin()
+}
+
+fn build_core_services<T>(app: App<T>, base_url: Option<&str>) -> App<T>
+where
+    T: ServiceFactory<ServiceRequest, Config = (), Error = ::actix_web::Error, InitError = ()>,
+{
+    match base_url {
+        Some(path) => app.route(path, web::to(home)).service(
+            web::scope(path)
+                .service(health)
+                .service(crate::routes::cassette::get)
+                .service(crate::routes::cassette::list),
+        ),
+        None => app
+            .service(health)
+            .service(health)
+            .service(crate::routes::cassette::get)
+            .service(crate::routes::cassette::list),
+    }
+}
+
+fn build_default_service<T>(app: App<T>, redirect_error_404: Option<String>) -> App<T>
+where
+    T: ServiceFactory<ServiceRequest, Config = (), Error = ::actix_web::Error, InitError = ()>,
+{
+    match redirect_error_404.clone() {
+        Some(to) => app.default_service(web::to(move || {
+            let to = to.clone();
+            async { web::Redirect::to(to) }
+        })),
+        None => app,
+    }
+}
+
+fn build_plugins(base_url: Option<&str>) -> Scope {
+    let scope = web::scope(base_url.unwrap_or(""));
+
+    #[cfg(feature = "kubernetes")]
+    let scope = scope.route(
+        "/kube/{path:.*}",
+        ::actix_web::web::route().to(::cassette_plugin_kubernetes_api::handle),
+    );
+
+    scope
 }

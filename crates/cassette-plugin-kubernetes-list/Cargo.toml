@@ -1,9 +1,9 @@
 [package]
-name = "cassette-plugin-kubernetes"
+name = "cassette-plugin-kubernetes-list"
 
 authors = { workspace = true }
 description = { workspace = true }
-documentation = "https://docs.rs/cassette-plugin-kubernetes"
+documentation = "https://docs.rs/cassette-plugin-kubernetes-list"
 edition = { workspace = true }
 include = { workspace = true }
 keywords = { workspace = true }
@@ -19,9 +19,11 @@ workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[features]
-default = []
-api = []
-ui = []
-
 [dependencies]
+cassette-core = { path = "../cassette-core", features = ["ui"] }
+cassette-plugin-kubernetes-core = { path = "../cassette-plugin-kubernetes-core" }
+
+k8s-openapi = { workspace = true }
+kube-core = { workspace = true }
+patternfly-yew = { workspace = true }
+yew = { workspace = true }

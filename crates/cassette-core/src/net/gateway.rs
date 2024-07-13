@@ -16,7 +16,7 @@ where
 {
     let state = use_state(|| FetchState::<Res>::Pending);
     {
-        let gateway_url = use_gateway();
+        let gateway_url = get_gateway();
         let state = state.clone();
         use_effect(move || request().try_fetch(&gateway_url, state))
     }
@@ -33,15 +33,14 @@ where
 {
     let state = use_state(|| FetchState::<Res>::Pending);
     {
-        let gateway_url = use_gateway();
+        let gateway_url = get_gateway();
         let state = state.clone();
         use_effect(move || request().try_fetch_unchecked(&gateway_url, state))
     }
     state
 }
 
-#[hook]
-pub fn use_query(key: &str) -> Option<String> {
+pub fn get_query(key: &str) -> Option<String> {
     // Load current window object
     let window = ::web_sys::window()?;
     // Load current URL
@@ -57,27 +56,34 @@ pub fn use_query(key: &str) -> Option<String> {
     search_params.get(key)
 }
 
-#[hook]
-pub fn use_gateway() -> String {
+pub fn get_gateway() -> String {
+    get_query("gateway").unwrap_or_else(|| {
+        #[cfg(debug_assertions)]
+        {
+            "http://localhost:8080".into()
+        }
+
+        #[cfg(not(debug_assertions))]
+        {
+            "/v1/cassette".into()
+        }
+    })
+}
+
+pub fn get_namespace() -> String {
     #[cfg(feature = "examples")]
     {
-        "(embedded)".into()
+        super::DEFAULT_NAMESPACE.into()
     }
 
     #[cfg(not(feature = "examples"))]
     {
-        use_query("gateway").unwrap_or_else(|| {
-            #[cfg(debug_assertions)]
-            {
-                "http://localhost:8080".into()
-            }
-
-            #[cfg(not(debug_assertions))]
-            {
-                "/v1/cassette".into()
-            }
-        })
+        get_query("namespace").unwrap_or_else(|| super::DEFAULT_NAMESPACE.into())
     }
+}
+
+pub const fn is_gateway_embedded() -> bool {
+    cfg!(feature = "examples")
 }
 
 #[hook]
@@ -97,21 +103,3 @@ pub fn use_gateway_status() -> String {
         state.to_string()
     }
 }
-
-#[hook]
-pub fn use_namespace() -> String {
-    #[cfg(feature = "examples")]
-    {
-        DEFAULT_NAMESPACE.into()
-    }
-
-    #[cfg(not(feature = "examples"))]
-    {
-        use_query("namespace").unwrap_or_else(|| DEFAULT_NAMESPACE.into())
-    }
-}
-
-#[cfg(feature = "examples")]
-pub const DEFAULT_NAMESPACE: &str = "examples";
-#[cfg(not(feature = "examples"))]
-pub const DEFAULT_NAMESPACE: &str = "default";

@@ -132,11 +132,27 @@ crate = "cassette-gateway"
 
 [[licenses.exceptions]]
 allow = ["AGPL-3.0"]
+crate = "cassette-loader-core"
+
+[[licenses.exceptions]]
+allow = ["AGPL-3.0"]
+crate = "cassette-loader-file"
+
+[[licenses.exceptions]]
+allow = ["AGPL-3.0"]
 crate = "cassette-operator"
 
 [[licenses.exceptions]]
 allow = ["AGPL-3.0"]
-crate = "cassette-plugin-kubernetes"
+crate = "cassette-plugin-kubernetes-api"
+
+[[licenses.exceptions]]
+allow = ["AGPL-3.0"]
+crate = "cassette-plugin-kubernetes-core"
+
+[[licenses.exceptions]]
+allow = ["AGPL-3.0"]
+crate = "cassette-plugin-kubernetes-list"
 
 # Some crates don't have (easily) machine readable licensing information,
 # adding a clarification entry for it allows you to manually specify the
