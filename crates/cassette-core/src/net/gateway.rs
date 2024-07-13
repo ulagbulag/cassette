@@ -82,7 +82,7 @@ pub fn get_namespace() -> String {
     }
 }
 
-pub const fn is_gateway_embedded() -> bool {
+pub const fn is_demo() -> bool {
     cfg!(feature = "examples")
 }
 

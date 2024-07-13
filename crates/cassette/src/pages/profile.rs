@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use cassette_core::net::{
     fetch::FetchState,
-    gateway::{get_gateway, is_gateway_embedded, use_gateway_status},
+    gateway::{get_gateway, is_demo, use_gateway_status},
 };
 use patternfly_yew::prelude::*;
 use tracing::info;
@@ -91,6 +91,11 @@ pub fn profile() -> Html {
             Entry {
                 key: "Debug Mode",
                 value: Cow::Owned(DEBUG.to_string()),
+                link: None,
+            },
+            Entry {
+                key: "Demo Mode",
+                value: Cow::Owned(is_demo().to_string()),
                 link: None,
             },
             Entry {
@@ -184,11 +189,6 @@ pub fn profile() -> Html {
             Entry {
                 key: "Gateway URL",
                 value: Cow::Owned(gateway_url),
-                link: None,
-            },
-            Entry {
-                key: "Gateway Embedded",
-                value: Cow::Owned(is_gateway_embedded().to_string()),
                 link: None,
             },
             Entry {
