@@ -23,7 +23,6 @@ workspace = true
 cassette-core = { path = "../cassette-core", features = ["ui"] }
 cassette-plugin-kubernetes-core = { path = "../cassette-plugin-kubernetes-core" }
 
-k8s-openapi = { workspace = true }
 kube-core = { workspace = true }
 patternfly-yew = { workspace = true }
 yew = { workspace = true }

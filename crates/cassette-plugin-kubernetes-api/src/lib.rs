@@ -9,6 +9,7 @@ use actix_web::{
 use anyhow::{anyhow, Result};
 use http::Request;
 use kube::{core::ErrorResponse, Client};
+use url::Url;
 
 pub async fn handle(
     method: Method,
@@ -16,7 +17,7 @@ pub async fn handle(
     uri: Path<String>,
     queries: Query<BTreeMap<String, String>>,
 ) -> impl Responder {
-    try_handle(method, uri.into_inner(), payload)
+    try_handle(method, uri.into_inner(), queries.0, payload)
         .await
         .unwrap_or_else(|error| {
             let response = ErrorResponse {
@@ -29,14 +30,29 @@ pub async fn handle(
         })
 }
 
-async fn try_handle(method: Method, uri: String, payload: Payload) -> Result<HttpResponse> {
+async fn try_handle(
+    method: Method,
+    uri: String,
+    queries: BTreeMap<String, String>,
+    payload: Payload,
+) -> Result<HttpResponse> {
     let method = method.as_str();
-    let uri = format!("/{uri}");
     let body = payload
         .to_bytes()
         .await
         .map_err(|error| anyhow!("{error}"))?
         .into();
+
+    let uri = {
+        let mut url: Url = format!("/{uri}").parse()?;
+        {
+            let mut pairs = url.query_pairs_mut();
+            for (key, value) in &queries {
+                pairs.append_pair(key, value);
+            }
+        }
+        url.to_string()
+    };
 
     let request = Request::builder().method(method).uri(uri).body(body)?;
 

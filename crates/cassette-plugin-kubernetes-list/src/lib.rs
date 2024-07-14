@@ -1,33 +1,38 @@
-use std::marker::PhantomData;
+use std::{fmt, marker::PhantomData};
 
 use cassette_core::{
     cassette::CassetteState,
+    net::fetch::FetchState,
     task::{TaskResult, TaskSpec, TaskState},
 };
 use cassette_plugin_kubernetes_core::{api::Api, hooks::use_kubernetes_list};
-use k8s_openapi::api::apps::v1::Deployment;
-use kube_core::params::ListParams;
+use kube_core::{params::ListParams, DynamicObject};
 use patternfly_yew::prelude::*;
 use yew::prelude::*;
 
 pub fn render(_state: &UseStateHandle<CassetteState>, spec: &TaskSpec) -> TaskResult {
-    let msg = spec.get_string("/msg")?;
+    let api_version = spec.get_string("/apiVersion")?;
+    let kind = spec.get_string("/kind")?;
 
     Ok(TaskState::Continue {
-        body: html! { <ComponentBody { msg } /> },
+        body: html! { <Component { api_version } {kind} /> },
     })
 }
 
 #[derive(Clone, Debug, PartialEq, Properties)]
-struct BodyProps {
-    msg: String,
+struct Props {
+    api_version: String,
+    kind: String,
 }
 
-#[function_component(ComponentBody)]
-fn component_body(props: &BodyProps) -> Html {
-    let BodyProps { msg } = props;
+#[function_component(Component)]
+fn component(props: &Props) -> Html {
+    let Props { api_version, kind } = props;
 
-    let api: Api<Deployment> = Api {
+    // TODO: to be implemented
+    let _ = (api_version, kind);
+
+    let api: Api<DynamicObject> = Api {
         api_group: Some("apps".into()),
         namespace: Some("default".into()),
         plural: "deployments".into(),
@@ -35,12 +40,45 @@ fn component_body(props: &BodyProps) -> Html {
         _type: PhantomData,
     };
     let lp = ListParams::default();
-    let list = use_kubernetes_list(api, lp);
+    let value = use_kubernetes_list(api, lp);
+
+    match &*value {
+        FetchState::Pending | FetchState::Fetching => html! {
+            <Content>
+                <p>{ "Loading..." }</p>
+            </Content>
+        },
+        FetchState::Completed(data) => html! {
+            <ComponentBody<DynamicObject> list={ data.items.clone() } />
+        },
+        FetchState::Error(error) => html! {
+            <Alert inline=true title="Error" r#type={AlertType::Danger}>
+                { error.clone() }
+            </Alert>
+        },
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Properties)]
+struct BodyProps<T>
+where
+    T: PartialEq,
+{
+    list: Vec<T>,
+}
+
+#[function_component(ComponentBody)]
+fn component_body<T>(props: &BodyProps<T>) -> Html
+where
+    T: fmt::Debug + PartialEq,
+{
+    let BodyProps { list } = props;
 
     html! {
-        <Content>
-            <p>{ msg }</p>
-            <p>{ format!("{list:#?}") }</p>
-        </Content>
+        <CodeBlock>
+            <CodeBlockCode>
+                { format!("{list:#?}") }
+            </CodeBlockCode>
+        </CodeBlock>
     }
 }

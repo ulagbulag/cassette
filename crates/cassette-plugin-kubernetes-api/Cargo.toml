@@ -27,3 +27,4 @@ anyhow = { workspace = true }
 http = { workspace = true }
 kube = { workspace = true }
 tracing = { workspace = true }
+url = { workspace = true }

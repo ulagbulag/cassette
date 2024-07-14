@@ -65,7 +65,7 @@ impl Client {
             .map_err(|error| anyhow!("Failed to fetch {name:?}: {error}"))?;
 
         let status = response.status();
-        if status >= 200 && status < 400 {
+        if (200..400).contains(&status) {
             response
                 .json()
                 .await

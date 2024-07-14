@@ -9,18 +9,18 @@ pub fn render(_state: &UseStateHandle<CassetteState>, spec: &TaskSpec) -> TaskRe
     let msg = spec.get_string("/msg")?;
 
     Ok(TaskState::Continue {
-        body: html! { <ComponentBody { msg } /> },
+        body: html! { <Component { msg } /> },
     })
 }
 
 #[derive(Clone, Debug, PartialEq, Properties)]
-struct BodyProps {
+struct Props {
     msg: String,
 }
 
-#[function_component(ComponentBody)]
-fn component_body(props: &BodyProps) -> Html {
-    let BodyProps { msg } = props;
+#[function_component(Component)]
+fn component(props: &Props) -> Html {
+    let Props { msg } = props;
 
     html! {
         <Content>
