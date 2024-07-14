@@ -5,6 +5,7 @@ use http::Request;
 use js_sys::Uint8Array;
 use once_cell::sync::OnceCell;
 use serde::de::DeserializeOwned;
+use web_sys::RequestMode;
 
 #[derive(Clone)]
 pub struct Client {}
@@ -49,7 +50,8 @@ impl Client {
 
         let builder = RequestBuilder::new(&url)
             .method(parts.method.as_str().parse()?)
-            .headers(headers);
+            .headers(headers)
+            .mode(RequestMode::Cors);
 
         let request = if body.is_empty() {
             builder.build()

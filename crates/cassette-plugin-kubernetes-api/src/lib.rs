@@ -43,16 +43,10 @@ async fn try_handle(
         .map_err(|error| anyhow!("{error}"))?
         .into();
 
-    let uri = {
-        let mut url: Url = format!("/{uri}").parse()?;
-        {
-            let mut pairs = url.query_pairs_mut();
-            for (key, value) in &queries {
-                pairs.append_pair(key, value);
-            }
-        }
-        url.to_string()
-    };
+    // NOTE: scheme and base_url would be ignored
+    let base_url = "https://kubernetes.default.svc";
+    let url = Url::parse_with_params(&format!("{base_url}/{uri}"), queries)?.to_string();
+    let uri = &url[base_url.len()..];
 
     let request = Request::builder().method(method).uri(uri).body(body)?;
 

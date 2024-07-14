@@ -31,4 +31,5 @@ kube-core = { workspace = true }
 once_cell = { workspace = true }
 serde = { workspace = true }
 tracing = { workspace = true }
+web-sys = { workspace = true }
 yew = { workspace = true }
