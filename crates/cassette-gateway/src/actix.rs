@@ -44,9 +44,8 @@ async fn try_loop_forever(agent: Agent) -> Result<()> {
     // Create a http server
     let server = HttpServer::new(move || {
         let app = App::new().app_data(agent.clone());
-        let app = build_core_services(app, base_url.as_deref());
         let app = build_default_service(app, redirect_error_404.clone());
-        let app = app.service(build_plugins(base_url.as_deref()));
+        let app = build_services(app, base_url.as_deref());
 
         app.wrap(build_cors())
             .wrap(middleware::NormalizePath::new(
@@ -69,25 +68,6 @@ fn build_cors() -> Cors {
         .allow_any_origin()
 }
 
-fn build_core_services<T>(app: App<T>, base_url: Option<&str>) -> App<T>
-where
-    T: ServiceFactory<ServiceRequest, Config = (), Error = ::actix_web::Error, InitError = ()>,
-{
-    match base_url {
-        Some(path) => app.route(path, web::to(home)).service(
-            web::scope(path)
-                .service(health)
-                .service(crate::routes::cassette::get)
-                .service(crate::routes::cassette::list),
-        ),
-        None => app
-            .service(health)
-            .service(health)
-            .service(crate::routes::cassette::get)
-            .service(crate::routes::cassette::list),
-    }
-}
-
 fn build_default_service<T>(app: App<T>, redirect_error_404: Option<String>) -> App<T>
 where
     T: ServiceFactory<ServiceRequest, Config = (), Error = ::actix_web::Error, InitError = ()>,
@@ -101,9 +81,29 @@ where
     }
 }
 
-fn build_plugins(base_url: Option<&str>) -> Scope {
+fn build_services<T>(app: App<T>, base_url: Option<&str>) -> App<T>
+where
+    T: ServiceFactory<ServiceRequest, Config = (), Error = ::actix_web::Error, InitError = ()>,
+{
     let scope = web::scope(base_url.unwrap_or(""));
+    let scope = build_core_services(scope);
+    let scope = build_plugin_servicess(scope);
 
+    app.route(
+        base_url.filter(|&path| !path.is_empty()).unwrap_or("/"),
+        web::get().to(home),
+    )
+    .service(scope)
+}
+
+fn build_core_services(scope: Scope) -> Scope {
+    scope
+        .service(health)
+        .service(crate::routes::cassette::get)
+        .service(crate::routes::cassette::list)
+}
+
+fn build_plugin_servicess(scope: Scope) -> Scope {
     #[cfg(feature = "kubernetes")]
     let scope = scope.route(
         "/kube/{path:.*}",
