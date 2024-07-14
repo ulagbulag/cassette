@@ -24,7 +24,7 @@ impl<Url> FetchRequest<Url> {
                 name,
                 url: suffix_url,
             } = self;
-            let url = format!("{base_url}/{suffix_url}");
+            let url = format!("{base_url}{suffix_url}");
 
             let state = state.clone();
             spawn_local(async move {
@@ -59,7 +59,7 @@ impl<Url> FetchRequest<Url> {
                 name,
                 url: suffix_url,
             } = self;
-            let url = format!("{base_url}/{suffix_url}");
+            let url = format!("{base_url}{suffix_url}");
 
             let state = state.clone();
             spawn_local(async move {
