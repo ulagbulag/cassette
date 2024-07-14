@@ -15,4 +15,6 @@ spec:
     - name: list
       kind: KubernetesList
       spec:
-        msg: "Hello World 123!"
+        apiVersion: apps/v1
+        kind: Deployments
+        namespaced: true
