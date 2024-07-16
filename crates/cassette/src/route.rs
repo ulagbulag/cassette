@@ -112,7 +112,6 @@ fn render_cassette_list(cassettes: &[CassetteRef], group: &str, is_default: bool
             (
                 cassette.priority.unwrap_or(u32::MAX),
                 &cassette.name,
-                cassette.group.as_deref(),
                 cassette.id,
             )
         })
