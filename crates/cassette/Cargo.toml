@@ -44,6 +44,7 @@ cassette-plugin-kubernetes-list = { path = "../cassette-plugin-kubernetes-list",
 browser-panic-hook = { workspace = true }
 gloo-utils = { workspace = true }
 inflector = { workspace = true }
+itertools = { workspace = true }
 patternfly-yew = { workspace = true }
 regex = { workspace = true }
 tracing = { workspace = true }

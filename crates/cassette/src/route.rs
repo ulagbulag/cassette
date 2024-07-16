@@ -1,5 +1,6 @@
 use cassette_core::cassette::CassetteRef;
 use inflector::Inflector;
+use itertools::Itertools;
 use patternfly_yew::prelude::*;
 use uuid::Uuid;
 use yew::{prelude::*, virtual_dom::VChild};
@@ -106,6 +107,14 @@ fn render_cassette_list(cassettes: &[CassetteRef], group: &str, is_default: bool
                 .as_deref()
                 .map(|name| name == group)
                 .unwrap_or(is_default)
+        })
+        .sorted_by_key(|cassette| {
+            (
+                cassette.priority.unwrap_or(u32::MAX),
+                &cassette.name,
+                cassette.group.as_deref(),
+                cassette.id,
+            )
         })
         .map(render_cassette);
     html! { for items }
