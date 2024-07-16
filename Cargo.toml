@@ -7,6 +7,7 @@ members = [
     "crates/cassette-loader-core",
     "crates/cassette-loader-file",
     "crates/cassette-operator",
+    "crates/cassette-plugin-jwt",
     "crates/cassette-plugin-kubernetes-api",
     "crates/cassette-plugin-kubernetes-core",
     "crates/cassette-plugin-kubernetes-list",
@@ -39,6 +40,7 @@ actix-web = { version = "4.8", default-features = false, features = ["macros"] }
 actix-web-opentelemetry = { version = "0.18", features = ["metrics"] }
 anyhow = { version = "1.0", features = ["backtrace"] }
 async-trait = { version = "0.1" }
+base64 = { version = "0.22" }
 browser-panic-hook = { version = "0.2" }
 built = { version = "0.7", features = ["chrono", "dependency-tree", "git2"] }
 clap = { version = "4.5", features = ["derive", "env", "string"] }
@@ -70,6 +72,7 @@ serde = { version = "1.0", default-features = false }
 serde_json = { version = "1.0", default-features = false }
 serde_yml = { version = "0.0", default-features = false }
 sha2 = { version = "0.10" }
+thiserror = { version = "1.0", default-features = false }
 tokio = { version = "1.38", default-features = false }
 tracing = { version = "0.1" }
 tracing-subscriber = { version = "0.3" }

@@ -159,8 +159,9 @@ dist
 **/*.yaml
 **/*.yml
 
-# Dev
+# Development environment
 /**/.env
+/development/
 
 # Documentation
 **/*.md

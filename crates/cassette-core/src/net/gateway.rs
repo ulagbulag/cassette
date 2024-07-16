@@ -58,13 +58,9 @@ pub fn get_query(key: &str) -> Option<String> {
 
 pub fn get_gateway() -> String {
     get_query("gateway").unwrap_or_else(|| {
-        #[cfg(debug_assertions)]
-        {
+        if cfg!(debug_assertions) && !cfg!(feature = "mock-release") {
             "http://localhost:8080".into()
-        }
-
-        #[cfg(not(debug_assertions))]
-        {
+        } else {
             "/v1/cassette".into()
         }
     })

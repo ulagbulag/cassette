@@ -2,41 +2,40 @@ use std::collections::BTreeMap;
 
 use actix_web::{
     body::BoxBody,
-    http::{Method, StatusCode},
+    http::StatusCode,
     web::{Path, Payload, Query},
-    HttpResponse, Responder,
+    HttpRequest, HttpResponse, Responder,
 };
 use anyhow::{anyhow, Result};
+use cassette_plugin_jwt::get_authorization_token;
 use http::Request;
-use kube::{core::ErrorResponse, Client};
+use kube::{config::AuthInfo, core::ErrorResponse, Client, Config};
 use url::Url;
 
 pub async fn handle(
-    method: Method,
+    request: HttpRequest,
     payload: Payload,
     uri: Path<String>,
     queries: Query<BTreeMap<String, String>>,
 ) -> impl Responder {
-    try_handle(method, uri.into_inner(), queries.0, payload)
+    let token = match get_authorization_token(&request) {
+        Ok(token) => token,
+        Err(error) => return response_error(StatusCode::UNAUTHORIZED, error),
+    };
+
+    try_handle(&request, token, uri.into_inner(), queries.0, payload)
         .await
-        .unwrap_or_else(|error| {
-            let response = ErrorResponse {
-                status: "MethodNotAllowed".into(),
-                message: error.to_string(),
-                reason: "MethodNotAllowed".into(),
-                code: 405,
-            };
-            HttpResponse::MethodNotAllowed().json(response)
-        })
+        .unwrap_or_else(|error| response_error(StatusCode::METHOD_NOT_ALLOWED, error))
 }
 
 async fn try_handle(
-    method: Method,
+    request: &HttpRequest,
+    token: &str,
     uri: String,
     queries: BTreeMap<String, String>,
     payload: Payload,
 ) -> Result<HttpResponse> {
-    let method = method.as_str();
+    let method = request.method().as_str();
     let body = payload
         .to_bytes()
         .await
@@ -48,9 +47,20 @@ async fn try_handle(
     let url = Url::parse_with_params(&format!("{base_url}/{uri}"), queries)?.to_string();
     let uri = &url[base_url.len()..];
 
-    let request = Request::builder().method(method).uri(uri).body(body)?;
+    let mut builder = Request::builder().method(method).uri(uri);
+    for (key, value) in request.headers() {
+        builder = builder.header(key.as_str(), value.as_bytes());
+    }
+    let request = builder.body(body)?;
 
-    let client = Client::try_default().await?;
+    let config = Config {
+        auth_info: AuthInfo {
+            token: Some(token.to_string().into()),
+            ..Default::default()
+        },
+        ..Config::incluster()?
+    };
+    let client = Client::try_from(config)?;
     let response = client.send(request).await?;
 
     let status = StatusCode::from_u16(response.status().as_u16())?;
@@ -64,4 +74,15 @@ async fn try_handle(
         response.append_header((key.as_str(), value.as_bytes()));
     }
     Ok(response.body(body))
+}
+
+fn response_error(code: StatusCode, error: impl ToString) -> HttpResponse {
+    let reason: String = code.canonical_reason().unwrap_or("Unknown").into();
+    let response = ErrorResponse {
+        status: reason.clone(),
+        message: error.to_string(),
+        reason,
+        code: code.into(),
+    };
+    HttpResponse::MethodNotAllowed().json(response)
 }

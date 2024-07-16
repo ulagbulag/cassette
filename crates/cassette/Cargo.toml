@@ -26,6 +26,7 @@ experimental = []
 
 # for demo ONLY
 examples = ["cassette-core/examples", "dep:cassette-loader-file"]
+mock-release = ["cassette-core/mock-release"]
 
 # plugins
 

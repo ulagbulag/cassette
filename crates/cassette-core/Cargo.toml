@@ -26,6 +26,7 @@ ui = ["dep:gloo-net", "dep:yew"]
 
 # for demo ONLY
 examples = []
+mock-release = []
 
 [dependencies]
 actix-web = { workspace = true, optional = true }

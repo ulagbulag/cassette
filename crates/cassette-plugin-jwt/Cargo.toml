@@ -1,5 +1,5 @@
 [package]
-name = "cassette-plugin-kubernetes-api"
+name = "cassette-plugin-jwt"
 
 authors = { workspace = true }
 description = { workspace = true }
@@ -20,14 +20,8 @@ workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-cassette-core = { path = "../cassette-core", features = ["api"] }
-cassette-plugin-jwt = { path = "../cassette-plugin-jwt" }
-
 actix-web = { workspace = true }
-anyhow = { workspace = true }
-http = { workspace = true }
-kube = { workspace = true }
-tracing = { workspace = true }
-url = { workspace = true }
-
+base64 = { workspace = true }
+serde = { workspace = true }
 serde_json = { workspace = true }
+thiserror = { workspace = true }
