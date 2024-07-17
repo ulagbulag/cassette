@@ -47,6 +47,7 @@ ark-core = { workspace = true, features = ["signal"] }
 clap = { workspace = true }
 futures = { workspace = true }
 kube = { workspace = true, features = ["client", "runtime", "ws"] }
+mime = { workspace = true }
 serde = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
 tracing = { workspace = true }

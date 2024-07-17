@@ -84,6 +84,13 @@ spec:
                 name: player
                 port:
                   number: 80
+          - path: /robots.txt
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: player
+                port:
+                  number: 80
           - path: /snippets/
             pathType: Prefix
             backend:

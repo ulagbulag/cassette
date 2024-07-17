@@ -25,6 +25,7 @@ WORKDIR /usr/local/bin
 # Copy static files
 ARG PACKAGE
 ADD ./LICENSE /usr/share/licenses/${PACKAGE}/LICENSE
+ADD ./robots.txt /usr/share/nginx/html/
 # ADD ./favicon.ico /usr/share/nginx/html/favicon.ico
 ADD ./nginx.conf /etc/nginx/conf.d/default.conf
 ADD ./assets/ /usr/share/nginx/html/assets/

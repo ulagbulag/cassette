@@ -1,0 +1,3 @@
+# Disallow API routes
+User-agent: *
+Disallow: /

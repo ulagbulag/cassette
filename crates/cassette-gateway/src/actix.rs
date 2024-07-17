@@ -1,7 +1,9 @@
 use actix_cors::Cors;
 use actix_web::{
     dev::{ServiceFactory, ServiceRequest},
-    get, middleware, web, App, HttpResponse, HttpServer, Responder, Scope,
+    get,
+    http::header,
+    middleware, web, App, HttpResponse, HttpServer, Responder, Scope,
 };
 use actix_web_opentelemetry::{RequestMetrics, RequestTracing};
 use anyhow::{anyhow, Result};
@@ -19,6 +21,14 @@ async fn home() -> impl Responder {
 #[get("/_health")]
 async fn health() -> impl Responder {
     HttpResponse::Ok().json("healthy")
+}
+
+#[instrument(level = Level::INFO)]
+#[get("/robots.txt")]
+async fn robots_txt() -> impl Responder {
+    HttpResponse::Ok()
+        .append_header(header::ContentType(::mime::TEXT_PLAIN_UTF_8))
+        .message_body(include_str!("../robots.txt"))
 }
 
 pub async fn loop_forever(signal: FunctionSignal, agent: Agent) {
@@ -99,6 +109,7 @@ where
 fn build_core_services(scope: Scope) -> Scope {
     scope
         .service(health)
+        .service(robots_txt)
         .service(crate::routes::cassette::get)
         .service(crate::routes::cassette::list)
 }
