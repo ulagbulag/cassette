@@ -3,7 +3,7 @@ use std::fmt;
 use anyhow::Result;
 use ark_core::signal::FunctionSignal;
 use cassette_core::{cassette::CassetteCrd, component::CassetteComponentCrd};
-use futures::{stream::FuturesUnordered, TryFuture, TryStreamExt};
+use futures::{TryFuture, TryStreamExt};
 use kube::{
     runtime::watcher::{watcher, Config, Error as WatcherError, Event},
     Api, Client, Resource, ResourceExt,
@@ -74,15 +74,9 @@ impl CassetteDBReloader {
 
     async fn handle_cassette(&self, event: Event<CassetteCrd>) -> Result<(), WatcherError> {
         match event {
-            Event::Applied(cr) => self.handle_cassette_apply(cr).await,
-            Event::Deleted(cr) => self.handle_cassette_delete(cr).await,
-            Event::Restarted(crs) => {
-                crs.into_iter()
-                    .map(|cr| self.handle_cassette_apply(cr))
-                    .collect::<FuturesUnordered<_>>()
-                    .try_collect()
-                    .await
-            }
+            Event::Apply(cr) | Event::InitApply(cr) => self.handle_cassette_apply(cr).await,
+            Event::Delete(cr) => self.handle_cassette_delete(cr).await,
+            Event::Init | Event::InitDone => Ok(()),
         }
     }
 
@@ -111,15 +105,11 @@ impl CassetteDBReloader {
         event: Event<CassetteComponentCrd>,
     ) -> Result<(), WatcherError> {
         match event {
-            Event::Applied(cr) => self.handle_cassette_component_apply(cr).await,
-            Event::Deleted(cr) => self.handle_cassette_component_delete(cr).await,
-            Event::Restarted(crs) => {
-                crs.into_iter()
-                    .map(|cr| self.handle_cassette_component_apply(cr))
-                    .collect::<FuturesUnordered<_>>()
-                    .try_collect()
-                    .await
+            Event::Apply(cr) | Event::InitApply(cr) => {
+                self.handle_cassette_component_apply(cr).await
             }
+            Event::Delete(cr) => self.handle_cassette_component_delete(cr).await,
+            Event::Init | Event::InitDone => Ok(()),
         }
     }
 
