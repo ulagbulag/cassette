@@ -1,7 +1,7 @@
 use garde::Validate;
 use schemars::JsonSchema;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
-use serde_json::{Map, Value};
+use serde_json::Value;
 #[cfg(feature = "ui")]
 use yew::prelude::*;
 
@@ -70,7 +70,7 @@ pub enum TaskState {
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[serde(transparent)]
-pub struct TaskSpec(Map<String, Value>);
+pub struct TaskSpec(Value);
 
 impl TaskSpec {
     fn preserve_arbitrary(
@@ -86,9 +86,13 @@ impl TaskSpec {
 #[cfg(feature = "ui")]
 impl TaskSpec {
     fn get(&self, key: &str) -> TaskResult<&Value> {
-        self.0
-            .get(&key[1..])
-            .ok_or_else(|| format!("no such key: {key}"))
+        match key {
+            "" | "/" => Ok(&self.0),
+            key => self
+                .0
+                .pointer(key)
+                .ok_or_else(|| format!("no such key: {key}")),
+        }
     }
 
     pub fn get_string(&self, key: &str) -> TaskResult<String> {

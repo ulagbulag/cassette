@@ -10,7 +10,7 @@ use yew::prelude::*;
 use crate::schema::{Request, Response};
 
 #[hook]
-pub fn use_fetch(base_url: &str, request: Request) -> UseStateHandle<FetchState<Response>> {
+pub fn use_fetch(base_url: &str, request: &Request) -> UseStateHandle<FetchState<Response>> {
     let state = use_state(|| FetchState::Pending);
     {
         let state = state.clone();
@@ -20,13 +20,12 @@ pub fn use_fetch(base_url: &str, request: Request) -> UseStateHandle<FetchState<
             method: Method::POST,
             name: "chat completions",
             url: "/chat/completions",
-            body: Some(Body::Json(request)),
+            body: Some(Body::Json(request.clone())),
         };
 
-        let f: Box<dyn FnOnce()> = if stream {
-            Box::new(move || request.try_stream_with(&base_url, state, try_stream))
-        } else {
-            Box::new(move || request.try_fetch_unchecked(&base_url, state))
+        let f: Box<dyn FnOnce()> = match stream {
+            Some(true) => Box::new(move || request.try_stream_with(&base_url, state, try_stream)),
+            Some(false) | None => Box::new(move || request.try_fetch_unchecked(&base_url, state)),
         };
         use_effect(f)
     }

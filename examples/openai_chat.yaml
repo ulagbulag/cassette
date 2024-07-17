@@ -17,6 +17,7 @@ spec:
       kind: OpenAIChat
       spec:
         baseUrl: /v1
+        stream: true
         messages:
           - role: user
             content: What is your name?

@@ -11,32 +11,26 @@ use patternfly_yew::prelude::*;
 use yew::prelude::*;
 use yew_markdown::Markdown;
 
-use crate::schema::{Message, Request, RequestOptions, Response};
+use crate::schema::{Request, Response};
 
 pub fn render(_state: &UseStateHandle<CassetteState>, spec: &TaskSpec) -> TaskResult {
     let base_url = spec.get_string("/baseUrl")?;
-    let messages: Vec<Message> = spec.get_model("/messages")?;
+    let request: Request = spec.get_model("/")?;
 
     Ok(TaskState::Continue {
-        body: html! { <Component { base_url } { messages } /> },
+        body: html! { <Component { base_url } { request } /> },
     })
 }
 
 #[derive(Clone, Debug, PartialEq, Properties)]
 struct Props {
     base_url: String,
-    messages: Vec<Message>,
+    request: Request,
 }
 
 #[function_component(Component)]
 fn component(props: &Props) -> Html {
-    let Props { base_url, messages } = props;
-
-    let request = Request {
-        model: "tgi".into(),
-        options: RequestOptions { stream: true },
-        messages: messages.clone(),
-    };
+    let Props { base_url, request } = props;
 
     let value = self::hooks::use_fetch(base_url, request);
     match &*value {

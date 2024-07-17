@@ -2,19 +2,28 @@ use std::collections::VecDeque;
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub struct Request {
+    #[serde(default = "Request::default_model")]
     pub model: String,
-    #[serde(flatten)]
+    #[serde(default, flatten)]
     pub options: RequestOptions,
+    #[serde(default)]
     pub messages: Vec<Message>,
 }
 
-#[derive(Clone, Debug, Default, PartialEq, Serialize)]
+impl Request {
+    fn default_model() -> String {
+        "any".into()
+    }
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub struct RequestOptions {
-    pub stream: bool,
+    #[serde(default)]
+    pub stream: Option<bool>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -27,9 +36,11 @@ pub struct Message {
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub struct MessageChoice {
+    #[serde(default)]
     pub index: u32,
     #[serde(alias = "delta")]
     pub message: Message,
+    #[serde(default)]
     pub finish_reason: Option<MessageFinishReason>,
 }
 
