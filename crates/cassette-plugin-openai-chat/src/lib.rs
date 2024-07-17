@@ -9,6 +9,7 @@ use cassette_core::{
 use itertools::Itertools;
 use patternfly_yew::prelude::*;
 use yew::prelude::*;
+use yew_markdown::Markdown;
 
 use crate::schema::{Message, Request, RequestOptions, Response};
 
@@ -44,8 +45,11 @@ fn component(props: &Props) -> Html {
                 <p>{ "Loading..." }</p>
             </Content>
         },
+        FetchState::Collecting(tokens) => html! {
+            <ComponentBody completed=false tokens={ tokens.clone() } />
+        },
         FetchState::Completed(tokens) => html! {
-            <ComponentBody tokens={ tokens.clone() } />
+            <ComponentBody completed=true tokens={ tokens.clone() } />
         },
         FetchState::Error(error) => html! {
             <Alert inline=true title="Error" r#type={AlertType::Danger}>
@@ -57,12 +61,13 @@ fn component(props: &Props) -> Html {
 
 #[derive(Clone, Debug, PartialEq, Properties)]
 struct BodyProps {
+    completed: bool,
     tokens: Response,
 }
 
 #[function_component(ComponentBody)]
 fn component_body(props: &BodyProps) -> Html {
-    let BodyProps { tokens } = props;
+    let BodyProps { completed, tokens } = props;
 
     let content = tokens
         .choices
@@ -70,11 +75,13 @@ fn component_body(props: &BodyProps) -> Html {
         .map(|choice| &choice.message.content)
         .join("");
 
+    let style = if *completed { "" } else { "color: #FF3333;" };
+
     html! {
-        <CodeBlock>
-            <CodeBlockCode>
-                { content }
-            </CodeBlockCode>
-        </CodeBlock>
+        <Content>
+            <div { style }>
+                <Markdown src={ content } />
+            </div>
+        </Content>
     }
 }

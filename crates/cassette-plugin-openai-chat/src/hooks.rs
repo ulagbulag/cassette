@@ -1,6 +1,9 @@
 use anyhow::{anyhow, bail, Result};
-use cassette_core::net::fetch::{Body, FetchRequest, FetchState, IntoStream, Method};
+use cassette_core::net::fetch::{
+    Body, FetchRequest, FetchState, FetchStateSetter, IntoStream, Method,
+};
 use futures::TryStreamExt;
+use itertools::Itertools;
 use js_sys::Uint8Array;
 use yew::prelude::*;
 
@@ -31,9 +34,9 @@ pub fn use_fetch(base_url: &str, request: Request) -> UseStateHandle<FetchState<
 }
 
 async fn try_stream(
-    state: UseStateSetter<FetchState<Response>>,
+    setter: FetchStateSetter<Response>,
     stream: IntoStream<'_>,
-) -> Result<()> {
+) -> Result<Response> {
     let mut stream = stream
         .map_ok(|chunk| Uint8Array::new(&chunk).to_vec())
         .map_err(|error| match error.as_string() {
@@ -41,19 +44,66 @@ async fn try_stream(
             None => anyhow!("{error:?}"),
         });
 
-    let mut output = Response::default();
-    while let Some(chunk) = stream.try_next().await? {
-        let (opcode, data) = chunk.split_at(6);
-        match ::core::str::from_utf8(opcode)? {
-            "data: " => {
-                let Response { mut choices } = ::serde_json::from_slice(&data)?;
-                if let Some(choice) = choices.pop_front() {
-                    output.choices.push_back(choice);
-                    state.set(FetchState::Completed(output.clone()));
+    const PATTERN: &[u8] = "\n\ndata: ".as_bytes();
+
+    struct TokenStream {
+        output: Response,
+        setter: FetchStateSetter<Response>,
+    }
+
+    impl TokenStream {
+        fn new(setter: FetchStateSetter<Response>) -> Self {
+            Self {
+                output: Response::default(),
+                setter,
+            }
+        }
+
+        fn feed(&mut self, data: &[u8]) -> Result<()> {
+            self.feed_with(data, true)
+        }
+
+        fn feed_with(&mut self, data: &[u8], update: bool) -> Result<()> {
+            if !data.starts_with(PATTERN) {
+                bail!("unexpected opcode");
+            }
+            let data = &data[PATTERN.len()..];
+
+            let Response { mut choices } = ::serde_json::from_slice(data)?;
+            if let Some(choice) = choices.pop_front() {
+                self.output.choices.push_back(choice);
+                if update {
+                    self.setter.set(self.output.clone());
                 }
             }
-            opcode => bail!("unexpected opcode: {opcode:?}"),
+            Ok(())
+        }
+
+        fn finish(mut self, data: &[u8]) -> Result<Response> {
+            self.feed_with(data, false)?;
+            Ok(self.output)
         }
     }
-    Ok(())
+
+    let mut heystack = "\n\n".to_string().into_bytes();
+    let mut output = TokenStream::new(setter);
+    while let Some(chunk) = stream.try_next().await? {
+        heystack.extend(chunk);
+
+        let token_indices: Vec<_> = heystack
+            .windows(PATTERN.len())
+            .positions(|window| window == PATTERN)
+            .collect();
+
+        // [PATTERN, first, PATTERN, ...] => take "first"
+        if token_indices.len() >= 2 {
+            let mut offset = 0;
+            for (start, end) in token_indices.into_iter().tuple_windows() {
+                output.feed(&heystack[start..end])?;
+                offset = end;
+            }
+            heystack.drain(..offset);
+        }
+    }
+    output.finish(&heystack)
 }

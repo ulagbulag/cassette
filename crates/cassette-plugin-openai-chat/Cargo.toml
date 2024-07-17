@@ -30,3 +30,4 @@ patternfly-yew = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 yew = { workspace = true }
+yew-markdown = { workspace = true }

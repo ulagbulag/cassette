@@ -39,7 +39,7 @@ pub fn app_page(props: &AppPageProps) -> Html {
     let cassette_list = use_cassette_list();
     let cassette_list = match &*cassette_list {
         FetchState::Pending | FetchState::Fetching => Err(html! { <p>{ "Loading..." }</p> }),
-        FetchState::Completed(list) => Ok(list.as_slice()),
+        FetchState::Collecting(list) | FetchState::Completed(list) => Ok(list.as_slice()),
         FetchState::Error(error) => Err(html! { <p>{ format!("Error: {error}") }</p> }),
     };
 

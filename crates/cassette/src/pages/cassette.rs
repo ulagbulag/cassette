@@ -25,10 +25,10 @@ pub fn cassette(props: &Props) -> Html {
         FetchState::Pending | FetchState::Fetching => html! {
             <CassetteFallback />
         },
-        FetchState::Completed(Some(data)) => html! {
+        FetchState::Collecting(Some(data)) | FetchState::Completed(Some(data)) => html! {
             <CassetteView data={ data.clone() } />
         },
-        FetchState::Completed(None) => html! {
+        FetchState::Collecting(None) | FetchState::Completed(None) => html! {
             <crate::pages::error::Error kind={ ErrorKind::NotFound } />
         },
         FetchState::Error(error) => html! {

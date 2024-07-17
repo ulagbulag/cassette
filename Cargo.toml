@@ -84,4 +84,5 @@ uuid = { version = "1.10", default-features = false, features = ["serde"] }
 wasm-streams = { version = "0.4" }
 web-sys = { version = "0.3", features = ["MediaQueryList", "Url", "Window"] }
 yew = { version = "0.21", features = ["csr"] }
+yew-markdown = { git = "https://github.com/ulagbulag/yew-markdown" }
 yew-nested-router = { version = "0.7" }

@@ -113,8 +113,8 @@ impl<Url, Req> FetchRequest<Url, Req> {
         Req: 'static + Serialize,
         Res: 'static + DeserializeOwned,
         Url: fmt::Display,
-        F: 'static + FnOnce(UseStateSetter<FetchState<Res>>, IntoStream<'reader>) -> Fut,
-        Fut: Future<Output = ::anyhow::Result<()>>,
+        F: 'static + FnOnce(FetchStateSetter<Res>, IntoStream<'reader>) -> Fut,
+        Fut: Future<Output = ::anyhow::Result<Res>>,
     {
         if matches!(&*state, FetchState::Pending) {
             state.set(FetchState::Fetching);
@@ -146,12 +146,14 @@ impl<Url, Req> FetchRequest<Url, Req> {
                             .map(ReadableStream::from_raw)
                             .map(ReadableStream::into_stream)
                         {
-                            Some(body) => match handler(state.setter(), body).await {
-                                Ok(()) => return,
-                                Err(error) => FetchState::Error(format!(
-                                    "Failed to parse the {name}: {error}"
-                                )),
-                            },
+                            Some(body) => {
+                                match handler(FetchStateSetter(state.setter()), body).await {
+                                    Ok(data) => FetchState::Completed(data),
+                                    Err(error) => FetchState::Error(format!(
+                                        "Failed to parse the {name}: {error}"
+                                    )),
+                                }
+                            }
                             None => FetchState::Error(format!("Empty body: {name}")),
                         },
                         Err(error) => {
@@ -168,11 +170,20 @@ impl<Url, Req> FetchRequest<Url, Req> {
     }
 }
 
+pub struct FetchStateSetter<T>(UseStateSetter<FetchState<T>>);
+
+impl<T> FetchStateSetter<T> {
+    pub fn set(&self, value: T) {
+        self.0.set(FetchState::Collecting(value))
+    }
+}
+
 #[derive(Clone, Debug, Default)]
 pub enum FetchState<T> {
     #[default]
     Pending,
     Fetching,
+    Collecting(T),
     Completed(T),
     Error(String),
 }
@@ -185,6 +196,7 @@ where
         match self {
             Self::Pending => "pending".fmt(f),
             Self::Fetching => "loading".fmt(f),
+            Self::Collecting(data) => data.fmt(f),
             Self::Completed(data) => data.fmt(f),
             Self::Error(error) => error.fmt(f),
         }

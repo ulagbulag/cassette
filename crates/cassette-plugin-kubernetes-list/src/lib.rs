@@ -48,7 +48,7 @@ fn component(props: &Props) -> Html {
                 <p>{ "Loading..." }</p>
             </Content>
         },
-        FetchState::Completed(data) => html! {
+        FetchState::Collecting(data) | FetchState::Completed(data) => html! {
             <ComponentBody<DynamicObject> list={ data.items.clone() } />
         },
         FetchState::Error(error) => html! {
