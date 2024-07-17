@@ -35,6 +35,38 @@ spec:
                 name: player
                 port:
                   number: 80
+          - path: /c/
+            pathType: Prefix
+            backend:
+              service:
+                name: player
+                port:
+                  number: 80
+          - path: /v1/cassette/
+            pathType: Prefix
+            backend:
+              service:
+                name: gateway
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cassette-public
+  namespace: cassette-operator
+  annotations:
+    cert-manager.io/cluster-issuer: example.com
+spec:
+  tls:
+    - secretName: api.example.com-certs
+      hosts:
+        - example.com
+  ingressClassName: example.com
+  rules:
+    - host: api.example.com
+      http:
+        paths:
           - path: /([0-9a-z_-]*).css$
             pathType: ImplementationSpecific
             backend:
@@ -70,13 +102,6 @@ spec:
                 name: player
                 port:
                   number: 80
-          - path: /c/
-            pathType: Prefix
-            backend:
-              service:
-                name: player
-                port:
-                  number: 80
           - path: /error/
             pathType: Prefix
             backend:
@@ -96,13 +121,6 @@ spec:
             backend:
               service:
                 name: player
-                port:
-                  number: 80
-          - path: /v1/cassette/
-            pathType: Prefix
-            backend:
-              service:
-                name: gateway
                 port:
                   number: 80
           - path: /webfonts/
