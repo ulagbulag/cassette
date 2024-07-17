@@ -57,6 +57,7 @@ metadata:
   namespace: cassette-operator
   annotations:
     cert-manager.io/cluster-issuer: example.com
+    nginx.ingress.kubernetes.io/use-regex: "true"
 spec:
   tls:
     - secretName: api.example.com-certs
