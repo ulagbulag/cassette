@@ -1,7 +1,7 @@
 #[cfg(not(feature = "examples"))]
 use cassette_core::net::{
-    fetch::FetchRequestWithoutBody,
-    gateway::{use_fetch, Method},
+    fetch::{FetchRequestWithoutBody, Method},
+    gateway::use_fetch,
 };
 use cassette_core::{
     cassette::{Cassette, CassetteRef},

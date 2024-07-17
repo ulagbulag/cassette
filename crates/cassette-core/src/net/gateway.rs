@@ -6,7 +6,7 @@ use yew::prelude::*;
 use super::fetch::{FetchRequest, FetchState};
 
 #[hook]
-fn use_fetch<Req, Res, Url>(
+pub fn use_fetch<Req, Res, Url>(
     request: impl 'static + FnOnce() -> FetchRequest<Url, Req>,
 ) -> UseStateHandle<FetchState<Res>>
 where
