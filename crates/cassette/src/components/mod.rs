@@ -22,6 +22,8 @@ impl TaskRenderer for RootCassetteTask<'_> {
         match kind.as_str() {
             #[cfg(feature = "kubernetes-list")]
             "KubernetesList" => ::cassette_plugin_kubernetes_list::render(state, spec),
+            #[cfg(feature = "openai-chat")]
+            "OpenAIChat" => ::cassette_plugin_openai_chat::render(state, spec),
             "Text" => self::text::render(state, spec),
             _ => Err(format!("Unknown type: {name:?} as {kind}")),
         }

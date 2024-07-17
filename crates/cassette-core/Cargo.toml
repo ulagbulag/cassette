@@ -24,12 +24,16 @@ default = []
 api = ["dep:actix-web"]
 ui = ["dep:gloo-net", "dep:yew"]
 
+# net
+stream = ["dep:anyhow", "dep:wasm-streams"]
+
 # for demo ONLY
 examples = []
 mock-release = []
 
 [dependencies]
 actix-web = { workspace = true, optional = true }
+anyhow = { workspace = true, optional = true }
 garde = { workspace = true }
 gloo-net = { workspace = true, optional = true }
 k8s-openapi = { workspace = true }
@@ -38,5 +42,6 @@ schemars = { workspace = true, features = ["derive"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 uuid = { workspace = true }
+wasm-streams = { workspace = true, optional = true }
 web-sys = { workspace = true }
 yew = { workspace = true, optional = true }

@@ -1,3 +1,5 @@
+use std::collections::BTreeSet;
+
 use cassette_core::cassette::CassetteRef;
 use inflector::Inflector;
 use itertools::Itertools;
@@ -65,9 +67,32 @@ impl AppRoute {
             <NavExpandable title="About">
                 <NavRouterItem<AppRoute> to={AppRoute::Profile}>{"Profile"}</NavRouterItem<AppRoute>>
                 <NavRouterItem<AppRoute> to={AppRoute::License}>{"License"}</NavRouterItem<AppRoute>>
-                    { for cassettes_about }
+                { for cassettes_about }
             </NavExpandable>
         };
+
+        let group_names: BTreeSet<_> = cassettes
+            .as_ref()
+            .map(|list| {
+                list.iter()
+                    .filter_map(|item| item.group.as_deref())
+                    .collect()
+            })
+            .unwrap_or_default();
+        let cassettes_groups = group_names.into_iter().filter_map(|group| {
+            let cassettes = cassettes
+                .as_ref()
+                .ok()
+                .map(|list| render_cassette_list(list, group, false));
+            Some((group.to_string(), cassettes))
+        });
+        let nav_groups = cassettes_groups.map(|(group, cassettes)| {
+            html! {
+                <NavExpandable title={ group }>
+                    { cassettes }
+                </NavExpandable>
+            }
+        });
 
         html_nested! {
             <PageSidebar>
@@ -75,6 +100,7 @@ impl AppRoute {
                     <NavList>
                         { nav_home }
                         { nav_namespaced }
+                        { for nav_groups }
                         { nav_about }
                     </NavList>
                 </Nav>

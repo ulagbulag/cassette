@@ -15,7 +15,7 @@ pub fn render(_state: &UseStateHandle<CassetteState>, spec: &TaskSpec) -> TaskRe
     let kind = spec.get_string("/kind")?;
 
     Ok(TaskState::Continue {
-        body: html! { <Component { api_version } {kind} /> },
+        body: html! { <Component { api_version } { kind } /> },
     })
 }
 

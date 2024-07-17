@@ -158,6 +158,14 @@ crate = "cassette-plugin-kubernetes-core"
 allow = ["AGPL-3.0"]
 crate = "cassette-plugin-kubernetes-list"
 
+[[licenses.exceptions]]
+allow = ["AGPL-3.0"]
+crate = "cassette-plugin-openai"
+
+[[licenses.exceptions]]
+allow = ["AGPL-3.0"]
+crate = "cassette-plugin-openai-api"
+
 # Some crates don't have (easily) machine readable licensing information,
 # adding a clarification entry for it allows you to manually specify the
 # licensing information

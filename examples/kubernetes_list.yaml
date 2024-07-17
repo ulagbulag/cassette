@@ -5,6 +5,7 @@ metadata:
   name: kubernetes-list
 spec:
   component: kubernetes-list
+  group: Kubernetes
 ---
 apiVersion: cassette.ulagbulag.io/v1alpha1
 kind: CassetteComponent

@@ -21,6 +21,7 @@ pub struct CassetteTask<Spec = TaskSpec> {
     pub metadata: CassetteTaskMetadata,
     #[garde(skip)]
     #[serde(default)]
+    #[schemars(schema_with = "TaskSpec::preserve_arbitrary")]
     pub spec: Spec,
 }
 
@@ -71,15 +72,39 @@ pub enum TaskState {
 #[serde(transparent)]
 pub struct TaskSpec(Map<String, Value>);
 
+impl TaskSpec {
+    fn preserve_arbitrary(
+        _gen: &mut ::schemars::gen::SchemaGenerator,
+    ) -> ::schemars::schema::Schema {
+        let mut obj = ::schemars::schema::SchemaObject::default();
+        obj.extensions
+            .insert("x-kubernetes-preserve-unknown-fields".into(), true.into());
+        ::schemars::schema::Schema::Object(obj)
+    }
+}
+
 #[cfg(feature = "ui")]
 impl TaskSpec {
-    pub fn get_string(&self, key: &str) -> TaskResult<String> {
+    fn get(&self, key: &str) -> TaskResult<&Value> {
         self.0
             .get(&key[1..])
             .ok_or_else(|| format!("no such key: {key}"))
-            .and_then(|value| match value {
-                Value::String(value) => Ok(value.clone()),
-                _ => Err(format!("value is not a string: {key}")),
-            })
+    }
+
+    pub fn get_string(&self, key: &str) -> TaskResult<String> {
+        self.get(key).and_then(|value| match value {
+            Value::String(value) => Ok(value.clone()),
+            _ => Err(format!("value is not a string: {key}")),
+        })
+    }
+
+    pub fn get_model<T>(&self, key: &str) -> TaskResult<T>
+    where
+        T: DeserializeOwned,
+    {
+        self.get(key).and_then(|value| {
+            ::serde_json::from_value(value.clone())
+                .map_err(|error| format!("failed to parse value: {key}: {error}"))
+        })
     }
 }

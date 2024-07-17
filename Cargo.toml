@@ -11,6 +11,7 @@ members = [
     "crates/cassette-plugin-kubernetes-api",
     "crates/cassette-plugin-kubernetes-core",
     "crates/cassette-plugin-kubernetes-list",
+    "crates/cassette-plugin-openai-chat",
 ]
 resolver = "2"
 
@@ -80,6 +81,7 @@ tracing-subscriber = { version = "0.3" }
 tracing-subscriber-wasm = { version = "0.1" }
 url = { version = "2.5" }
 uuid = { version = "1.10", default-features = false, features = ["serde"] }
+wasm-streams = { version = "0.4" }
 web-sys = { version = "0.3", features = ["MediaQueryList", "Url", "Window"] }
 yew = { version = "0.21", features = ["csr"] }
 yew-nested-router = { version = "0.7" }

@@ -1,0 +1,22 @@
+---
+apiVersion: cassette.ulagbulag.io/v1alpha1
+kind: Cassette
+metadata:
+  name: openai-chat
+spec:
+  component: openai-chat
+  group: OpenAI
+---
+apiVersion: cassette.ulagbulag.io/v1alpha1
+kind: CassetteComponent
+metadata:
+  name: openai-chat
+spec:
+  tasks:
+    - name: chat
+      kind: OpenAIChat
+      spec:
+        baseUrl: /v1
+        messages:
+          - role: user
+            content: What is your name?

@@ -1,16 +1,16 @@
 use std::fmt;
 
-pub use gloo_net::http::Method;
-use serde::de::DeserializeOwned;
+use serde::{de::DeserializeOwned, Serialize};
 use yew::prelude::*;
 
 use super::fetch::{FetchRequest, FetchState};
 
 #[hook]
-pub fn use_fetch<Res, Url>(
-    request: impl 'static + FnOnce() -> FetchRequest<Url>,
+fn use_fetch<Req, Res, Url>(
+    request: impl 'static + FnOnce() -> FetchRequest<Url, Req>,
 ) -> UseStateHandle<FetchState<Res>>
 where
+    Req: 'static + Serialize,
     Res: 'static + DeserializeOwned,
     Url: 'static + fmt::Display,
 {
@@ -24,10 +24,11 @@ where
 }
 
 #[hook]
-fn use_fetch_unchecked<Res, Url>(
-    request: impl 'static + FnOnce() -> FetchRequest<Url>,
+fn use_fetch_unchecked<Req, Res, Url>(
+    request: impl 'static + FnOnce() -> FetchRequest<Url, Req>,
 ) -> UseStateHandle<FetchState<Res>>
 where
+    Req: 'static + Serialize,
     Res: 'static + DeserializeOwned,
     Url: 'static + fmt::Display,
 {
@@ -91,10 +92,11 @@ pub fn use_gateway_status() -> String {
 
     #[cfg(not(feature = "examples"))]
     {
-        let state = use_fetch_unchecked::<String, _>(move || FetchRequest {
-            method: Method::GET,
+        let state = use_fetch_unchecked::<(), String, _>(move || super::fetch::FetchRequest {
+            method: super::fetch::Method::GET,
             name: "gateway health",
             url: "/_health",
+            body: None,
         });
         state.to_string()
     }

@@ -3,7 +3,7 @@ name = "cassette-plugin-jwt"
 
 authors = { workspace = true }
 description = { workspace = true }
-documentation = "https://docs.rs/cassette-plugin-kubernetes-api"
+documentation = "https://docs.rs/cassette-plugin-jwt"
 edition = { workspace = true }
 include = { workspace = true }
 keywords = { workspace = true }

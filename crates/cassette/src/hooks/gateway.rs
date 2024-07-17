@@ -1,6 +1,6 @@
 #[cfg(not(feature = "examples"))]
 use cassette_core::net::{
-    fetch::FetchRequest,
+    fetch::FetchRequestWithoutBody,
     gateway::{use_fetch, Method},
 };
 use cassette_core::{
@@ -21,10 +21,11 @@ pub fn use_cassette(id: Uuid) -> UseStateHandle<FetchState<Option<Cassette>>> {
 
     #[cfg(not(feature = "examples"))]
     {
-        use_fetch(move || FetchRequest {
+        use_fetch(move || FetchRequestWithoutBody {
             method: Method::GET,
             name: "get",
             url: format!("/c/{namespace}/{id}"),
+            body: None,
         })
     }
 }
@@ -40,10 +41,11 @@ pub fn use_cassette_list() -> UseStateHandle<FetchState<Vec<CassetteRef>>> {
 
     #[cfg(not(feature = "examples"))]
     {
-        use_fetch(move || FetchRequest {
+        use_fetch(move || FetchRequestWithoutBody {
             method: Method::GET,
             name: "list",
             url: format!("/c/{namespace}/"),
+            body: None,
         })
     }
 }

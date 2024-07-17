@@ -21,7 +21,7 @@ workspace = true
 
 [features]
 default = ["full"]
-full = ["kubernetes"]
+full = ["kubernetes", "openai"]
 experimental = []
 
 # for demo ONLY
@@ -34,6 +34,10 @@ mock-release = ["cassette-core/mock-release"]
 kubernetes = ["kubernetes-list"]
 kubernetes-list = ["dep:cassette-plugin-kubernetes-list"]
 
+## OpenAI
+openai = ["openai-chat"]
+openai-chat = ["dep:cassette-plugin-openai-chat"]
+
 [build-dependencies]
 built = { workspace = true }
 
@@ -41,6 +45,7 @@ built = { workspace = true }
 cassette-core = { path = "../cassette-core", features = ["ui"] }
 cassette-loader-file = { path = "../cassette-loader-file", optional = true }
 cassette-plugin-kubernetes-list = { path = "../cassette-plugin-kubernetes-list", optional = true }
+cassette-plugin-openai-chat = { path = "../cassette-plugin-openai-chat", optional = true }
 
 browser-panic-hook = { workspace = true }
 gloo-utils = { workspace = true }
