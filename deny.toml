@@ -144,6 +144,10 @@ crate = "cassette-operator"
 
 [[licenses.exceptions]]
 allow = ["AGPL-3.0"]
+crate = "cassette-plugin-jwt"
+
+[[licenses.exceptions]]
+allow = ["AGPL-3.0"]
 crate = "cassette-plugin-kubernetes-api"
 
 [[licenses.exceptions]]
