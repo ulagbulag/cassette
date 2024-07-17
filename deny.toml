@@ -160,11 +160,7 @@ crate = "cassette-plugin-kubernetes-list"
 
 [[licenses.exceptions]]
 allow = ["AGPL-3.0"]
-crate = "cassette-plugin-openai"
-
-[[licenses.exceptions]]
-allow = ["AGPL-3.0"]
-crate = "cassette-plugin-openai-api"
+crate = "cassette-plugin-openai-chat"
 
 # Some crates don't have (easily) machine readable licensing information,
 # adding a clarification entry for it allows you to manually specify the
@@ -176,14 +172,29 @@ crate = "cassette-plugin-openai-api"
 # license-files = [{ path = "LICENSE", hash = 0x8cc1f5d3 }]
 
 [[licenses.clarify]]
+crate = "pulldown-cmark-wikilink"
+expression = "Unlicense"
+license-files = []
+
+[[licenses.clarify]]
 crate = "ring"
 expression = "MIT AND ISC AND OpenSSL"
 license-files = [{ path = "LICENSE", hash = 0xbd0eed23 }]
+
+[[licenses.clarify]]
+crate = "rust-web-markdown"
+expression = "Unlicense"
+license-files = []
 
 # [[licenses.clarify]]
 # crate = "webpki"
 # expression = "ISC"
 # license-files = [{ path = "LICENSE", hash = 0x001c7e6c }]
+
+[[licenses.clarify]]
+crate = "yew-markdown"
+expression = "Unlicense"
+license-files = []
 
 [licenses.private]
 # If true, ignores workspace crates that aren't published, or are only
@@ -289,7 +300,7 @@ allow-git = []
 
 [sources.allow-org]
 # 1 or more github.com organizations to allow git sources for
-github = ["ulagbulag"]
+github = ["ollpu", "rambip", "ulagbulag"]
 # 1 or more gitlab.com organizations to allow git sources for
 gitlab = []
 # 1 or more bitbucket.org organizations to allow git sources for

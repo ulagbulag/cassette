@@ -79,12 +79,12 @@ impl AppRoute {
                     .collect()
             })
             .unwrap_or_default();
-        let cassettes_groups = group_names.into_iter().filter_map(|group| {
+        let cassettes_groups = group_names.into_iter().map(|group| {
             let cassettes = cassettes
                 .as_ref()
                 .ok()
                 .map(|list| render_cassette_list(list, group, false));
-            Some((group.to_string(), cassettes))
+            (group.to_string(), cassettes)
         });
         let nav_groups = cassettes_groups.map(|(group, cassettes)| {
             html! {

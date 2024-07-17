@@ -41,6 +41,9 @@ jobs:
       - name: Disable terminal hooks
         run: sed -i '/\[\[hooks\]\]/,$d' 'Trunk.toml'
 
+      - name: Check clippy
+        run: cargo clippy --package cassette --target wasm32-unknown-unknown --features 'full,experimental' --verbose -- -D warnings
+
       - name: Build
         run: trunk build
 
@@ -58,13 +61,13 @@ jobs:
           profile: minimal
 
       - name: Check clippy
-        run: cargo clippy --all --verbose -- -D warnings
+        run: cargo clippy --package cassette-gateway --package cassette-operator --features 'full,experimental' --verbose -- -D warnings
 
       - name: Build
-        run: cargo build --all --verbose
+        run: cargo build --package cassette-gateway --package cassette-operator --features 'full,experimental' --verbose
 
       - name: Run tests
-        run: cargo test --all --verbose
+        run: cargo test --package cassette-gateway --package cassette-operator --features 'full,experimental' --verbose
 
   cargo-deny:
     runs-on: ubuntu-latest

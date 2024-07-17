@@ -26,10 +26,11 @@ fmt:
   cargo fmt --all
 
 clippy: fmt
-  cargo clippy --all --workspace -- -D warnings
+  cargo clippy --package cassette --target wasm32-unknown-unknown -- -D warnings
+  cargo clippy --package cassette-gateway --package cassette-operator -- -D warnings
 
 test: clippy
-  cargo test --all --workspace
+  cargo test --all
 
 init:
   @# Node
