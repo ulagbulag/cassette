@@ -108,13 +108,13 @@ impl<Url, Req> FetchRequest<Url, Req> {
         self,
         base_url: &str,
         state: UseStateHandle<FetchState<Res>>,
-        handler: F,
+        mut handler: F,
     ) where
         Req: 'static + Serialize,
         Res: 'static + DeserializeOwned,
         Url: fmt::Display,
-        F: 'static + FnOnce(FetchStateSetter<Res>, IntoStream<'reader>) -> Fut,
-        Fut: Future<Output = ::anyhow::Result<Res>>,
+        F: 'static + FnMut(StreamContext<'reader, Req, Res>) -> Fut,
+        Fut: Future<Output = ::anyhow::Result<StreamState<Req, Res>>>,
     {
         if matches!(&*state, FetchState::Pending) {
             state.set(FetchState::Fetching);
@@ -123,51 +123,82 @@ impl<Url, Req> FetchRequest<Url, Req> {
                 method,
                 name,
                 url: suffix_url,
-                body,
+                mut body,
             } = self;
             let url = format!("{base_url}{suffix_url}");
 
+            let mut last_data = None;
             let state = state.clone();
             spawn_local(async move {
-                let builder = RequestBuilder::new(&url).method(method);
-                let builder = match body {
-                    Some(Body::Json(body)) => builder.json(&body).map_err(|error| {
-                        FetchState::Error(format!("Failed to encode the body {name}: {error}"))
-                    }),
-                    None => builder.build().map_err(|error| {
-                        FetchState::Error(format!("Failed to build the request {name}: {error}"))
-                    }),
-                };
+                loop {
+                    let builder = RequestBuilder::new(&url).method(method.clone());
+                    let builder = match body.as_ref() {
+                        Some(Body::Json(body)) => builder.json(body).map_err(|error| {
+                            FetchState::Error(format!("Failed to encode the body {name}: {error}"))
+                        }),
+                        None => builder.build().map_err(|error| {
+                            FetchState::Error(format!(
+                                "Failed to build the request {name}: {error}"
+                            ))
+                        }),
+                    };
 
-                let value = match builder {
-                    Ok(builder) => match builder.send().await {
-                        Ok(response) => match response
-                            .body()
-                            .map(ReadableStream::from_raw)
-                            .map(ReadableStream::into_stream)
-                        {
-                            Some(body) => {
-                                match handler(FetchStateSetter(state.setter()), body).await {
-                                    Ok(data) => FetchState::Completed(data),
-                                    Err(error) => FetchState::Error(format!(
-                                        "Failed to parse the {name}: {error}"
-                                    )),
+                    let value = match builder {
+                        Ok(builder) => match builder.send().await {
+                            Ok(response) => match response
+                                .body()
+                                .map(ReadableStream::from_raw)
+                                .map(ReadableStream::into_stream)
+                            {
+                                Some(stream) => {
+                                    let ctx = StreamContext {
+                                        body: body.take(),
+                                        data: last_data.take(),
+                                        setter: FetchStateSetter(state.setter()),
+                                        stream,
+                                    };
+                                    match handler(ctx).await {
+                                        Ok(StreamState::Complete(data)) => {
+                                            FetchState::Completed(data)
+                                        }
+                                        Ok(StreamState::Continue(new_body, data)) => {
+                                            body.replace(new_body);
+                                            last_data.replace(data);
+                                            continue;
+                                        }
+                                        Err(error) => FetchState::Error(format!(
+                                            "Failed to parse the {name}: {error}"
+                                        )),
+                                    }
                                 }
+                                None => FetchState::Error(format!("Empty body: {name}")),
+                            },
+                            Err(error) => {
+                                FetchState::Error(format!("Failed to fetch the {name}: {error}"))
                             }
-                            None => FetchState::Error(format!("Empty body: {name}")),
                         },
-                        Err(error) => {
-                            FetchState::Error(format!("Failed to fetch the {name}: {error}"))
-                        }
-                    },
-                    Err(state) => state,
-                };
-                if matches!(&*state, FetchState::Pending | FetchState::Fetching) {
-                    state.set(value);
+                        Err(state) => state,
+                    };
+                    if matches!(&*state, FetchState::Pending | FetchState::Fetching) {
+                        state.set(value);
+                    }
+                    break;
                 }
             })
         }
     }
+}
+
+pub struct StreamContext<'reader, Req, Res> {
+    pub body: Option<Body<Req>>,
+    pub data: Option<Res>,
+    pub setter: FetchStateSetter<Res>,
+    pub stream: IntoStream<'reader>,
+}
+
+pub enum StreamState<Req, Res> {
+    Complete(Res),
+    Continue(Body<Req>, Res),
 }
 
 pub struct FetchStateSetter<T>(UseStateSetter<FetchState<T>>);

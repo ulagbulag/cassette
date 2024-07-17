@@ -6,12 +6,11 @@ use cassette_core::{
     net::fetch::FetchState,
     task::{TaskResult, TaskSpec, TaskState},
 };
-use itertools::Itertools;
 use patternfly_yew::prelude::*;
 use yew::prelude::*;
 use yew_markdown::Markdown;
 
-use crate::schema::{Request, Response};
+use crate::schema::Request;
 
 pub fn render(_state: &UseStateHandle<CassetteState>, spec: &TaskSpec) -> TaskResult {
     let base_url = spec.get_string("/baseUrl")?;
@@ -39,11 +38,11 @@ fn component(props: &Props) -> Html {
                 <p>{ "Loading..." }</p>
             </Content>
         },
-        FetchState::Collecting(tokens) => html! {
-            <ComponentBody completed=false tokens={ tokens.clone() } />
+        FetchState::Collecting(content) => html! {
+            <ComponentBody completed=false content={ content.clone() } />
         },
-        FetchState::Completed(tokens) => html! {
-            <ComponentBody completed=true tokens={ tokens.clone() } />
+        FetchState::Completed(content) => html! {
+            <ComponentBody completed=true content={ content.clone() } />
         },
         FetchState::Error(error) => html! {
             <Alert inline=true title="Error" r#type={AlertType::Danger}>
@@ -56,25 +55,19 @@ fn component(props: &Props) -> Html {
 #[derive(Clone, Debug, PartialEq, Properties)]
 struct BodyProps {
     completed: bool,
-    tokens: Response,
+    content: String,
 }
 
 #[function_component(ComponentBody)]
 fn component_body(props: &BodyProps) -> Html {
-    let BodyProps { completed, tokens } = props;
-
-    let content = tokens
-        .choices
-        .iter()
-        .map(|choice| &choice.message.content)
-        .join("");
+    let BodyProps { completed, content } = props;
 
     let style = if *completed { "" } else { "color: #FF3333;" };
 
     html! {
         <Content>
             <div { style }>
-                <Markdown src={ content } />
+                <Markdown src={ content.clone() } />
             </div>
         </Content>
     }

@@ -13,17 +13,44 @@ pub struct Request {
     pub messages: Vec<Message>,
 }
 
+impl Default for Request {
+    fn default() -> Self {
+        Self {
+            model: Self::default_model(),
+            options: Default::default(),
+            messages: Default::default(),
+        }
+    }
+}
+
 impl Request {
     fn default_model() -> String {
         "any".into()
     }
 }
 
-#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub struct RequestOptions {
+    #[serde(default = "RequestOptions::default_max_tokens")]
+    pub max_tokens: u32,
     #[serde(default)]
     pub stream: Option<bool>,
+}
+
+impl Default for RequestOptions {
+    fn default() -> Self {
+        Self {
+            max_tokens: Self::default_max_tokens(),
+            stream: Default::default(),
+        }
+    }
+}
+
+impl RequestOptions {
+    const fn default_max_tokens() -> u32 {
+        1000
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

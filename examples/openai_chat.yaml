@@ -20,4 +20,4 @@ spec:
         stream: true
         messages:
           - role: user
-            content: What is your name?
+            content: "Which is better: Diet Coke vs Normal Coke"
