@@ -1,4 +1,6 @@
 #[cfg(not(feature = "examples"))]
+use cassette_core::net::fetch::FetchStateHandle;
+#[cfg(not(feature = "examples"))]
 use cassette_core::net::{
     fetch::{FetchRequestWithoutBody, Method},
     gateway::use_fetch,
@@ -19,10 +21,15 @@ pub struct CassetteState {
 #[hook]
 pub fn use_cassette(id: Uuid) -> UseStateHandle<CassetteState> {
     let namespace = get_namespace();
-    let state = use_state_eq(|| CassetteState {
+
+    let reset_state = || CassetteState {
         id,
         data: FetchState::Pending,
-    });
+    };
+    let state = use_state_eq(reset_state);
+    if state.id != id {
+        state.set(reset_state());
+    }
 
     #[cfg(feature = "examples")]
     {
@@ -34,15 +41,15 @@ pub fn use_cassette(id: Uuid) -> UseStateHandle<CassetteState> {
 
     #[cfg(not(feature = "examples"))]
     {
-        let gateway_url = get_gateway();
-        let state = state.clone();
+        let gateway_url = cassette_core::net::gateway::get_gateway();
+        let state = CassetteStateHandle(state.clone());
         let request = FetchRequestWithoutBody {
             method: Method::GET,
             name: "get",
             url: format!("/c/{namespace}/{id}"),
             body: None,
         };
-        use_effect(move || request().try_fetch(&gateway_url, state))
+        use_effect(move || request.try_fetch(&gateway_url, state))
     }
     state
 }
@@ -63,6 +70,25 @@ pub fn use_cassette_list() -> UseStateHandle<FetchState<Vec<CassetteRef>>> {
             name: "list",
             url: format!("/c/{namespace}/"),
             body: None,
+        })
+    }
+}
+
+#[cfg(not(feature = "examples"))]
+#[derive(Clone)]
+struct CassetteStateHandle(UseStateHandle<CassetteState>);
+
+#[cfg(not(feature = "examples"))]
+impl FetchStateHandle<Option<Cassette>> for CassetteStateHandle {
+    fn get(&self) -> &FetchState<Option<Cassette>> {
+        &self.0.data
+    }
+
+    fn set(&mut self, value: FetchState<Option<Cassette>>) {
+        self.0.set({
+            let mut state = (&*self.0).clone();
+            state.data = value;
+            state
         })
     }
 }
