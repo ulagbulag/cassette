@@ -86,7 +86,7 @@ impl FetchStateHandle<Option<Cassette>> for CassetteStateHandle {
 
     fn set(&mut self, value: FetchState<Option<Cassette>>) {
         self.0.set({
-            let mut state = (&*self.0).clone();
+            let mut state = (*self.0).clone();
             state.data = value;
             state
         })

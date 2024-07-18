@@ -133,7 +133,7 @@ impl CassetteState {
 
     fn set(&mut self, name: &str, value: crate::task::TaskSpec) {
         self.root.set({
-            let mut root = (&*self.root).clone();
+            let mut root = (*self.root).clone();
             root.spec.set_child(name, value);
             root
         })
@@ -152,7 +152,7 @@ impl CassetteState {
         let handler = match self.root.handlers.get(&key) {
             Some(handler) => handler.clone(),
             None => {
-                let mut root = (&*self.root).clone();
+                let mut root = (*self.root).clone();
                 let handler = Rc::new(f_init());
                 root.handlers.insert(key, handler.clone());
                 self.root.set(root);
@@ -224,16 +224,14 @@ impl<'a> CassetteContext<'a> {
         match state {
             crate::task::TaskState::Break { body, state } => crate::task::TaskState::Break {
                 body,
-                state: match state {
-                    Some(state) => self.set_task_state(state),
-                    None => (),
+                state: if let Some(state) = state {
+                    self.set_task_state(state)
                 },
             },
             crate::task::TaskState::Continue { body } => crate::task::TaskState::Continue { body },
             crate::task::TaskState::Skip { state } => crate::task::TaskState::Skip {
-                state: match state {
-                    Some(state) => self.set_task_state(state),
-                    None => (),
+                state: if let Some(state) = state {
+                    self.set_task_state(state)
                 },
             },
         }
@@ -269,7 +267,7 @@ impl<T> ops::Deref for CassetteTaskHandle<T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
-        &*self.item
+        &self.item
     }
 }
 
@@ -287,7 +285,7 @@ impl<T> Clone for CassetteTaskHandle<T> {
 #[cfg(feature = "ui")]
 impl<T> FetchStateHandle<T> for CassetteTaskHandle<FetchState<T>> {
     fn get(&self) -> &FetchState<T> {
-        &*self.item
+        &self.item
     }
 
     fn set(&mut self, value: FetchState<T>)
@@ -296,7 +294,7 @@ impl<T> FetchStateHandle<T> for CassetteTaskHandle<FetchState<T>> {
     {
         self.item = Rc::new(value);
         self.root.set({
-            let mut root = (&*self.root).clone();
+            let mut root = (*self.root).clone();
             root.handlers.insert(self.id.clone(), self.item.clone());
             root
         })

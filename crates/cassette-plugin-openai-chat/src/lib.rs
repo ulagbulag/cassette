@@ -44,7 +44,7 @@ impl ComponentRenderer<Spec> for State {
         if let Some(content) = message {
             request.messages.push(Message {
                 role: Role::User,
-                content: content.into(),
+                content,
             });
         }
 

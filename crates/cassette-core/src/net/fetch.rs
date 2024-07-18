@@ -216,11 +216,11 @@ where
 
 impl<T> FetchStateHandle<T> for UseStateHandle<FetchState<T>> {
     fn get(&self) -> &FetchState<T> {
-        &*self
+        self
     }
 
     fn set(&mut self, value: FetchState<T>) {
-        (&*self).set(value)
+        (*self).set(value)
     }
 }
 
