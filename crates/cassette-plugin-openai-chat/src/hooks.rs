@@ -112,6 +112,11 @@ where
         }
         let data = &data[PATTERN.len()..];
 
+        // handle sub-opcodes
+        if data.starts_with("[DONE]".as_bytes()) {
+            return Ok(());
+        }
+
         let Response { mut choices } = ::serde_json::from_slice(data)?;
         if let Some(MessageChoice {
             index: _,
