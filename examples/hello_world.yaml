@@ -12,7 +12,14 @@ metadata:
   name: hello-world
 spec:
   tasks:
+    - name: init
+      kind: Variable
+      spec:
+        msg: |
+          # Hello World
+          Welcome to Cassette Player!
+
     - name: show-hello-message
       kind: Text
       spec:
-        msg: "Hello World!"
+        msg: ":/init/msg"

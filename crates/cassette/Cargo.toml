@@ -53,9 +53,11 @@ inflector = { workspace = true }
 itertools = { workspace = true }
 patternfly-yew = { workspace = true }
 regex = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 tracing-subscriber-wasm = { workspace = true }
 uuid = { workspace = true }
 yew = { workspace = true }
+yew-markdown = { workspace = true }
 yew-nested-router = { workspace = true }

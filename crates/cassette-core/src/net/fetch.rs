@@ -1,5 +1,7 @@
-use std::{fmt, future::Future};
+use std::{fmt, future::Future, marker::PhantomData};
 
+#[cfg(feature = "stream")]
+use anyhow::Result;
 pub use gloo_net::http::Method;
 use gloo_net::http::RequestBuilder;
 use serde::{de::DeserializeOwned, Serialize};
@@ -23,8 +25,9 @@ pub enum Body<T> {
 }
 
 impl<Url, Req> FetchRequest<Url, Req> {
-    pub fn try_fetch<Res>(self, base_url: &str, state: UseStateHandle<FetchState<Res>>)
+    pub fn try_fetch<State, Res>(self, base_url: &str, state: State)
     where
+        State: 'static + FetchStateHandle<Res>,
         Req: 'static + Serialize,
         Res: 'static + DeserializeOwned,
         Url: fmt::Display,
@@ -36,8 +39,9 @@ impl<Url, Req> FetchRequest<Url, Req> {
         self.try_fetch_with(base_url, state, handler)
     }
 
-    pub fn try_fetch_unchecked<Res>(self, base_url: &str, state: UseStateHandle<FetchState<Res>>)
+    pub fn try_fetch_unchecked<State, Res>(self, base_url: &str, state: State)
     where
+        State: 'static + FetchStateHandle<Res>,
         Req: 'static + Serialize,
         Res: 'static + DeserializeOwned,
         Url: fmt::Display,
@@ -46,19 +50,16 @@ impl<Url, Req> FetchRequest<Url, Req> {
         self.try_fetch_with(base_url, state, handler)
     }
 
-    fn try_fetch_with<Res, ResRaw, F>(
-        self,
-        base_url: &str,
-        state: UseStateHandle<FetchState<Res>>,
-        handler: F,
-    ) where
+    fn try_fetch_with<State, Res, ResRaw, F>(self, base_url: &str, mut state: State, handler: F)
+    where
+        State: 'static + FetchStateHandle<Res>,
         Req: 'static + Serialize,
         Res: 'static + DeserializeOwned,
         ResRaw: 'static + DeserializeOwned,
         Url: fmt::Display,
         F: 'static + FnOnce(ResRaw) -> FetchState<Res>,
     {
-        if matches!(&*state, FetchState::Pending) {
+        if matches!(state.get(), FetchState::Pending) {
             state.set(FetchState::Fetching);
 
             let Self {
@@ -69,7 +70,7 @@ impl<Url, Req> FetchRequest<Url, Req> {
             } = self;
             let url = format!("{base_url}{suffix_url}");
 
-            let state = state.clone();
+            let mut state = state.clone();
             spawn_local(async move {
                 let builder = RequestBuilder::new(&url).method(method);
                 let builder = match body {
@@ -95,7 +96,7 @@ impl<Url, Req> FetchRequest<Url, Req> {
                     },
                     Err(state) => state,
                 };
-                if matches!(&*state, FetchState::Pending | FetchState::Fetching) {
+                if matches!(state.get(), FetchState::Pending | FetchState::Fetching) {
                     state.set(value);
                 }
             })
@@ -104,19 +105,20 @@ impl<Url, Req> FetchRequest<Url, Req> {
 }
 
 impl<Url, Req> FetchRequest<Url, Req> {
-    pub fn try_stream_with<'reader, Res, F, Fut>(
+    pub fn try_stream_with<'reader, State, Res, F, Fut>(
         self,
         base_url: &str,
-        state: UseStateHandle<FetchState<Res>>,
+        mut state: State,
         mut handler: F,
     ) where
+        State: 'static + FetchStateHandle<Res>,
         Req: 'static + Serialize,
         Res: 'static + DeserializeOwned,
         Url: fmt::Display,
-        F: 'static + FnMut(StreamContext<'reader, Req, Res>) -> Fut,
-        Fut: Future<Output = ::anyhow::Result<StreamState<Req, Res>>>,
+        F: 'static + FnMut(StreamContext<'reader, State, Req, Res>) -> Fut,
+        Fut: Future<Output = Result<StreamState<Req, Res>>>,
     {
-        if matches!(&*state, FetchState::Pending) {
+        if matches!(state.get(), FetchState::Pending) {
             state.set(FetchState::Fetching);
 
             let Self {
@@ -128,7 +130,7 @@ impl<Url, Req> FetchRequest<Url, Req> {
             let url = format!("{base_url}{suffix_url}");
 
             let mut last_data = None;
-            let state = state.clone();
+            let mut state = state.clone();
             spawn_local(async move {
                 loop {
                     let builder = RequestBuilder::new(&url).method(method.clone());
@@ -154,7 +156,7 @@ impl<Url, Req> FetchRequest<Url, Req> {
                                     let ctx = StreamContext {
                                         body: body.take(),
                                         data: last_data.take(),
-                                        setter: FetchStateSetter(state.setter()),
+                                        setter: FetchStateSetter::new(state.clone()),
                                         stream,
                                     };
                                     match handler(ctx).await {
@@ -179,7 +181,7 @@ impl<Url, Req> FetchRequest<Url, Req> {
                         },
                         Err(state) => state,
                     };
-                    if matches!(&*state, FetchState::Pending | FetchState::Fetching) {
+                    if matches!(state.get(), FetchState::Pending | FetchState::Fetching) {
                         state.set(value);
                     }
                     break;
@@ -189,10 +191,10 @@ impl<Url, Req> FetchRequest<Url, Req> {
     }
 }
 
-pub struct StreamContext<'reader, Req, Res> {
+pub struct StreamContext<'reader, State, Req, Res> {
     pub body: Option<Body<Req>>,
     pub data: Option<Res>,
-    pub setter: FetchStateSetter<Res>,
+    pub setter: FetchStateSetter<State, Res>,
     pub stream: IntoStream<'reader>,
 }
 
@@ -201,11 +203,49 @@ pub enum StreamState<Req, Res> {
     Continue(Body<Req>, Res),
 }
 
-pub struct FetchStateSetter<T>(UseStateSetter<FetchState<T>>);
+pub trait FetchStateHandle<T>
+where
+    Self: Clone,
+{
+    fn get(&self) -> &FetchState<T>;
 
-impl<T> FetchStateSetter<T> {
-    pub fn set(&self, value: T) {
-        self.0.set(FetchState::Collecting(value))
+    fn set(&mut self, value: FetchState<T>)
+    where
+        T: 'static;
+}
+
+impl<T> FetchStateHandle<T> for UseStateHandle<FetchState<T>> {
+    fn get(&self) -> &FetchState<T> {
+        &*self
+    }
+
+    fn set(&mut self, value: FetchState<T>) {
+        (&*self).set(value)
+    }
+}
+
+pub struct FetchStateSetter<T, Item> {
+    _item: PhantomData<Item>,
+    inner: T,
+}
+
+impl<T, Item> FetchStateSetter<T, Item>
+where
+    T: FetchStateHandle<Item>,
+{
+    const fn new(inner: T) -> Self {
+        Self {
+            _item: PhantomData,
+            inner,
+        }
+    }
+
+    pub fn set(&mut self, value: Item)
+    where
+        T: 'static,
+        Item: 'static,
+    {
+        self.inner.set(FetchState::Collecting(value))
     }
 }
 

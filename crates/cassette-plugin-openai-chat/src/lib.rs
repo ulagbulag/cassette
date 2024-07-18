@@ -2,73 +2,81 @@ mod hooks;
 mod schema;
 
 use cassette_core::{
-    cassette::CassetteState,
+    cassette::CassetteContext,
+    component::ComponentRenderer,
     net::fetch::FetchState,
-    task::{TaskResult, TaskSpec, TaskState},
+    task::{TaskResult, TaskState},
 };
 use patternfly_yew::prelude::*;
+use serde::{Deserialize, Serialize};
 use yew::prelude::*;
-use yew_markdown::Markdown;
 
-use crate::schema::Request;
+use crate::schema::{Message, Request, Role};
 
-pub fn render(_state: &UseStateHandle<CassetteState>, spec: &TaskSpec) -> TaskResult {
-    let base_url = spec.get_string("/baseUrl")?;
-    let request: Request = spec.get_model("/")?;
-
-    Ok(TaskState::Continue {
-        body: html! { <Component { base_url } { request } /> },
-    })
-}
-
-#[derive(Clone, Debug, PartialEq, Properties)]
-struct Props {
+#[derive(Clone, Debug, PartialEq, Deserialize, Properties)]
+#[serde(rename_all = "camelCase")]
+pub struct Spec {
     base_url: String,
+
+    #[serde(default)]
+    message: Option<String>,
+
+    #[serde(default, flatten)]
     request: Request,
 }
 
-#[function_component(Component)]
-fn component(props: &Props) -> Html {
-    let Props { base_url, request } = props;
-
-    let value = self::hooks::use_fetch(base_url, request);
-    match &*value {
-        FetchState::Pending | FetchState::Fetching => html! {
-            <Content>
-                <p>{ "Loading..." }</p>
-            </Content>
-        },
-        FetchState::Collecting(content) => html! {
-            <ComponentBody completed=false content={ content.clone() } />
-        },
-        FetchState::Completed(content) => html! {
-            <ComponentBody completed=true content={ content.clone() } />
-        },
-        FetchState::Error(error) => html! {
-            <Alert inline=true title="Error" r#type={AlertType::Danger}>
-                { error.clone() }
-            </Alert>
-        },
-    }
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct State {
+    content: Option<String>,
+    progress: bool,
 }
 
-#[derive(Clone, Debug, PartialEq, Properties)]
-struct BodyProps {
-    completed: bool,
-    content: String,
-}
+impl ComponentRenderer<Spec> for State {
+    fn render(self, ctx: &mut CassetteContext, spec: Spec) -> TaskResult<Option<Self>> {
+        let Spec {
+            base_url,
+            message,
+            request,
+        } = spec;
 
-#[function_component(ComponentBody)]
-fn component_body(props: &BodyProps) -> Html {
-    let BodyProps { completed, content } = props;
+        let mut request = request.clone();
+        if let Some(content) = message {
+            request.messages.push(Message {
+                role: Role::User,
+                content: content.into(),
+            });
+        }
 
-    let style = if *completed { "" } else { "color: #FF3333;" };
-
-    html! {
-        <Content>
-            <div { style }>
-                <Markdown src={ content.clone() } />
-            </div>
-        </Content>
+        match &*crate::hooks::use_fetch(ctx, &base_url, request) {
+            FetchState::Pending | FetchState::Fetching => Ok(TaskState::Break {
+                body: html! {
+                    <Content>
+                        <p>{ "Loading..." }</p>
+                    </Content>
+                },
+                state: None,
+            }),
+            FetchState::Collecting(content) => Ok(TaskState::Skip {
+                state: Some(Self {
+                    content: Some(content.clone()),
+                    progress: true,
+                }),
+            }),
+            FetchState::Completed(content) => Ok(TaskState::Skip {
+                state: Some(Self {
+                    content: Some(content.clone()),
+                    progress: false,
+                }),
+            }),
+            FetchState::Error(error) => Ok(TaskState::Break {
+                body: html! {
+                    <Alert inline=true title="Error" r#type={AlertType::Danger}>
+                        { error.clone() }
+                    </Alert>
+                },
+                state: None,
+            }),
+        }
     }
 }

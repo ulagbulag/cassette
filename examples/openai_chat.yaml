@@ -13,11 +13,23 @@ metadata:
   name: openai-chat
 spec:
   tasks:
+    - name: init
+      kind: Variable
+      spec:
+        message: "Which is better: Diet Coke vs Normal Coke"
+
     - name: chat
       kind: OpenAIChat
       spec:
         baseUrl: /v1
+        message: ":/init/message"
         stream: true
-        messages:
-          - role: user
-            content: "Which is better: Diet Coke vs Normal Coke"
+        # messages:
+        #   - role: user
+        #     content: "Which is better: Diet Coke vs Normal Coke"
+
+    - name: show
+      kind: Text
+      spec:
+        msg: ":/chat/content"
+        progress: ":/chat/progress"

@@ -25,4 +25,5 @@ cassette-plugin-kubernetes-core = { path = "../cassette-plugin-kubernetes-core" 
 
 kube-core = { workspace = true }
 patternfly-yew = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
 yew = { workspace = true }

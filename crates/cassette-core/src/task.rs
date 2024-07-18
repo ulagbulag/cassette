@@ -55,22 +55,53 @@ pub enum CassetteTaskColumnType {
 
 #[cfg(feature = "ui")]
 pub trait TaskRenderer {
-    fn render(&self, state: &UseStateHandle<crate::cassette::CassetteState>) -> TaskResult;
+    fn render(&self, state: &mut crate::cassette::CassetteState) -> TaskResult<()>;
 }
 
 #[cfg(feature = "ui")]
-pub type TaskResult<T = TaskState> = Result<T, String>;
+pub type TaskResult<T> = Result<TaskState<T>, String>;
 
 #[cfg(feature = "ui")]
-pub enum TaskState {
-    Break { body: Html },
+pub enum TaskState<T = Option<TaskSpec>> {
+    Break { body: Html, state: T },
     Continue { body: Html },
-    Skip,
+    Skip { state: T },
 }
 
-#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize, JsonSchema)]
+#[cfg(feature = "ui")]
+impl<T> TaskState<Option<T>>
+where
+    T: Serialize,
+{
+    pub(crate) fn try_into_spec(self) -> Result<TaskState<Option<TaskSpec>>, String> {
+        let encode = |value| {
+            ::serde_json::to_value(value)
+                .map(TaskSpec)
+                .map_err(|error| format!("Failed to encode task state: {error}"))
+        };
+
+        match self {
+            Self::Break { body, state } => Ok(TaskState::Break {
+                body,
+                state: state.map(encode).transpose()?,
+            }),
+            Self::Continue { body } => Ok(TaskState::Continue { body }),
+            Self::Skip { state } => Ok(TaskState::Skip {
+                state: state.map(encode).transpose()?,
+            }),
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[serde(transparent)]
-pub struct TaskSpec(Value);
+pub struct TaskSpec(pub Value);
+
+impl Default for TaskSpec {
+    fn default() -> Self {
+        Self(Value::Object(Default::default()))
+    }
+}
 
 impl TaskSpec {
     fn preserve_arbitrary(
@@ -85,30 +116,31 @@ impl TaskSpec {
 
 #[cfg(feature = "ui")]
 impl TaskSpec {
-    fn get(&self, key: &str) -> TaskResult<&Value> {
+    pub(crate) fn get(&self, key: &str) -> Result<&Value, String> {
+        self.try_get(key)
+            .ok_or_else(|| format!("no such key: {key}"))
+    }
+
+    pub(crate) fn try_get(&self, key: &str) -> Option<&Value> {
         match key {
-            "" | "/" => Ok(&self.0),
-            key => self
-                .0
-                .pointer(key)
-                .ok_or_else(|| format!("no such key: {key}")),
+            "" | "/" => Some(&self.0),
+            key => self.0.pointer(key),
         }
     }
 
-    pub fn get_string(&self, key: &str) -> TaskResult<String> {
-        self.get(key).and_then(|value| match value {
-            Value::String(value) => Ok(value.clone()),
-            _ => Err(format!("value is not a string: {key}")),
-        })
-    }
-
-    pub fn get_model<T>(&self, key: &str) -> TaskResult<T>
-    where
-        T: DeserializeOwned,
-    {
-        self.get(key).and_then(|value| {
-            ::serde_json::from_value(value.clone())
-                .map_err(|error| format!("failed to parse value: {key}: {error}"))
-        })
+    pub(crate) fn set_child(&mut self, name: &str, value: Self) {
+        match &mut self.0 {
+            Value::Null => {
+                self.0 = Value::Object({
+                    let mut map = ::serde_json::Map::with_capacity(1);
+                    map.insert(name.into(), value.0);
+                    map
+                })
+            }
+            Value::Object(map) => {
+                map.insert(name.into(), value.0);
+            }
+            _ => (),
+        }
     }
 }

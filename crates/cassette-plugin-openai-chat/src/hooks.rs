@@ -1,17 +1,24 @@
 use anyhow::{anyhow, bail, Result};
-use cassette_core::net::fetch::{
-    Body, FetchRequest, FetchState, FetchStateSetter, Method, StreamContext, StreamState,
+use cassette_core::{
+    cassette::{CassetteContext, CassetteTaskHandle},
+    net::fetch::{
+        Body, FetchRequest, FetchState, FetchStateHandle, FetchStateSetter, Method, StreamContext,
+        StreamState,
+    },
 };
 use futures::TryStreamExt;
 use itertools::Itertools;
 use js_sys::Uint8Array;
-use yew::prelude::*;
 
 use crate::schema::{Message, MessageChoice, MessageFinishReason, Request, Response, Role};
 
-#[hook]
-pub fn use_fetch(base_url: &str, request: &Request) -> UseStateHandle<FetchState<String>> {
-    let state = use_state(|| FetchState::Pending);
+pub fn use_fetch(
+    ctx: &mut CassetteContext,
+    base_url: &str,
+    request: Request,
+) -> CassetteTaskHandle<FetchState<String>> {
+    let handler_name = "chat completions".into();
+    let state = ctx.use_state(handler_name, || FetchState::Pending);
     {
         let state = state.clone();
         let base_url = base_url.to_string();
@@ -23,18 +30,22 @@ pub fn use_fetch(base_url: &str, request: &Request) -> UseStateHandle<FetchState
             body: Some(Body::Json(request.clone())),
         };
 
-        let f: Box<dyn FnOnce()> = match stream {
-            Some(true) => Box::new(move || request.try_stream_with(&base_url, state, try_stream)),
-            Some(false) | None => Box::new(move || request.try_fetch_unchecked(&base_url, state)),
-        };
-        use_effect(f)
+        match stream {
+            Some(true) => request.try_stream_with(&base_url, state, try_stream),
+            Some(false) | None => request.try_fetch_unchecked(&base_url, state),
+        }
     }
     state
 }
 
-async fn try_stream(
-    ctx: StreamContext<'_, Request, String>,
-) -> Result<StreamState<Request, String>> {
+const PATTERN: &[u8] = "\n\ndata: ".as_bytes();
+
+async fn try_stream<State>(
+    ctx: StreamContext<'_, State, Request, String>,
+) -> Result<StreamState<Request, String>>
+where
+    State: 'static + FetchStateHandle<String>,
+{
     let StreamContext {
         body,
         data,
@@ -49,87 +60,6 @@ async fn try_stream(
             Some(error) => anyhow!("{error}"),
             None => anyhow!("{error:?}"),
         });
-
-    const PATTERN: &[u8] = "\n\ndata: ".as_bytes();
-
-    struct TokenStream {
-        data: String,
-        data_last: usize,
-        body: Option<Body<Request>>,
-        finish_reason: Option<MessageFinishReason>,
-        setter: FetchStateSetter<String>,
-    }
-
-    impl TokenStream {
-        fn feed(&mut self, data: &[u8]) -> Result<()> {
-            self.feed_with(data, true)
-        }
-
-        fn feed_with(&mut self, data: &[u8], update: bool) -> Result<()> {
-            if !data.starts_with(PATTERN) {
-                bail!("unexpected opcode");
-            }
-            let data = &data[PATTERN.len()..];
-
-            let Response { mut choices } = ::serde_json::from_slice(data)?;
-            if let Some(MessageChoice {
-                index: _,
-                message,
-                finish_reason,
-            }) = choices.pop_front()
-            {
-                self.data.push_str(&message.content);
-                self.finish_reason = finish_reason;
-                if update {
-                    self.setter.set(self.data.clone());
-                }
-            }
-            Ok(())
-        }
-
-        fn finish(mut self, data: &[u8]) -> Result<StreamState<Request, String>> {
-            self.feed_with(data, false)?;
-
-            let Self {
-                data,
-                data_last,
-                body,
-                finish_reason,
-                setter,
-            } = self;
-            match finish_reason {
-                Some(MessageFinishReason::EosToken) | None => Ok(StreamState::Complete(data)),
-                Some(MessageFinishReason::Length) => {
-                    setter.set(data.clone());
-
-                    let body = match body {
-                        Some(Body::Json(Request {
-                            model,
-                            options,
-                            mut messages,
-                        })) => Body::Json(Request {
-                            model,
-                            options,
-                            messages: {
-                                messages.push(Message {
-                                    role: Role::Assistant,
-                                    content: data[data_last..].to_string() + " ",
-                                });
-                                messages.push(Message {
-                                    role: Role::User,
-                                    content: "continue it briefly".into(), // [CONTINUE]
-                                });
-                                messages
-                            },
-                        }),
-                        _ => bail!("unexpected body type"),
-                    };
-
-                    Ok(StreamState::Continue(body, data))
-                }
-            }
-        }
-    }
 
     let mut heystack = "\n\n".to_string().into_bytes();
     let mut output = TokenStream {
@@ -158,4 +88,86 @@ async fn try_stream(
         }
     }
     output.finish(&heystack)
+}
+
+struct TokenStream<State> {
+    data: String,
+    data_last: usize,
+    body: Option<Body<Request>>,
+    finish_reason: Option<MessageFinishReason>,
+    setter: FetchStateSetter<State, String>,
+}
+
+impl<State> TokenStream<State>
+where
+    State: 'static + FetchStateHandle<String>,
+{
+    fn feed(&mut self, data: &[u8]) -> Result<()> {
+        self.feed_with(data, true)
+    }
+
+    fn feed_with(&mut self, data: &[u8], update: bool) -> Result<()> {
+        if !data.starts_with(PATTERN) {
+            bail!("unexpected opcode");
+        }
+        let data = &data[PATTERN.len()..];
+
+        let Response { mut choices } = ::serde_json::from_slice(data)?;
+        if let Some(MessageChoice {
+            index: _,
+            message,
+            finish_reason,
+        }) = choices.pop_front()
+        {
+            self.data.push_str(&message.content);
+            self.finish_reason = finish_reason;
+            if update {
+                self.setter.set(self.data.clone());
+            }
+        }
+        Ok(())
+    }
+
+    fn finish(mut self, data: &[u8]) -> Result<StreamState<Request, String>> {
+        self.feed_with(data, false)?;
+
+        let Self {
+            data,
+            data_last,
+            body,
+            finish_reason,
+            mut setter,
+        } = self;
+        match finish_reason {
+            Some(MessageFinishReason::EosToken) | None => Ok(StreamState::Complete(data)),
+            Some(MessageFinishReason::Length) => {
+                setter.set(data.clone());
+
+                let body = match body {
+                    Some(Body::Json(Request {
+                        model,
+                        options,
+                        mut messages,
+                    })) => Body::Json(Request {
+                        model,
+                        options,
+                        messages: {
+                            messages.push(Message {
+                                role: Role::Assistant,
+                                content: data[data_last..].to_string() + " ",
+                            });
+                            messages.push(Message {
+                                role: Role::User,
+                                content: "continue it briefly".into(), // [CONTINUE]
+                            });
+                            messages
+                        },
+                    }),
+                    _ => bail!("unexpected body type"),
+                };
+
+                Ok(StreamState::Continue(body, data))
+            }
+        }
+    }
 }

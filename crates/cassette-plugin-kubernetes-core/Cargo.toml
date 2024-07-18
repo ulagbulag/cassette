@@ -29,7 +29,7 @@ js-sys = { workspace = true }
 k8s-openapi = { workspace = true }
 kube-core = { workspace = true }
 once_cell = { workspace = true }
-serde = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
 tracing = { workspace = true }
 web-sys = { workspace = true }
 yew = { workspace = true }

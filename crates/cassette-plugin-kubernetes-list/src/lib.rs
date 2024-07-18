@@ -1,33 +1,42 @@
 use std::{fmt, marker::PhantomData};
 
 use cassette_core::{
-    cassette::CassetteState,
+    cassette::CassetteContext,
+    component::ComponentRenderer,
     net::fetch::FetchState,
-    task::{TaskResult, TaskSpec, TaskState},
+    task::{TaskResult, TaskState},
 };
 use cassette_plugin_kubernetes_core::{api::Api, hooks::use_kubernetes_list};
 use kube_core::{params::ListParams, DynamicObject};
 use patternfly_yew::prelude::*;
+use serde::{Deserialize, Serialize};
 use yew::prelude::*;
 
-pub fn render(_state: &UseStateHandle<CassetteState>, spec: &TaskSpec) -> TaskResult {
-    let api_version = spec.get_string("/apiVersion")?;
-    let kind = spec.get_string("/kind")?;
-
-    Ok(TaskState::Continue {
-        body: html! { <Component { api_version } { kind } /> },
-    })
-}
-
-#[derive(Clone, Debug, PartialEq, Properties)]
-struct Props {
+#[derive(Clone, Debug, PartialEq, Deserialize, Properties)]
+#[serde(rename_all = "camelCase")]
+pub struct Spec {
     api_version: String,
     kind: String,
 }
 
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct State {}
+
+impl ComponentRenderer<Spec> for State {
+    fn render(self, _ctx: &mut CassetteContext, spec: Spec) -> TaskResult<Option<Self>> {
+        let Self {} = self;
+        let Spec { api_version, kind } = spec;
+
+        Ok(TaskState::Continue {
+            body: html! { <Component { api_version } { kind } /> },
+        })
+    }
+}
+
 #[function_component(Component)]
-fn component(props: &Props) -> Html {
-    let Props { api_version, kind } = props;
+fn component(props: &Spec) -> Html {
+    let Spec { api_version, kind } = props;
 
     // TODO: to be implemented
     let _ = (api_version, kind);

@@ -5,6 +5,7 @@ use cassette_core::{
 };
 use inflector::Inflector;
 use patternfly_yew::prelude::*;
+use tracing::info;
 use uuid::Uuid;
 use yew::prelude::*;
 
@@ -46,14 +47,18 @@ struct DataProps {
 fn cassette_data(props: &DataProps) -> Html {
     let DataProps { data } = props;
 
+    info!("Rendering tasks");
+
     let title = data.name.to_title_case();
     let subtitle = data.description.clone();
 
-    let state = use_state(|| CassetteState::new(data.clone()));
+    let root_state = use_state_eq(Default::default);
+    let mut root_state = CassetteState::new(data.clone(), root_state);
+
     let mut contents = vec![];
     for task in data.component.tasks.iter().map(RootCassetteTask) {
-        match task.render(&state) {
-            Ok(TaskState::Break { body }) => {
+        match task.render(&mut root_state) {
+            Ok(TaskState::Break { body, state: _ }) => {
                 contents.push(body);
                 break;
             }
@@ -61,7 +66,7 @@ fn cassette_data(props: &DataProps) -> Html {
                 contents.push(body);
                 continue;
             }
-            Ok(TaskState::Skip) => {
+            Ok(TaskState::Skip { state: _ }) => {
                 continue;
             }
             Err(error) => {

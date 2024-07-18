@@ -1,30 +1,41 @@
 use cassette_core::{
-    cassette::CassetteState,
-    task::{TaskResult, TaskSpec, TaskState},
+    cassette::CassetteContext,
+    component::ComponentRenderer,
+    task::{TaskResult, TaskState},
 };
 use patternfly_yew::prelude::*;
+use serde::{Deserialize, Serialize};
 use yew::prelude::*;
+use yew_markdown::Markdown;
 
-pub fn render(_state: &UseStateHandle<CassetteState>, spec: &TaskSpec) -> TaskResult {
-    let msg = spec.get_string("/msg")?;
-
-    Ok(TaskState::Continue {
-        body: html! { <Component { msg } /> },
-    })
-}
-
-#[derive(Clone, Debug, PartialEq, Properties)]
-struct Props {
+#[derive(Clone, Debug, PartialEq, Deserialize, Properties)]
+#[serde(rename_all = "camelCase")]
+pub struct Spec {
     msg: String,
+
+    #[serde(default)]
+    progress: bool,
 }
 
-#[function_component(Component)]
-fn component(props: &Props) -> Html {
-    let Props { msg } = props;
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct State {}
 
-    html! {
-        <Content>
-            <p>{ msg }</p>
-        </Content>
+impl ComponentRenderer<Spec> for State {
+    fn render(self, _ctx: &mut CassetteContext, spec: Spec) -> TaskResult<Option<Self>> {
+        let Self {} = self;
+        let Spec { msg, progress } = spec;
+
+        let style = if progress { "color: #FF3333;" } else { "" };
+
+        Ok(TaskState::Continue {
+            body: html! {
+                <Content>
+                    <div { style }>
+                        <Markdown src={ msg.clone() } />
+                    </div>
+                </Content>
+            },
+        })
     }
 }
