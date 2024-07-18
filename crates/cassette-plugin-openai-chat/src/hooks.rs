@@ -114,6 +114,7 @@ where
 
         // handle sub-opcodes
         if data.starts_with("[DONE]".as_bytes()) {
+            // Do not handle the remaining data, because the streaming has ended
             return Ok(());
         }
 
