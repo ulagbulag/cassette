@@ -3,11 +3,11 @@ mod schema;
 
 use cassette_core::{
     cassette::CassetteContext,
-    component::ComponentRenderer,
+    components::ComponentRenderer,
     net::fetch::FetchState,
+    prelude::*,
     task::{TaskResult, TaskState},
 };
-use patternfly_yew::prelude::*;
 use serde::{Deserialize, Serialize};
 use yew::prelude::*;
 
@@ -50,11 +50,7 @@ impl ComponentRenderer<Spec> for State {
 
         match &*crate::hooks::use_fetch(ctx, &base_url, request) {
             FetchState::Pending | FetchState::Fetching => Ok(TaskState::Break {
-                body: html! {
-                    <Content>
-                        <p>{ "Loading..." }</p>
-                    </Content>
-                },
+                body: html! { <Loading /> },
                 state: None,
             }),
             FetchState::Collecting(content) => Ok(TaskState::Skip {
@@ -69,12 +65,8 @@ impl ComponentRenderer<Spec> for State {
                     progress: false,
                 }),
             }),
-            FetchState::Error(error) => Ok(TaskState::Break {
-                body: html! {
-                    <Alert inline=true title="Error" r#type={AlertType::Danger}>
-                        { error.clone() }
-                    </Alert>
-                },
+            FetchState::Error(msg) => Ok(TaskState::Break {
+                body: html! { <Error msg={ msg.clone() } /> },
                 state: None,
             }),
         }

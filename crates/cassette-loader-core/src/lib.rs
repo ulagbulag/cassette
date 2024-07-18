@@ -2,7 +2,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use cassette_core::{
     cassette::{Cassette, CassetteCrd, CassetteRef},
-    component::CassetteComponentCrd,
+    components::CassetteComponentCrd,
     net::DEFAULT_NAMESPACE,
 };
 use kube::ResourceExt;

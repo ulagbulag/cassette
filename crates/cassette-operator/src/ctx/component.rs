@@ -3,7 +3,7 @@ use std::{sync::Arc, time::Duration};
 use anyhow::Result;
 use ark_core_k8s::manager::Manager;
 use async_trait::async_trait;
-use cassette_core::component::CassetteComponentCrd;
+use cassette_core::components::CassetteComponentCrd;
 use kube::{runtime::controller::Action, Error, ResourceExt};
 use tracing::{instrument, Level};
 

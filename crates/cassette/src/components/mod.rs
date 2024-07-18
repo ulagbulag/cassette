@@ -3,7 +3,7 @@ mod variable;
 
 use cassette_core::{
     cassette::{CassetteContext, CassetteState},
-    component::ComponentRendererExt,
+    components::ComponentRendererExt,
     task::{CassetteTask, TaskRenderer, TaskResult},
 };
 

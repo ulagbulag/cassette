@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize, Serializer};
 
-use crate::{cassette::CassetteCrd, component::CassetteComponentCrd};
+use crate::{cassette::CassetteCrd, components::CassetteComponentCrd};
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(tag = "kind")]

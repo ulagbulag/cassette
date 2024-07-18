@@ -2,7 +2,7 @@ use std::fmt;
 
 use anyhow::Result;
 use ark_core::signal::FunctionSignal;
-use cassette_core::{cassette::CassetteCrd, component::CassetteComponentCrd};
+use cassette_core::{cassette::CassetteCrd, components::CassetteComponentCrd};
 use futures::{TryFuture, TryStreamExt};
 use kube::{
     runtime::watcher::{watcher, Config, Error as WatcherError, Event},

@@ -22,7 +22,7 @@ workspace = true
 [features]
 default = []
 api = ["dep:actix-web"]
-ui = ["dep:gloo-net", "dep:yew"]
+ui = ["dep:gloo-net", "dep:patternfly-yew", "dep:yew"]
 
 # net
 stream = ["dep:anyhow", "dep:wasm-streams"]
@@ -38,6 +38,7 @@ garde = { workspace = true }
 gloo-net = { workspace = true, optional = true }
 k8s-openapi = { workspace = true }
 kube = { workspace = true, features = ["derive"] }
+patternfly-yew = { workspace = true, optional = true }
 schemars = { workspace = true, features = ["derive"] }
 serde = { workspace = true, features = ["derive", "rc"] }
 serde_json = { workspace = true }

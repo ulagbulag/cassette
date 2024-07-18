@@ -19,3 +19,8 @@ spec:
         apiVersion: apps/v1
         kind: Deployments
         namespaced: true
+
+    - name: show
+      kind: Text
+      spec:
+        msg: ":/list/content"

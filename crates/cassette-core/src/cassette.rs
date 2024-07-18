@@ -16,7 +16,7 @@ use uuid::Uuid;
 #[cfg(feature = "ui")]
 use yew::prelude::*;
 
-use crate::component::CassetteComponentSpec;
+use crate::components::CassetteComponentSpec;
 #[cfg(feature = "ui")]
 use crate::net::fetch::{FetchState, FetchStateHandle};
 

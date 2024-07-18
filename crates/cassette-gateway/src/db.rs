@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use cassette_core::{
     cassette::{Cassette, CassetteCrd, CassetteRef},
-    component::CassetteComponentCrd,
+    components::CassetteComponentCrd,
 };
 use cassette_loader_core::CassetteDB as CassetteDBInner;
 use tokio::sync::RwLock;
