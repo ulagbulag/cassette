@@ -39,7 +39,7 @@ gloo-net = { workspace = true, optional = true }
 k8s-openapi = { workspace = true }
 kube = { workspace = true, features = ["derive"] }
 schemars = { workspace = true, features = ["derive"] }
-serde = { workspace = true, features = ["derive"] }
+serde = { workspace = true, features = ["derive", "rc"] }
 serde_json = { workspace = true }
 uuid = { workspace = true }
 wasm-streams = { workspace = true, optional = true }

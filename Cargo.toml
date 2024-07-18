@@ -63,7 +63,7 @@ kube = { version = "0.92", default-features = false }
 kube-core = { version = "0.92", default-features = false }
 mime = { version = "0.3", default-features = false }
 once_cell = { version = "1.19" }
-patternfly-yew = { version = "0.6", features = [
+patternfly-yew = { version = "0.6", default-features = false, features = [
     "icons-fab",
     "tree",
     "yew-nested-router",

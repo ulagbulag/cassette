@@ -59,13 +59,13 @@ impl ComponentRenderer<Spec> for State {
             }),
             FetchState::Collecting(content) => Ok(TaskState::Skip {
                 state: Some(Self {
-                    content: Some(content.clone()),
+                    content: Some((**content).clone()),
                     progress: true,
                 }),
             }),
             FetchState::Completed(content) => Ok(TaskState::Skip {
                 state: Some(Self {
-                    content: Some(content.clone()),
+                    content: Some((**content).clone()),
                     progress: false,
                 }),
             }),

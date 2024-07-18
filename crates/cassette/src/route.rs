@@ -1,9 +1,10 @@
-use std::collections::BTreeSet;
+use std::{collections::BTreeSet, fmt};
 
 use cassette_core::cassette::CassetteRef;
 use inflector::Inflector;
 use itertools::Itertools;
 use patternfly_yew::prelude::*;
+use tracing::info;
 use uuid::Uuid;
 use yew::{prelude::*, virtual_dom::VChild};
 use yew_nested_router::prelude::*;
@@ -19,13 +20,25 @@ pub enum AppRoute {
         id: Uuid,
     },
     License,
-    Error(Errors),
+    Error(ErrorRoute),
     Profile,
 }
 
 impl Default for AppRoute {
     fn default() -> Self {
-        Self::Error(Errors::NotFound)
+        Self::Error(ErrorRoute::NotFound)
+    }
+}
+
+impl fmt::Display for AppRoute {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Home => "/".fmt(f),
+            Self::Cassette { id } => write!(f, "/c/{id}"),
+            Self::License => "/license".fmt(f),
+            Self::Error(route) => write!(f, "/error{route}"),
+            Self::Profile => "/profile".fmt(f),
+        }
     }
 }
 
@@ -109,16 +122,18 @@ impl AppRoute {
     }
 
     pub fn switch(self) -> Html {
+        info!("Rendering app: {self}");
+
         let page = match self {
             Self::Home => html! { <crate::pages::home::Home /> },
-            Self::Cassette { id } => html! { <crate::pages::cassette::Cassette {id} /> },
+            Self::Cassette { id } => html! { <crate::pages::cassette::Cassette { id } /> },
             Self::License => html! { <crate::pages::license::License /> },
             Self::Error(route) => route.switch(),
             Self::Profile => html! { <crate::pages::profile::Profile /> },
         };
         html! {
             <AppPage>
-                {page}
+                { page }
             </AppPage>
         }
     }
@@ -168,12 +183,20 @@ fn render_cassette_fallback(child: &Html) -> Html {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Target)]
-pub enum Errors {
+pub enum ErrorRoute {
     #[target(rename = "404")]
     NotFound,
 }
 
-impl Errors {
+impl fmt::Display for ErrorRoute {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::NotFound => "/404".fmt(f),
+        }
+    }
+}
+
+impl ErrorRoute {
     fn switch(self) -> Html {
         use crate::pages::error::{Error, ErrorKind};
 
@@ -181,7 +204,7 @@ impl Errors {
             Self::NotFound => ErrorKind::NotFound,
         };
         html! {
-            <Error {kind} />
+            <Error { kind } />
         }
     }
 }

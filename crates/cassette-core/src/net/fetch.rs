@@ -1,4 +1,4 @@
-use std::{fmt, future::Future, marker::PhantomData};
+use std::{fmt, future::Future, marker::PhantomData, mem, rc::Rc};
 
 #[cfg(feature = "stream")]
 use anyhow::Result;
@@ -161,7 +161,7 @@ impl<Url, Req> FetchRequest<Url, Req> {
                                     };
                                     match handler(ctx).await {
                                         Ok(StreamState::Complete(data)) => {
-                                            FetchState::Completed(data)
+                                            FetchState::Completed(Rc::new(data))
                                         }
                                         Ok(StreamState::Continue(new_body, data)) => {
                                             body.replace(new_body);
@@ -245,7 +245,7 @@ where
         T: 'static,
         Item: 'static,
     {
-        self.inner.set(FetchState::Collecting(value))
+        self.inner.set(FetchState::Collecting(Rc::new(value)))
     }
 }
 
@@ -254,8 +254,8 @@ pub enum FetchState<T> {
     #[default]
     Pending,
     Fetching,
-    Collecting(T),
-    Completed(T),
+    Collecting(Rc<T>),
+    Completed(Rc<T>),
     Error(String),
 }
 
@@ -270,6 +270,17 @@ where
             Self::Collecting(data) => data.fmt(f),
             Self::Completed(data) => data.fmt(f),
             Self::Error(error) => error.fmt(f),
+        }
+    }
+}
+
+impl<T> PartialEq for FetchState<T> {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            // compare the current collection status
+            (Self::Collecting(l0), Self::Collecting(r0)) => Rc::ptr_eq(l0, r0),
+            // just compare the discriminant
+            _ => mem::discriminant(self) == mem::discriminant(other),
         }
     }
 }

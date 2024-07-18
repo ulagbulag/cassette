@@ -18,8 +18,8 @@ pub fn app() -> Html {
         <main>
             <BackdropViewer>
                 <ToastViewer>
-                    <Router<AppRoute> default={AppRoute::default()}>
-                        <RouterSwitch<AppRoute> render={AppRoute::switch} />
+                    <Router<AppRoute>>
+                        <RouterSwitch<AppRoute> render={ AppRoute::switch } />
                     </Router<AppRoute>>
                 </ToastViewer>
             </BackdropViewer>

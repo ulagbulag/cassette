@@ -22,15 +22,17 @@ pub fn cassette(props: &Props) -> Html {
     let cassette = use_cassette(*id);
 
     #[allow(clippy::match_single_binding)]
-    match &*cassette {
+    match &cassette.data {
         FetchState::Pending | FetchState::Fetching => html! {
             <CassetteFallback />
         },
-        FetchState::Collecting(Some(data)) | FetchState::Completed(Some(data)) => html! {
-            <CassetteView data={ data.clone() } />
-        },
-        FetchState::Collecting(None) | FetchState::Completed(None) => html! {
-            <crate::pages::error::Error kind={ ErrorKind::NotFound } />
+        FetchState::Collecting(option) | FetchState::Completed(option) => match option.as_ref() {
+            Some(data) => html! {
+                <CassetteView data={ data.clone() } />
+            },
+            None => html! {
+                <crate::pages::error::Error kind={ ErrorKind::NotFound } />
+            },
         },
         FetchState::Error(error) => html! {
             <CassetteFallback error={ Some(error.clone()) } />

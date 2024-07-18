@@ -1,4 +1,4 @@
-use std::future::Future;
+use std::{future::Future, rc::Rc};
 
 use anyhow::Result;
 use cassette_core::net::fetch::FetchState;
@@ -37,7 +37,7 @@ where
         let state = state.clone();
         spawn_local(async move {
             let value = match f().await {
-                Ok(data) => FetchState::Completed(data),
+                Ok(data) => FetchState::Completed(Rc::new(data)),
                 Err(error) => FetchState::Error(error.to_string()),
             };
             if matches!(&*state, FetchState::Pending | FetchState::Fetching) {
