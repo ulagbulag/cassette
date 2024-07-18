@@ -121,6 +121,7 @@ impl<Component> Borrow<Uuid> for Cassette<Component> {
 #[derive(Clone, Debug, PartialEq)]
 pub struct CassetteState {
     cassette: Cassette,
+    // FIXME: cache unchanged task outputs
     root: UseStateHandle<RootCassetteState>,
 }
 
