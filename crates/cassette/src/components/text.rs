@@ -49,6 +49,7 @@ impl ComponentRenderer<Spec> for State {
                     </div>
                 </Content>
             },
+            state: None,
         })
     }
 }

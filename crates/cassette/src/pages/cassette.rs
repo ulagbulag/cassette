@@ -54,8 +54,8 @@ fn cassette_data(props: &DataProps) -> Html {
     let title = data.name.to_title_case();
     let subtitle = data.description.clone();
 
-    let root_state = use_state_eq(Default::default);
-    let mut root_state = CassetteState::new(data.clone(), root_state);
+    let trigger = use_force_update();
+    let mut root_state = CassetteState::new(trigger);
 
     let mut contents = vec![];
     for task in data.component.tasks.iter().map(RootCassetteTask) {
@@ -64,7 +64,7 @@ fn cassette_data(props: &DataProps) -> Html {
                 contents.push(body);
                 break;
             }
-            Ok(TaskState::Continue { body }) => {
+            Ok(TaskState::Continue { body, state: _ }) => {
                 contents.push(body);
                 continue;
             }
@@ -82,6 +82,7 @@ fn cassette_data(props: &DataProps) -> Html {
             }
         }
     }
+    root_state.commit();
 
     html! {
         <super::PageBody {title} {subtitle} >

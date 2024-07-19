@@ -13,12 +13,29 @@ metadata:
   name: kubernetes-list
 spec:
   tasks:
+    - name: apiVersion
+      kind: TextInput
+      spec:
+        default: apps/v1
+        label: API Version
+
+    - name: kind
+      kind: TextInput
+      spec:
+        default: Deployments
+        label: Resource Kind
+
     - name: list
       kind: KubernetesList
       spec:
-        apiVersion: apps/v1
-        kind: Deployments
+        apiVersion: :/apiVersion/text
+        kind: :/kind/text
         namespaced: true
+
+    - name: show-head
+      kind: Text
+      spec:
+        msg: "# Output"
 
     - name: show
       kind: Text

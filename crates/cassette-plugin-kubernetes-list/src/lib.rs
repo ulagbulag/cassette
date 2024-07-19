@@ -1,7 +1,7 @@
 use std::marker::PhantomData;
 
 use cassette_core::{
-    cassette::CassetteContext,
+    cassette::{CassetteContext, GenericCassetteTaskHandle},
     components::ComponentRenderer,
     net::fetch::FetchState,
     prelude::*,
@@ -54,7 +54,7 @@ impl ComponentRenderer<Spec> for State {
         };
         let lp = ListParams::default();
 
-        match &*use_kubernetes_list(ctx, api, lp) {
+        match &*use_kubernetes_list(ctx, api, lp).get() {
             FetchState::Pending | FetchState::Fetching => Ok(TaskState::Break {
                 body: html! { <Loading /> },
                 state: None,

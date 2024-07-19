@@ -22,7 +22,7 @@ workspace = true
 [features]
 default = []
 api = ["dep:actix-web"]
-ui = ["dep:gloo-net", "dep:patternfly-yew", "dep:yew"]
+ui = ["dep:gloo-net", "dep:patternfly-yew", "dep:tracing", "dep:yew"]
 
 # net
 stream = ["dep:anyhow", "dep:wasm-streams"]
@@ -42,6 +42,7 @@ patternfly-yew = { workspace = true, optional = true }
 schemars = { workspace = true, features = ["derive"] }
 serde = { workspace = true, features = ["derive", "rc"] }
 serde_json = { workspace = true }
+tracing = { workspace = true, optional = true }
 uuid = { workspace = true }
 wasm-streams = { workspace = true, optional = true }
 web-sys = { workspace = true }

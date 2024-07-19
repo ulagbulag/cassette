@@ -1,6 +1,8 @@
 use garde::Validate;
 use schemars::JsonSchema;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
+#[cfg(feature = "ui")]
+use serde_json::map::Entry;
 use serde_json::Value;
 #[cfg(feature = "ui")]
 use yew::prelude::*;
@@ -64,7 +66,7 @@ pub type TaskResult<T> = Result<TaskState<T>, String>;
 #[cfg(feature = "ui")]
 pub enum TaskState<T = Option<TaskSpec>> {
     Break { body: Html, state: T },
-    Continue { body: Html },
+    Continue { body: Html, state: T },
     Skip { state: T },
 }
 
@@ -85,7 +87,10 @@ where
                 body,
                 state: state.map(encode).transpose()?,
             }),
-            Self::Continue { body } => Ok(TaskState::Continue { body }),
+            Self::Continue { body, state } => Ok(TaskState::Continue {
+                body,
+                state: state.map(encode).transpose()?,
+            }),
             Self::Skip { state } => Ok(TaskState::Skip {
                 state: state.map(encode).transpose()?,
             }),
@@ -128,19 +133,33 @@ impl TaskSpec {
         }
     }
 
-    pub(crate) fn set_child(&mut self, name: &str, value: Self) {
+    pub(crate) fn set_child(&mut self, name: &str, value: Self) -> bool {
+        let value = value.0;
         match &mut self.0 {
             Value::Null => {
                 self.0 = Value::Object({
                     let mut map = ::serde_json::Map::with_capacity(1);
-                    map.insert(name.into(), value.0);
+                    map.insert(name.into(), value);
                     map
-                })
+                });
+                true
             }
-            Value::Object(map) => {
-                map.insert(name.into(), value.0);
-            }
-            _ => (),
+            Value::Object(map) => match map.entry(name) {
+                Entry::Occupied(mut entry) => {
+                    let entry = entry.get_mut();
+                    if *entry != value {
+                        *entry = value;
+                        true
+                    } else {
+                        false
+                    }
+                }
+                Entry::Vacant(entry) => {
+                    entry.insert(value);
+                    true
+                }
+            },
+            _ => false,
         }
     }
 }

@@ -14,15 +14,16 @@ metadata:
 spec:
   tasks:
     - name: init
-      kind: Variable
+      kind: TextInput
       spec:
-        message: "Which is better: Diet Coke vs Normal Coke"
+        label: What are you curious about?
+        placeholder: "Which is better: Diet Coke vs Normal Coke"
 
     - name: chat
       kind: OpenAIChat
       spec:
         baseUrl: /v1
-        message: ":/init/message"
+        message: :/init/text
         stream: true
         # messages:
         #   - role: user
@@ -31,5 +32,5 @@ spec:
     - name: show
       kind: Text
       spec:
-        msg: ":/chat/content"
-        progress: ":/chat/progress"
+        msg: :/chat/content
+        progress: :/chat/progress

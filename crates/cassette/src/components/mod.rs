@@ -1,4 +1,5 @@
 mod text;
+mod text_input;
 mod variable;
 
 use cassette_core::{
@@ -28,6 +29,7 @@ impl TaskRenderer for RootCassetteTask<'_> {
             #[cfg(feature = "openai-chat")]
             "OpenAIChat" => ::cassette_plugin_openai_chat::State::render_with(ctx, spec),
             "Text" => self::text::State::render_with(ctx, spec),
+            "TextInput" => self::text_input::State::render_with(ctx, spec),
             "Variable" => self::variable::render(ctx, spec),
             _ => Err(format!("Unknown type: {name:?} as {kind}")),
         }

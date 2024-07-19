@@ -2,7 +2,7 @@ mod hooks;
 mod schema;
 
 use cassette_core::{
-    cassette::CassetteContext,
+    cassette::{CassetteContext, GenericCassetteTaskHandle},
     components::ComponentRenderer,
     net::fetch::FetchState,
     prelude::*,
@@ -48,7 +48,7 @@ impl ComponentRenderer<Spec> for State {
             });
         }
 
-        match &*crate::hooks::use_fetch(ctx, &base_url, request) {
+        match &*crate::hooks::use_fetch(ctx, &base_url, request).get() {
             FetchState::Pending | FetchState::Fetching => Ok(TaskState::Break {
                 body: html! { <Loading /> },
                 state: None,

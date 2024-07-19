@@ -75,7 +75,7 @@ where
                 Value::Number(data) => Ok(Value::Number(data.clone())),
                 Value::String(data) => {
                     if data.starts_with(":/") {
-                        ctx.get(&data[1..]).cloned()
+                        ctx.get_data(&data[1..])
                     } else if data.starts_with("~/") {
                         spec.get(&data[1..]).cloned()
                     } else if data.starts_with("\\:/") || data.starts_with("\\~/") {
@@ -99,7 +99,7 @@ where
             }
         }
 
-        let state = ctx.get_task_state()?.unwrap_or_default();
+        let state = ctx.get_child()?.unwrap_or_default();
 
         let spec = replace_key(&ctx, spec, &spec.0)?;
         let spec = ::serde_json::from_value(spec)

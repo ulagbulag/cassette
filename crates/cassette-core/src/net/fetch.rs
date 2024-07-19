@@ -1,4 +1,4 @@
-use std::{fmt, future::Future, marker::PhantomData, mem, rc::Rc};
+use std::{fmt, future::Future, marker::PhantomData, mem, ops, rc::Rc};
 
 #[cfg(feature = "stream")]
 use anyhow::Result;
@@ -9,7 +9,9 @@ use serde::{de::DeserializeOwned, Serialize};
 pub use wasm_streams::readable::IntoStream;
 #[cfg(feature = "stream")]
 use wasm_streams::readable::ReadableStream;
-use yew::{platform::spawn_local, prelude::*};
+use yew::platform::spawn_local;
+
+use crate::cassette::GenericCassetteTaskHandle;
 
 pub type FetchRequestWithoutBody<Url> = FetchRequest<Url, ()>;
 
@@ -27,7 +29,9 @@ pub enum Body<T> {
 impl<Url, Req> FetchRequest<Url, Req> {
     pub fn try_fetch<State, Res>(self, base_url: &str, state: State)
     where
-        State: 'static + FetchStateHandle<Res>,
+        State: 'static + GenericCassetteTaskHandle<FetchState<Res>>,
+        for<'a> <State as GenericCassetteTaskHandle<FetchState<Res>>>::Ref<'a>:
+            ops::Deref<Target = FetchState<Res>>,
         Req: 'static + Serialize,
         Res: 'static + DeserializeOwned,
         Url: fmt::Display,
@@ -41,7 +45,9 @@ impl<Url, Req> FetchRequest<Url, Req> {
 
     pub fn try_fetch_unchecked<State, Res>(self, base_url: &str, state: State)
     where
-        State: 'static + FetchStateHandle<Res>,
+        State: 'static + GenericCassetteTaskHandle<FetchState<Res>>,
+        for<'a> <State as GenericCassetteTaskHandle<FetchState<Res>>>::Ref<'a>:
+            ops::Deref<Target = FetchState<Res>>,
         Req: 'static + Serialize,
         Res: 'static + DeserializeOwned,
         Url: fmt::Display,
@@ -50,16 +56,18 @@ impl<Url, Req> FetchRequest<Url, Req> {
         self.try_fetch_with(base_url, state, handler)
     }
 
-    fn try_fetch_with<State, Res, ResRaw, F>(self, base_url: &str, mut state: State, handler: F)
+    fn try_fetch_with<State, Res, ResRaw, F>(self, base_url: &str, state: State, handler: F)
     where
-        State: 'static + FetchStateHandle<Res>,
+        State: 'static + GenericCassetteTaskHandle<FetchState<Res>>,
+        for<'a> <State as GenericCassetteTaskHandle<FetchState<Res>>>::Ref<'a>:
+            ops::Deref<Target = FetchState<Res>>,
         Req: 'static + Serialize,
         Res: 'static + DeserializeOwned,
         ResRaw: 'static + DeserializeOwned,
         Url: fmt::Display,
         F: 'static + FnOnce(ResRaw) -> FetchState<Res>,
     {
-        if matches!(state.get(), FetchState::Pending) {
+        if matches!(*state.get(), FetchState::Pending) {
             state.set(FetchState::Fetching);
 
             let Self {
@@ -70,7 +78,7 @@ impl<Url, Req> FetchRequest<Url, Req> {
             } = self;
             let url = format!("{base_url}{suffix_url}");
 
-            let mut state = state.clone();
+            let state = state.clone();
             spawn_local(async move {
                 let builder = RequestBuilder::new(&url).method(method);
                 let builder = match body {
@@ -96,7 +104,7 @@ impl<Url, Req> FetchRequest<Url, Req> {
                     },
                     Err(state) => state,
                 };
-                if matches!(state.get(), FetchState::Pending | FetchState::Fetching) {
+                if matches!(*state.get(), FetchState::Pending | FetchState::Fetching) {
                     state.set(value);
                 }
             })
@@ -108,17 +116,19 @@ impl<Url, Req> FetchRequest<Url, Req> {
     pub fn try_stream_with<'reader, State, Res, F, Fut>(
         self,
         base_url: &str,
-        mut state: State,
+        state: State,
         mut handler: F,
     ) where
-        State: 'static + FetchStateHandle<Res>,
+        State: 'static + GenericCassetteTaskHandle<FetchState<Res>>,
+        for<'a> <State as GenericCassetteTaskHandle<FetchState<Res>>>::Ref<'a>:
+            ops::Deref<Target = FetchState<Res>>,
         Req: 'static + Serialize,
         Res: 'static + DeserializeOwned,
         Url: fmt::Display,
         F: 'static + FnMut(StreamContext<'reader, State, Req, Res>) -> Fut,
         Fut: Future<Output = Result<StreamState<Req, Res>>>,
     {
-        if matches!(state.get(), FetchState::Pending) {
+        if matches!(*state.get(), FetchState::Pending) {
             state.set(FetchState::Fetching);
 
             let Self {
@@ -130,7 +140,7 @@ impl<Url, Req> FetchRequest<Url, Req> {
             let url = format!("{base_url}{suffix_url}");
 
             let mut last_data = None;
-            let mut state = state.clone();
+            let state = state.clone();
             spawn_local(async move {
                 loop {
                     let builder = RequestBuilder::new(&url).method(method.clone());
@@ -181,7 +191,7 @@ impl<Url, Req> FetchRequest<Url, Req> {
                         },
                         Err(state) => state,
                     };
-                    if matches!(state.get(), FetchState::Pending | FetchState::Fetching) {
+                    if matches!(*state.get(), FetchState::Pending | FetchState::Fetching) {
                         state.set(value);
                     }
                     break;
@@ -203,35 +213,14 @@ pub enum StreamState<Req, Res> {
     Continue(Body<Req>, Res),
 }
 
-pub trait FetchStateHandle<T>
-where
-    Self: Clone,
-{
-    fn get(&self) -> &FetchState<T>;
-
-    fn set(&mut self, value: FetchState<T>)
-    where
-        T: 'static;
-}
-
-impl<T> FetchStateHandle<T> for UseStateHandle<FetchState<T>> {
-    fn get(&self) -> &FetchState<T> {
-        self
-    }
-
-    fn set(&mut self, value: FetchState<T>) {
-        (*self).set(value)
-    }
-}
-
 pub struct FetchStateSetter<T, Item> {
-    _item: PhantomData<Item>,
+    _item: PhantomData<FetchState<Item>>,
     inner: T,
 }
 
 impl<T, Item> FetchStateSetter<T, Item>
 where
-    T: FetchStateHandle<Item>,
+    T: GenericCassetteTaskHandle<FetchState<Item>>,
 {
     const fn new(inner: T) -> Self {
         Self {

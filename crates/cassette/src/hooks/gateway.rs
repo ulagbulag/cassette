@@ -1,9 +1,13 @@
 #[cfg(not(feature = "examples"))]
-use cassette_core::net::fetch::FetchStateHandle;
+use std::ops;
+
 #[cfg(not(feature = "examples"))]
-use cassette_core::net::{
-    fetch::{FetchRequestWithoutBody, Method},
-    gateway::use_fetch,
+use cassette_core::{
+    cassette::GenericCassetteTaskHandle,
+    net::{
+        fetch::{FetchRequestWithoutBody, Method},
+        gateway::use_fetch,
+    },
 };
 use cassette_core::{
     cassette::{Cassette, CassetteRef},
@@ -79,12 +83,20 @@ pub fn use_cassette_list() -> UseStateHandle<FetchState<Vec<CassetteRef>>> {
 struct CassetteStateHandle(UseStateHandle<CassetteState>);
 
 #[cfg(not(feature = "examples"))]
-impl FetchStateHandle<Option<Cassette>> for CassetteStateHandle {
-    fn get(&self) -> &FetchState<Option<Cassette>> {
+impl GenericCassetteTaskHandle<FetchState<Option<Cassette>>> for CassetteStateHandle {
+    type Ref<'a> = &'a FetchState<Option<Cassette>>;
+
+    fn get<'a>(
+        &'a self,
+    ) -> <Self as GenericCassetteTaskHandle<FetchState<Option<Cassette>>>>::Ref<'a>
+    where
+        <Self as GenericCassetteTaskHandle<FetchState<Option<Cassette>>>>::Ref<'a>:
+            ops::Deref<Target = FetchState<Option<Cassette>>>,
+    {
         &self.0.data
     }
 
-    fn set(&mut self, value: FetchState<Option<Cassette>>) {
+    fn set(&self, value: FetchState<Option<Cassette>>) {
         self.0.set({
             let mut state = (*self.0).clone();
             state.data = value;

@@ -1,5 +1,5 @@
 #[cfg(feature = "ui")]
-use std::{any::Any, collections::BTreeMap, ops, rc::Rc};
+use std::{any::Any, cell::RefCell, collections::BTreeMap, ops, rc::Rc};
 use std::{
     borrow::Borrow,
     cmp,
@@ -12,13 +12,13 @@ use schemars::JsonSchema;
 #[cfg(feature = "ui")]
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "ui")]
+use tracing::info;
 use uuid::Uuid;
 #[cfg(feature = "ui")]
-use yew::prelude::*;
+use yew::{html::IntoPropValue, prelude::*};
 
 use crate::components::CassetteComponentSpec;
-#[cfg(feature = "ui")]
-use crate::net::fetch::{FetchState, FetchStateHandle};
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, JsonSchema, Validate, CustomResource)]
 #[kube(
@@ -118,78 +118,137 @@ impl<Component> Borrow<Uuid> for Cassette<Component> {
 }
 
 #[cfg(feature = "ui")]
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug)]
 pub struct CassetteState {
-    cassette: Cassette,
-    // FIXME: cache unchanged task outputs
-    root: UseStateHandle<RootCassetteState>,
+    root: RootCassetteState,
 }
 
 #[cfg(feature = "ui")]
 impl CassetteState {
-    pub const fn new(cassette: Cassette, root: UseStateHandle<RootCassetteState>) -> Self {
-        Self { cassette, root }
+    pub fn new(trigger: UseForceUpdateHandle) -> Self {
+        Self {
+            root: RootCassetteState::new(trigger),
+        }
     }
 
     fn set(&mut self, name: &str, value: crate::task::TaskSpec) {
-        self.root.set({
-            let mut root = (*self.root).clone();
-            root.spec.set_child(name, value);
-            root
-        })
+        self.root.set_child(name, value)
     }
 
-    fn use_handler<T>(
-        &self,
-        task_name: String,
-        handler_name: String,
-        f_init: impl FnOnce() -> T,
-    ) -> Rc<T>
-    where
-        T: Any,
-    {
-        let key = (task_name, handler_name);
-        let handler = match self.root.handlers.get(&key) {
-            Some(handler) => handler.clone(),
-            None => {
-                let mut root = (*self.root).clone();
-                let handler = Rc::new(f_init());
-                root.handlers.insert(key, handler.clone());
-                self.root.set(root);
-                handler
-            }
-        };
-
-        match handler.downcast() {
-            Ok(handler) => handler,
-            Err(_) => panic!("Cannot create a handler with heterogeneous types"),
+    pub fn commit(self) {
+        let RootCassetteState { changed, trigger } = self.root;
+        if *changed.as_ref().borrow() {
+            trigger.force_update()
         }
     }
 }
 
 #[cfg(feature = "ui")]
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 pub struct RootCassetteState {
-    handlers: BTreeMap<(String, String), Rc<dyn Any>>,
-    spec: crate::task::TaskSpec,
+    changed: Rc<RefCell<bool>>,
+    trigger: UseForceUpdateHandle,
 }
 
 #[cfg(feature = "ui")]
-impl PartialEq for RootCassetteState {
-    fn eq(&self, other: &Self) -> bool {
-        self.handlers.len() == other.handlers.len()
-            && self.handlers.iter().zip(&other.handlers).all(
-                |((key_a, value_a), (key_b, value_b))| {
-                    // the handler value is **immutable**, so comparing pointers is valid to check changes
-                    key_a == key_b && Rc::ptr_eq(value_a, value_b)
-                },
-            )
-            && self.spec == other.spec
+impl Reducible for RootCassetteState {
+    type Action = ();
+
+    fn reduce(self: Rc<Self>, (): Self::Action) -> Rc<Self> {
+        self
     }
 }
 
 #[cfg(feature = "ui")]
-#[derive(Debug, PartialEq)]
+impl RootCassetteState {
+    #[cfg(feature = "ui")]
+    thread_local! {
+        static HANDLERS: RefCell<BTreeMap<(String, String), Rc<dyn Any>>> = Default::default();
+        static SPEC: RefCell<crate::task::TaskSpec> = Default::default();
+    }
+
+    fn new(trigger: UseForceUpdateHandle) -> Self {
+        Self {
+            changed: Default::default(),
+            trigger,
+        }
+    }
+
+    fn update(&self, trigger: bool) {
+        *self.changed.borrow_mut() = true;
+        if trigger {
+            self.trigger.force_update()
+        }
+    }
+
+    fn get_child<T>(&self, name: &str) -> Result<Option<T>, String>
+    where
+        T: DeserializeOwned,
+    {
+        Self::SPEC.with_borrow(|spec| {
+            spec.try_get(name)
+                .map(|value| {
+                    ::serde_json::from_value(value.clone())
+                        .map_err(|error| format!("Failed to decode task state: {error}"))
+                })
+                .transpose()
+        })
+    }
+
+    fn get_data(&self, key: &str) -> Result<::serde_json::Value, String> {
+        Self::SPEC.with_borrow(|spec| spec.get(key).cloned())
+    }
+
+    fn set_child(&self, name: &str, value: crate::task::TaskSpec) {
+        Self::SPEC.with_borrow_mut(|spec| {
+            if spec.set_child(name, value) {
+                info!("Detected child update: {name}");
+                self.update(false);
+            }
+        })
+    }
+
+    fn set_handler<T>(&self, id: (String, String), value: T)
+    where
+        T: 'static,
+    {
+        Self::HANDLERS.with_borrow_mut(|handlers| {
+            info!("Detected handler::update: {id:?}");
+            self.update(true);
+            handlers.insert(id, Rc::new(value));
+        })
+    }
+
+    fn use_handler<T>(&self, id: (String, String), f_init: impl FnOnce() -> T) -> Rc<T>
+    where
+        T: 'static,
+    {
+        let (task_name, handler_name) = &id;
+
+        let handler = Self::HANDLERS.with_borrow_mut(|handlers| match handlers.get(&id) {
+            Some(handler) => handler.clone(),
+            None => {
+                let handler = Rc::new(f_init());
+                {
+                    info!("Detected handler::create: {id:?}");
+                    self.update(false);
+                    handlers.insert(id.clone(), handler.clone());
+                }
+                handler
+            }
+        });
+
+        match handler.downcast() {
+            Ok(handler) => handler,
+            Err(_) => panic!(
+                "Cannot get a handler with heterogeneous types: {task_name:?}/{handler_name:?}"
+            ),
+        }
+    }
+}
+
+#[cfg(feature = "ui")]
+#[derive(Debug)]
 pub struct CassetteContext<'a> {
     state: &'a mut CassetteState,
     task: &'a crate::task::CassetteTask,
@@ -201,23 +260,15 @@ impl<'a> CassetteContext<'a> {
         Self { state, task }
     }
 
-    pub(crate) fn get(&self, key: &str) -> Result<&::serde_json::Value, String> {
-        self.state.root.spec.get(key)
-    }
-
-    pub(crate) fn get_task_state<T>(&self) -> Result<Option<T>, String>
+    pub(crate) fn get_child<T>(&self) -> Result<Option<T>, String>
     where
         T: DeserializeOwned,
     {
-        self.state
-            .root
-            .spec
-            .try_get(&self.task.name)
-            .map(|value| {
-                ::serde_json::from_value(value.clone())
-                    .map_err(|error| format!("Failed to decode task state: {error}"))
-            })
-            .transpose()
+        self.state.root.get_child(&self.task.name)
+    }
+
+    pub(crate) fn get_data(&self, key: &str) -> Result<::serde_json::Value, String> {
+        self.state.root.get_data(key)
     }
 
     pub(crate) fn set(self, state: crate::task::TaskState) -> crate::task::TaskState<()> {
@@ -228,7 +279,12 @@ impl<'a> CassetteContext<'a> {
                     self.set_task_state(state)
                 },
             },
-            crate::task::TaskState::Continue { body } => crate::task::TaskState::Continue { body },
+            crate::task::TaskState::Continue { body, state } => crate::task::TaskState::Continue {
+                body,
+                state: if let Some(state) = state {
+                    self.set_task_state(state)
+                },
+            },
             crate::task::TaskState::Skip { state } => crate::task::TaskState::Skip {
                 state: if let Some(state) = state {
                     self.set_task_state(state)
@@ -241,34 +297,65 @@ impl<'a> CassetteContext<'a> {
         self.state.set(&self.task.name, value)
     }
 
-    pub fn use_state<T>(&self, id: String, f_init: impl FnOnce() -> T) -> CassetteTaskHandle<T>
+    pub fn use_state<T>(
+        &self,
+        id: impl Into<String>,
+        f_init: impl FnOnce() -> T,
+    ) -> CassetteTaskHandle<T>
     where
         T: Any,
     {
         let task_name = self.task.name.clone();
+        let handler_name = id.into();
+        let id = (task_name, handler_name);
         CassetteTaskHandle {
             root: self.state.root.clone(),
-            id: (task_name.clone(), id.clone()),
-            item: self.state.use_handler(task_name, id, f_init),
+            id: id.clone(),
+            item: RootCassetteState::use_handler(&self.state.root, id.clone(), f_init),
         }
     }
 }
 
 #[cfg(feature = "ui")]
-#[derive(Debug, PartialEq)]
-pub struct CassetteTaskHandle<T> {
-    root: UseStateHandle<RootCassetteState>,
-    id: (String, String),
-    item: Rc<T>,
+pub trait GenericCassetteTaskHandle<T>
+where
+    Self: Clone,
+{
+    type Ref<'a>
+    where
+        Self: 'a;
+
+    fn get<'a>(&'a self) -> <Self as GenericCassetteTaskHandle<T>>::Ref<'a>
+    where
+        <Self as GenericCassetteTaskHandle<T>>::Ref<'a>: ops::Deref<Target = T>;
+
+    fn set(&self, value: T)
+    where
+        T: 'static;
 }
 
 #[cfg(feature = "ui")]
-impl<T> ops::Deref for CassetteTaskHandle<T> {
-    type Target = T;
+impl<T> GenericCassetteTaskHandle<T> for UseStateHandle<T> {
+    type Ref<'a> = &'a T where T: 'a;
 
-    fn deref(&self) -> &Self::Target {
-        &self.item
+    fn get<'a>(&'a self) -> <Self as GenericCassetteTaskHandle<T>>::Ref<'a>
+    where
+        <Self as GenericCassetteTaskHandle<T>>::Ref<'a>: ops::Deref<Target = T>,
+    {
+        self
     }
+
+    fn set(&self, value: T) {
+        (*self).set(value)
+    }
+}
+
+#[cfg(feature = "ui")]
+#[derive(Debug)]
+pub struct CassetteTaskHandle<T> {
+    root: RootCassetteState,
+    id: (String, String),
+    item: Rc<T>,
 }
 
 #[cfg(feature = "ui")]
@@ -283,20 +370,30 @@ impl<T> Clone for CassetteTaskHandle<T> {
 }
 
 #[cfg(feature = "ui")]
-impl<T> FetchStateHandle<T> for CassetteTaskHandle<FetchState<T>> {
-    fn get(&self) -> &FetchState<T> {
+impl<T> IntoPropValue<T> for CassetteTaskHandle<T>
+where
+    T: Clone,
+{
+    fn into_prop_value(self) -> T {
+        self.get().clone()
+    }
+}
+
+#[cfg(feature = "ui")]
+impl<T> GenericCassetteTaskHandle<T> for CassetteTaskHandle<T> {
+    type Ref<'a> = &'a T where T: 'a;
+
+    fn get<'a>(&'a self) -> <Self as GenericCassetteTaskHandle<T>>::Ref<'a>
+    where
+        <Self as GenericCassetteTaskHandle<T>>::Ref<'a>: ops::Deref<Target = T>,
+    {
         &self.item
     }
 
-    fn set(&mut self, value: FetchState<T>)
+    fn set(&self, value: T)
     where
         T: 'static,
     {
-        self.item = Rc::new(value);
-        self.root.set({
-            let mut root = (*self.root).clone();
-            root.handlers.insert(self.id.clone(), self.item.clone());
-            root
-        })
+        RootCassetteState::set_handler(&self.root, self.id.clone(), value)
     }
 }

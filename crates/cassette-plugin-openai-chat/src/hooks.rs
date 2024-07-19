@@ -1,9 +1,8 @@
 use anyhow::{anyhow, bail, Result};
 use cassette_core::{
-    cassette::{CassetteContext, CassetteTaskHandle},
+    cassette::{CassetteContext, CassetteTaskHandle, GenericCassetteTaskHandle},
     net::fetch::{
-        Body, FetchRequest, FetchState, FetchStateHandle, FetchStateSetter, Method, StreamContext,
-        StreamState,
+        Body, FetchRequest, FetchState, FetchStateSetter, Method, StreamContext, StreamState,
     },
 };
 use futures::TryStreamExt;
@@ -17,7 +16,7 @@ pub fn use_fetch(
     base_url: &str,
     request: Request,
 ) -> CassetteTaskHandle<FetchState<String>> {
-    let handler_name = "chat completions".into();
+    let handler_name = "chat completions";
     let state = ctx.use_state(handler_name, || FetchState::Pending);
     {
         let state = state.clone();
@@ -44,7 +43,7 @@ async fn try_stream<State>(
     ctx: StreamContext<'_, State, Request, String>,
 ) -> Result<StreamState<Request, String>>
 where
-    State: 'static + FetchStateHandle<String>,
+    State: 'static + GenericCassetteTaskHandle<FetchState<String>>,
 {
     let StreamContext {
         body,
@@ -100,7 +99,7 @@ struct TokenStream<State> {
 
 impl<State> TokenStream<State>
 where
-    State: 'static + FetchStateHandle<String>,
+    State: 'static + GenericCassetteTaskHandle<FetchState<String>>,
 {
     fn feed(&mut self, data: &[u8]) -> Result<()> {
         self.feed_with(data, true)
