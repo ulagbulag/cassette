@@ -54,7 +54,7 @@ impl ComponentRenderer<Spec> for State {
         };
         let lp = ListParams::default();
 
-        match &*use_kubernetes_list(ctx, api, lp).get() {
+        match use_kubernetes_list(ctx, api, lp).get() {
             FetchState::Pending | FetchState::Fetching => Ok(TaskState::Break {
                 body: html! { <Loading /> },
                 state: None,
