@@ -42,7 +42,9 @@ impl ComponentRenderer<Spec> for State {
         } = spec;
 
         let handler_name = "text";
-        let text = ctx.use_state(handler_name, || default.unwrap_or_default());
+        let text = ctx
+            .use_state(handler_name, || default.unwrap_or_default())
+            .lazy();
         let onchange = {
             let text = text.clone();
             Callback::from(move |updated_text: String| {
@@ -51,21 +53,33 @@ impl ComponentRenderer<Spec> for State {
                 }
             })
         };
+        let onkeydown = {
+            let text = text.clone();
+            Callback::from(move |e: KeyboardEvent| {
+                const KEYCODE_ENTER: u32 = 13;
+                if e.key_code() == KEYCODE_ENTER {
+                    e.prevent_default();
+                    text.trigger()
+                }
+            })
+        };
+        let onclick = {
+            let text = text.clone();
+            Callback::from(move |_: MouseEvent| text.trigger())
+        };
 
         let label = label.map(|label| html! { <Content>{ label }</Content> });
         let body = html! {
-            <>
-                { label }
-                <TextInputGroup style="padding: 4px;">
-                    <TextInputGroupMain style="margin-right: 4px;"
-                        autofocus=true
-                        { onchange }
-                        { placeholder }
-                        value={ text.clone() }
-                    />
-                    <Button variant={ ButtonVariant::Primary }>{ label_submit }</Button>
-                </TextInputGroup>
-            </>
+            <TextInputGroup style="padding: 4px;">
+                <TextInputGroupMain style="margin-right: 4px;"
+                    autofocus=true
+                    { onchange }
+                    { onkeydown }
+                    { placeholder }
+                    value={ text.clone() }
+                />
+                <Button { onclick } variant={ ButtonVariant::Primary }>{ label_submit }</Button>
+            </TextInputGroup>
         };
 
         if text.get().is_empty() {

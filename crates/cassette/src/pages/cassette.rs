@@ -54,35 +54,36 @@ fn cassette_data(props: &DataProps) -> Html {
     let title = data.name.to_title_case();
     let subtitle = data.description.clone();
 
-    let trigger = use_force_update();
-    let mut root_state = CassetteState::new(trigger);
-
     let mut contents = vec![];
-    for task in data.component.tasks.iter().map(RootCassetteTask) {
-        match task.render(&mut root_state) {
-            Ok(TaskState::Break { body, state: _ }) => {
-                contents.push(body);
-                break;
-            }
-            Ok(TaskState::Continue { body, state: _ }) => {
-                contents.push(body);
-                continue;
-            }
-            Ok(TaskState::Skip { state: _ }) => {
-                continue;
-            }
-            Err(error) => {
-                let body = html! {
-                    <Alert inline=true title="Error" r#type={AlertType::Danger}>
-                        { error }
-                    </Alert>
-                };
-                contents.push(body);
-                break;
+    {
+        let trigger = use_force_update();
+        let mut root_state = CassetteState::new(trigger);
+
+        for task in data.component.tasks.iter().map(RootCassetteTask) {
+            match task.render(&mut root_state) {
+                Ok(TaskState::Break { body, state: _ }) => {
+                    contents.push(body);
+                    break;
+                }
+                Ok(TaskState::Continue { body, state: _ }) => {
+                    contents.push(body);
+                    continue;
+                }
+                Ok(TaskState::Skip { state: _ }) => {
+                    continue;
+                }
+                Err(error) => {
+                    let body = html! {
+                        <Alert inline=true title="Error" r#type={AlertType::Danger}>
+                            { error }
+                        </Alert>
+                    };
+                    contents.push(body);
+                    break;
+                }
             }
         }
     }
-    root_state.commit();
 
     html! {
         <super::PageBody {title} {subtitle} >

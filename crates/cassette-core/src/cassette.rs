@@ -134,19 +134,11 @@ impl CassetteState {
     fn set(&mut self, name: &str, value: crate::task::TaskSpec) {
         self.root.set_child(name, value)
     }
-
-    pub fn commit(self) {
-        let RootCassetteState { changed, trigger } = self.root;
-        if *changed.as_ref().borrow() {
-            trigger.force_update()
-        }
-    }
 }
 
 #[cfg(feature = "ui")]
 #[derive(Clone, Debug)]
 pub struct RootCassetteState {
-    changed: Rc<RefCell<bool>>,
     trigger: UseForceUpdateHandle,
 }
 
@@ -167,15 +159,11 @@ impl RootCassetteState {
         static SPEC: RefCell<crate::task::TaskSpec> = Default::default();
     }
 
-    fn new(trigger: UseForceUpdateHandle) -> Self {
-        Self {
-            changed: Default::default(),
-            trigger,
-        }
+    const fn new(trigger: UseForceUpdateHandle) -> Self {
+        Self { trigger }
     }
 
     fn update(&self, trigger: bool) {
-        *self.changed.borrow_mut() = true;
         if trigger {
             self.trigger.force_update()
         }
@@ -208,13 +196,13 @@ impl RootCassetteState {
         })
     }
 
-    fn set_handler<T>(&self, id: (String, String), value: T)
+    fn set_handler<T>(&self, id: (String, String), value: T, trigger: bool)
     where
         T: 'static,
     {
         Self::HANDLERS.with_borrow_mut(|handlers| {
             info!("Detected handler::update: {id:?}");
-            self.update(true);
+            self.update(trigger);
             handlers.insert(id, Rc::new(value));
         })
     }
@@ -394,6 +382,60 @@ impl<T> GenericCassetteTaskHandle<T> for CassetteTaskHandle<T> {
     where
         T: 'static,
     {
-        RootCassetteState::set_handler(&self.root, self.id.clone(), value)
+        RootCassetteState::set_handler(&self.root, self.id.clone(), value, true)
+    }
+}
+
+#[cfg(feature = "ui")]
+impl<T> CassetteTaskHandle<T> {
+    pub fn lazy(self) -> CassetteLazyHandle<T> {
+        CassetteLazyHandle(self)
+    }
+}
+
+#[cfg(feature = "ui")]
+#[derive(Debug)]
+pub struct CassetteLazyHandle<T>(CassetteTaskHandle<T>);
+
+#[cfg(feature = "ui")]
+impl<T> Clone for CassetteLazyHandle<T> {
+    fn clone(&self) -> Self {
+        Self(self.0.clone())
+    }
+}
+
+#[cfg(feature = "ui")]
+impl<T> IntoPropValue<T> for CassetteLazyHandle<T>
+where
+    T: Clone,
+{
+    fn into_prop_value(self) -> T {
+        self.get().clone()
+    }
+}
+
+#[cfg(feature = "ui")]
+impl<T> GenericCassetteTaskHandle<T> for CassetteLazyHandle<T> {
+    type Ref<'a> = &'a T where T: 'a;
+
+    fn get<'a>(&'a self) -> <Self as GenericCassetteTaskHandle<T>>::Ref<'a>
+    where
+        <Self as GenericCassetteTaskHandle<T>>::Ref<'a>: ops::Deref<Target = T>,
+    {
+        self.0.get()
+    }
+
+    fn set(&self, value: T)
+    where
+        T: 'static,
+    {
+        RootCassetteState::set_handler(&self.0.root, self.0.id.clone(), value, false)
+    }
+}
+
+#[cfg(feature = "ui")]
+impl<T> CassetteLazyHandle<T> {
+    pub fn trigger(&self) {
+        self.0.root.update(true)
     }
 }
