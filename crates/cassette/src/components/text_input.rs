@@ -71,6 +71,7 @@ impl ComponentRenderer<Spec> for State {
         let label = label.map(|label| html! { <Content>{ label }</Content> });
         let body = html! {
             <TextInputGroup style="padding: 4px;">
+                { label }
                 <TextInputGroupMain style="margin-right: 4px;"
                     autofocus=true
                     { onchange }
