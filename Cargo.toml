@@ -54,7 +54,7 @@ built = { version = "0.7", features = ["chrono", "dependency-tree", "git2"] }
 clap = { version = "4.5", features = ["derive", "env", "string"] }
 futures = { version = "0.3" }
 garde = { version = "0.20", features = ["derive", "regex", "serde", "unicode"] }
-gloo-net = { version = "0.5", default-features = false, features = [
+gloo-net = { version = "0.6", default-features = false, features = [
     "eventsource",
     "http",
     "json",
