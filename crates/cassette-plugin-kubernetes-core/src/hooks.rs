@@ -11,9 +11,28 @@ use yew::platform::spawn_local;
 
 use crate::api::Api;
 
+pub fn use_kubernetes_api<K>(
+    ctx: &mut CassetteContext,
+    api_version: String,
+    kind: String,
+) -> CassetteTaskHandle<FetchState<Api<K>>>
+where
+    K: 'static + Clone + DeserializeOwned,
+{
+    let handler_name = "kubernetes api";
+    let force_init = false;
+    let state = ctx.use_state(handler_name, force_init, || FetchState::Pending);
+    {
+        let state = state.clone();
+        let f = move || Api::find(api_version, kind);
+        try_fetch(state, f);
+    }
+    state
+}
+
 pub fn use_kubernetes_list<K>(
     ctx: &mut CassetteContext,
-    api: Api<K>,
+    api: Rc<Api<K>>,
     lp: ListParams,
 ) -> CassetteTaskHandle<FetchState<ObjectList<K>>>
 where

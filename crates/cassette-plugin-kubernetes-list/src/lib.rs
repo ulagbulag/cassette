@@ -1,5 +1,3 @@
-use std::marker::PhantomData;
-
 use cassette_core::{
     cassette::{CassetteContext, GenericCassetteTaskHandle},
     components::ComponentRenderer,
@@ -7,7 +5,7 @@ use cassette_core::{
     prelude::*,
     task::{TaskResult, TaskState},
 };
-use cassette_plugin_kubernetes_core::{api::Api, hooks::use_kubernetes_list};
+use cassette_plugin_kubernetes_core::hooks::{use_kubernetes_api, use_kubernetes_list};
 use kube_core::{params::ListParams, DynamicObject};
 use serde::{Deserialize, Serialize};
 use yew::prelude::*;
@@ -42,15 +40,20 @@ impl ComponentRenderer<Spec> for State {
     fn render(self, ctx: &mut CassetteContext, spec: Spec) -> TaskResult<Option<Self>> {
         let Spec { api_version, kind } = spec;
 
-        // TODO: to be implemented
-        let _ = (api_version, kind);
-
-        let api: Api<DynamicObject> = Api {
-            api_group: Some("apps".into()),
-            namespace: Some("default".into()),
-            plural: "deployments".into(),
-            version: "v1".into(),
-            _type: PhantomData,
+        let api = match use_kubernetes_api(ctx, api_version, kind).get() {
+            FetchState::Pending | FetchState::Fetching => {
+                return Ok(TaskState::Break {
+                    body: html! { <Loading /> },
+                    state: None,
+                })
+            }
+            FetchState::Collecting(api) | FetchState::Completed(api) => api.clone(),
+            FetchState::Error(msg) => {
+                return Ok(TaskState::Break {
+                    body: html! { <Error msg={ msg.clone() } /> },
+                    state: None,
+                })
+            }
         };
         let lp = ListParams::default();
 
