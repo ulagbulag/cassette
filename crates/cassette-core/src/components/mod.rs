@@ -2,6 +2,8 @@
 pub mod error;
 #[cfg(feature = "ui")]
 pub mod loading;
+#[cfg(feature = "ui")]
+pub mod todo;
 
 use kube::CustomResource;
 use schemars::JsonSchema;

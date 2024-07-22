@@ -7,5 +7,9 @@ pub mod task;
 
 #[cfg(feature = "ui")]
 pub mod prelude {
-    pub use crate::components::{error::Error, loading::Loading};
+    pub use crate::components::{
+        error::Error,
+        loading::Loading,
+        todo::{todo, Todo},
+    };
 }

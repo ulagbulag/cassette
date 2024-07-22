@@ -4,7 +4,7 @@ use yew::prelude::*;
 #[function_component(Loading)]
 pub fn loading() -> Html {
     html! {
-        <Flex >
+        <Flex>
             <FlexItem>
                 <Spinner size={ SpinnerSize::Lg } />
             </FlexItem>

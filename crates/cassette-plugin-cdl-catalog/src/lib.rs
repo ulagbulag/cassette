@@ -19,9 +19,7 @@ impl ComponentRenderer<Spec> for State {
     fn render(self, ctx: &mut CassetteContext, spec: Spec) -> TaskResult<Option<Self>> {
         let Spec {} = spec;
 
-        Ok(TaskState::Continue {
-            body: html! { <Loading /> },
-            state: Some(Self {}),
-        })
+        // TODO: to be implemented
+        todo()
     }
 }
