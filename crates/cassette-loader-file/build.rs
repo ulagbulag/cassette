@@ -7,6 +7,7 @@ const OUT_SRC: &str = "examples.yaml";
 
 fn main() {
     static EXAMPLES: Dir<'_> = include_dir!("examples");
+    println!("cargo:rerun-if-changed=./examples");
 
     let contents = EXAMPLES
         .files()
