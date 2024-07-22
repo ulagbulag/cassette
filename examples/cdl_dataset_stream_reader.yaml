@@ -1,0 +1,17 @@
+---
+apiVersion: cassette.ulagbulag.io/v1alpha1
+kind: Cassette
+metadata:
+  name: cdl-dataset-stream-reader
+spec:
+  component: cdl-dataset-stream-reader
+  group: Connected Data lake
+---
+apiVersion: cassette.ulagbulag.io/v1alpha1
+kind: CassetteComponent
+metadata:
+  name: cdl-dataset-stream-reader
+spec:
+  tasks:
+    - name: manage
+      kind: CdlDatasetStreamReader

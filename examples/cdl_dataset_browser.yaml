@@ -1,0 +1,17 @@
+---
+apiVersion: cassette.ulagbulag.io/v1alpha1
+kind: Cassette
+metadata:
+  name: cdl-dataset-browser
+spec:
+  component: cdl-dataset-browser
+  group: Connected Data lake
+---
+apiVersion: cassette.ulagbulag.io/v1alpha1
+kind: CassetteComponent
+metadata:
+  name: cdl-dataset-browser
+spec:
+  tasks:
+    - name: manage
+      kind: CdlDatasetBrowser

@@ -1,0 +1,17 @@
+---
+apiVersion: cassette.ulagbulag.io/v1alpha1
+kind: Cassette
+metadata:
+  name: cdl-zone
+spec:
+  component: cdl-zone
+  group: Connected Data lake
+---
+apiVersion: cassette.ulagbulag.io/v1alpha1
+kind: CassetteComponent
+metadata:
+  name: cdl-zone
+spec:
+  tasks:
+    - name: manage
+      kind: CdlZone
