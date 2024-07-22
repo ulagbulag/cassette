@@ -118,50 +118,6 @@ crate = "ark-core"
 allow = ["GPL-3.0 WITH Classpath-exception-2.0"]
 crate = "ark-core-k8s"
 
-[[licenses.exceptions]]
-allow = ["AGPL-3.0"]
-crate = "cassette"
-
-[[licenses.exceptions]]
-allow = ["AGPL-3.0"]
-crate = "cassette-core"
-
-[[licenses.exceptions]]
-allow = ["AGPL-3.0"]
-crate = "cassette-gateway"
-
-[[licenses.exceptions]]
-allow = ["AGPL-3.0"]
-crate = "cassette-loader-core"
-
-[[licenses.exceptions]]
-allow = ["AGPL-3.0"]
-crate = "cassette-loader-file"
-
-[[licenses.exceptions]]
-allow = ["AGPL-3.0"]
-crate = "cassette-operator"
-
-[[licenses.exceptions]]
-allow = ["AGPL-3.0"]
-crate = "cassette-plugin-jwt"
-
-[[licenses.exceptions]]
-allow = ["AGPL-3.0"]
-crate = "cassette-plugin-kubernetes-api"
-
-[[licenses.exceptions]]
-allow = ["AGPL-3.0"]
-crate = "cassette-plugin-kubernetes-core"
-
-[[licenses.exceptions]]
-allow = ["AGPL-3.0"]
-crate = "cassette-plugin-kubernetes-list"
-
-[[licenses.exceptions]]
-allow = ["AGPL-3.0"]
-crate = "cassette-plugin-openai-chat"
-
 # Some crates don't have (easily) machine readable licensing information,
 # adding a clarification entry for it allows you to manually specify the
 # licensing information

@@ -21,7 +21,7 @@ workspace = true
 
 [features]
 default = ["full"]
-full = ["kubernetes", "openai"]
+full = ["cdl", "kubernetes", "openai"]
 experimental = []
 
 # for demo ONLY
@@ -29,6 +29,13 @@ examples = ["cassette-core/examples", "dep:cassette-loader-file"]
 mock-release = ["cassette-core/mock-release"]
 
 # plugins
+
+## Connected Data Lake (CDL)
+cdl = ["cdl-catalog", "cdl-dataset-browser", "cdl-dataset-streamer", "cdl-zone"]
+cdl-catalog = ["dep:cassette-plugin-cdl-catalog"]
+cdl-dataset-browser = ["dep:cassette-plugin-cdl-dataset-browser"]
+cdl-dataset-streamer = ["dep:cassette-plugin-cdl-dataset-streamer"]
+cdl-zone = ["dep:cassette-plugin-cdl-zone"]
 
 ## Kubernetes
 kubernetes = ["kubernetes-list"]
@@ -44,6 +51,10 @@ built = { workspace = true }
 [dependencies]
 cassette-core = { path = "../cassette-core", features = ["ui"] }
 cassette-loader-file = { path = "../cassette-loader-file", optional = true }
+cassette-plugin-cdl-catalog = { path = "../cassette-plugin-cdl-catalog", optional = true }
+cassette-plugin-cdl-dataset-browser = { path = "../cassette-plugin-cdl-dataset-browser", optional = true }
+cassette-plugin-cdl-dataset-streamer = { path = "../cassette-plugin-cdl-dataset-streamer", optional = true }
+cassette-plugin-cdl-zone = { path = "../cassette-plugin-cdl-zone", optional = true }
 cassette-plugin-kubernetes-list = { path = "../cassette-plugin-kubernetes-list", optional = true }
 cassette-plugin-openai-chat = { path = "../cassette-plugin-openai-chat", optional = true }
 

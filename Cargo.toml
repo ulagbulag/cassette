@@ -7,6 +7,12 @@ members = [
     "crates/cassette-loader-core",
     "crates/cassette-loader-file",
     "crates/cassette-operator",
+    "crates/cassette-plugin-cdl-api",
+    "crates/cassette-plugin-cdl-catalog",
+    "crates/cassette-plugin-cdl-core",
+    "crates/cassette-plugin-cdl-dataset-browser",
+    "crates/cassette-plugin-cdl-dataset-streamer",
+    "crates/cassette-plugin-cdl-zone",
     "crates/cassette-plugin-jwt",
     "crates/cassette-plugin-kubernetes-api",
     "crates/cassette-plugin-kubernetes-core",
@@ -35,6 +41,7 @@ blocks_in_conditions = "allow" # opentelemetry tracing macro would be noisy
 [workspace.dependencies]
 ark-core = { git = "https://github.com/ulagbulag/OpenARK" }
 ark-core-k8s = { git = "https://github.com/ulagbulag/OpenARK" }
+dash-pipe-provider = { git = "https://github.com/ulagbulag/dash-pipe-provider" }
 
 actix-cors = { version = "0.7" }
 actix-web = { version = "4.8", default-features = false, features = ["macros"] }
