@@ -20,7 +20,8 @@ where
     K: 'static + Clone + DeserializeOwned,
 {
     let handler_name = "kubernetes list";
-    let state = ctx.use_state(handler_name, || FetchState::Pending);
+    let force_init = false;
+    let state = ctx.use_state(handler_name, force_init, || FetchState::Pending);
     {
         let state = state.clone();
         let f = move || api.list(lp);

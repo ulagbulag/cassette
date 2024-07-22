@@ -174,7 +174,7 @@ impl RootCassetteState {
         T: DeserializeOwned,
     {
         Self::SPEC.with_borrow(|spec| {
-            spec.try_get(name)
+            spec.get_child(name)
                 .map(|value| {
                     ::serde_json::from_value(value.clone())
                         .map_err(|error| format!("Failed to decode task state: {error}"))
@@ -207,22 +207,35 @@ impl RootCassetteState {
         })
     }
 
-    fn use_handler<T>(&self, id: (String, String), f_init: impl FnOnce() -> T) -> Rc<T>
+    fn use_handler<T>(
+        &self,
+        force_init: bool,
+        id: (String, String),
+        f_init: impl FnOnce() -> T,
+    ) -> Rc<T>
     where
         T: 'static,
     {
         let (task_name, handler_name) = &id;
 
-        let handler = Self::HANDLERS.with_borrow_mut(|handlers| match handlers.get(&id) {
-            Some(handler) => handler.clone(),
-            None => {
-                let handler = Rc::new(f_init());
-                {
-                    info!("Detected handler::create: {id:?}");
-                    self.update(false);
-                    handlers.insert(id.clone(), handler.clone());
+        let init_handler = |handlers: &mut BTreeMap<_, Rc<dyn Any>>| {
+            let handler = Rc::new(f_init());
+            {
+                info!("Detected handler::create: {id:?}");
+                self.update(false);
+                handlers.insert(id.clone(), handler.clone());
+            }
+            handler
+        };
+
+        let handler = Self::HANDLERS.with_borrow_mut(|handlers| {
+            if force_init {
+                init_handler(handlers)
+            } else {
+                match handlers.get(&id) {
+                    Some(handler) => handler.clone(),
+                    None => init_handler(handlers),
                 }
-                handler
             }
         });
 
@@ -288,6 +301,7 @@ impl<'a> CassetteContext<'a> {
     pub fn use_state<T>(
         &self,
         id: impl Into<String>,
+        force_init: bool,
         f_init: impl FnOnce() -> T,
     ) -> CassetteTaskHandle<T>
     where
@@ -299,7 +313,7 @@ impl<'a> CassetteContext<'a> {
         CassetteTaskHandle {
             root: self.state.root.clone(),
             id: id.clone(),
-            item: RootCassetteState::use_handler(&self.state.root, id.clone(), f_init),
+            item: RootCassetteState::use_handler(&self.state.root, force_init, id.clone(), f_init),
         }
     }
 }

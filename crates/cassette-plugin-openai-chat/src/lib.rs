@@ -29,6 +29,7 @@ pub struct Spec {
 #[serde(rename_all = "camelCase")]
 pub struct State {
     content: Option<String>,
+    message: Option<String>,
     progress: bool,
 }
 
@@ -41,33 +42,45 @@ impl ComponentRenderer<Spec> for State {
         } = spec;
 
         let mut request = request.clone();
-        if let Some(content) = message {
+        if let Some(content) = message.clone() {
             request.messages.push(Message {
                 role: Role::User,
                 content,
             });
         }
 
-        match crate::hooks::use_fetch(ctx, &base_url, request).get() {
+        let force_init = !self.progress && message != self.message;
+
+        match crate::hooks::use_fetch(ctx, &base_url, force_init, request).get() {
             FetchState::Pending | FetchState::Fetching => Ok(TaskState::Break {
                 body: html! { <Loading /> },
-                state: None,
+                state: Some(Self {
+                    content: None,
+                    message,
+                    progress: true,
+                }),
             }),
             FetchState::Collecting(content) => Ok(TaskState::Skip {
                 state: Some(Self {
                     content: Some((**content).clone()),
+                    message,
                     progress: true,
                 }),
             }),
             FetchState::Completed(content) => Ok(TaskState::Skip {
                 state: Some(Self {
                     content: Some((**content).clone()),
+                    message,
                     progress: false,
                 }),
             }),
             FetchState::Error(msg) => Ok(TaskState::Break {
                 body: html! { <Error msg={ msg.clone() } /> },
-                state: None,
+                state: Some(Self {
+                    content: None,
+                    message,
+                    progress: false,
+                }),
             }),
         }
     }

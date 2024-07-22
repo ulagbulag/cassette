@@ -14,10 +14,11 @@ use crate::schema::{Message, MessageChoice, MessageFinishReason, Request, Respon
 pub fn use_fetch(
     ctx: &mut CassetteContext,
     base_url: &str,
+    force: bool,
     request: Request,
 ) -> CassetteTaskHandle<FetchState<String>> {
     let handler_name = "chat completions";
-    let state = ctx.use_state(handler_name, || FetchState::Pending);
+    let state = ctx.use_state(handler_name, force, || FetchState::Pending);
     {
         let state = state.clone();
         let base_url = base_url.to_string();

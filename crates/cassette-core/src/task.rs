@@ -126,6 +126,10 @@ impl TaskSpec {
             .ok_or_else(|| format!("no such key: {key}"))
     }
 
+    pub(crate) fn get_child(&self, name: &str) -> Option<&Value> {
+        self.0.get(name)
+    }
+
     pub(crate) fn try_get(&self, key: &str) -> Option<&Value> {
         match key {
             "" | "/" => Some(&self.0),

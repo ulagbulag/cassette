@@ -42,8 +42,9 @@ impl ComponentRenderer<Spec> for State {
         } = spec;
 
         let handler_name = "text";
+        let force_init = false;
         let text = ctx
-            .use_state(handler_name, || default.unwrap_or_default())
+            .use_state(handler_name, force_init, || default.unwrap_or_default())
             .lazy();
         let onchange = {
             let text = text.clone();
@@ -70,17 +71,19 @@ impl ComponentRenderer<Spec> for State {
 
         let label = label.map(|label| html! { <Content>{ label }</Content> });
         let body = html! {
-            <TextInputGroup style="padding: 4px;">
+            <>
                 { label }
-                <TextInputGroupMain style="margin-right: 4px;"
-                    autofocus=true
-                    { onchange }
-                    { onkeydown }
-                    { placeholder }
-                    value={ text.clone() }
-                />
-                <Button { onclick } variant={ ButtonVariant::Primary }>{ label_submit }</Button>
-            </TextInputGroup>
+                <TextInputGroup style="padding: 4px;">
+                    <TextInputGroupMain style="margin-right: 4px;"
+                        autofocus=true
+                        { onchange }
+                        { onkeydown }
+                        { placeholder }
+                        value={ text.clone() }
+                    />
+                    <Button { onclick } variant={ ButtonVariant::Primary }>{ label_submit }</Button>
+                </TextInputGroup>
+            </>
         };
 
         if text.get().is_empty() {
