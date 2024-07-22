@@ -21,15 +21,26 @@ workspace = true
 
 [features]
 default = ["default-tls", "full"]
-full = ["kubernetes"]
+full = ["cdl", "kubernetes"]
 experimental = []
 
 # TLS
 default-tls = ["openssl-tls"]
-openssl-tls = ["actix-web/openssl", "kube/openssl-tls"]
-rustls-tls = ["actix-web/rustls", "kube/rustls-tls"]
+openssl-tls = [
+    "actix-web/openssl",
+    "cassette-plugin-cdl-api/openssl-tls",
+    "kube/openssl-tls",
+]
+rustls-tls = [
+    "actix-web/rustls",
+    "cassette-plugin-cdl-api/rustls-tls",
+    "kube/rustls-tls",
+]
 
 # plugins
+
+## Connected Data Lake (CDL)
+cdl = ["dep:cassette-plugin-cdl-api"]
 
 ## Kubernetes
 kubernetes = ["dep:cassette-plugin-kubernetes-api"]
@@ -38,6 +49,7 @@ kubernetes = ["dep:cassette-plugin-kubernetes-api"]
 cassette-core = { path = "../cassette-core" }
 cassette-loader-core = { path = "../cassette-loader-core" }
 cassette-plugin-kubernetes-api = { path = "../cassette-plugin-kubernetes-api", optional = true }
+cassette-plugin-cdl-api = { path = "../cassette-plugin-cdl-api", optional = true }
 
 actix-cors = { workspace = true }
 actix-web = { workspace = true }

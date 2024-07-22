@@ -41,7 +41,9 @@ blocks_in_conditions = "allow" # opentelemetry tracing macro would be noisy
 [workspace.dependencies]
 ark-core = { git = "https://github.com/ulagbulag/OpenARK" }
 ark-core-k8s = { git = "https://github.com/ulagbulag/OpenARK" }
-dash-pipe-provider = { git = "https://github.com/ulagbulag/dash-pipe-provider" }
+dash-pipe-provider = { git = "https://github.com/ulagbulag/OpenARK", default-features = false, features = [
+    "full",
+] }
 
 actix-cors = { version = "0.7" }
 actix-web = { version = "4.8", default-features = false, features = ["macros"] }
