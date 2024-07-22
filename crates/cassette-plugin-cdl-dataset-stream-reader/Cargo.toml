@@ -1,9 +1,9 @@
 [package]
-name = "cassette-plugin-cdl-dataset-streamer"
+name = "cassette-plugin-cdl-dataset-stream-reader"
 
 authors = { workspace = true }
 description = { workspace = true }
-documentation = "https://docs.rs/cassette-plugin-cdl-dataset-streamer"
+documentation = "https://docs.rs/cassette-plugin-cdl-dataset-stream-reader"
 edition = { workspace = true }
 include = { workspace = true }
 keywords = { workspace = true }
@@ -22,3 +22,6 @@ workspace = true
 [dependencies]
 cassette-core = { path = "../cassette-core", features = ["ui"] }
 cassette-plugin-cdl-core = { path = "../cassette-plugin-cdl-core" }
+
+serde = { workspace = true, features = ["derive"] }
+yew = { workspace = true }

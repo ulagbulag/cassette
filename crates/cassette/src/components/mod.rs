@@ -24,6 +24,18 @@ impl TaskRenderer for RootCassetteTask<'_> {
         let ctx = CassetteContext::new(state, task);
 
         match kind.as_str() {
+            #[cfg(feature = "cdl-catalog")]
+            "CdlCatalog" => ::cassette_plugin_cdl_catalog::State::render_with(ctx, spec),
+            #[cfg(feature = "cdl-dataset-browser")]
+            "CdlDatasetBrowser" => {
+                ::cassette_plugin_cdl_dataset_browser::State::render_with(ctx, spec)
+            }
+            #[cfg(feature = "cdl-dataset-stream-reader")]
+            "CdlDatasetStreamReader" => {
+                ::cassette_plugin_cdl_dataset_stream_reader::State::render_with(ctx, spec)
+            }
+            #[cfg(feature = "cdl-zone")]
+            "CdlZone" => ::cassette_plugin_cdl_zone::State::render_with(ctx, spec),
             #[cfg(feature = "kubernetes-list")]
             "KubernetesList" => ::cassette_plugin_kubernetes_list::State::render_with(ctx, spec),
             #[cfg(feature = "openai-chat")]

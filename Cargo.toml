@@ -11,7 +11,7 @@ members = [
     "crates/cassette-plugin-cdl-catalog",
     "crates/cassette-plugin-cdl-core",
     "crates/cassette-plugin-cdl-dataset-browser",
-    "crates/cassette-plugin-cdl-dataset-streamer",
+    "crates/cassette-plugin-cdl-dataset-stream-reader",
     "crates/cassette-plugin-cdl-zone",
     "crates/cassette-plugin-jwt",
     "crates/cassette-plugin-kubernetes-api",
