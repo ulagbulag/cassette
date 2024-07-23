@@ -22,6 +22,7 @@ CMD [ "/bin/bash" ]
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
+    hwloc \
     libssl3 \
     # Cleanup
     && apt-get clean all \
@@ -33,6 +34,14 @@ ADD ./LICENSE /usr/share/licenses/${PACKAGE}/LICENSE
 
 # Be ready for building
 FROM "${RUST_IMAGE}:${RUST_VERSION}-${_OS_VERSION}" AS builder
+
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    cmake \
+    libhwloc-dev \
+    # Cleanup
+    && apt-get clean all \
+    && rm -rf /var/lib/apt/lists/*
 
 # Load source files
 ADD ./Cargo.toml /src/

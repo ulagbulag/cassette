@@ -58,6 +58,14 @@ jobs:
           override: true
           profile: minimal
 
+      - name: Install dependencies
+        run: |
+          apt-get update && apt-get install -y \
+            cmake \
+            libhwloc-dev \
+          && apt-get clean all \
+          && rm -rf /var/lib/apt/lists/*
+
       - name: Build
         run: cargo build --package cassette-gateway --package cassette-operator --features 'full,experimental' --verbose
 

@@ -1,4 +1,4 @@
-name: pr_check
+name: clippy
 
 on:
   push:
@@ -47,6 +47,14 @@ jobs:
           toolchain: stable
           override: true
           profile: minimal
+
+      - name: Install dependencies
+        run: |
+          apt-get update && apt-get install -y \
+            cmake \
+            libhwloc-dev \
+          && apt-get clean all \
+          && rm -rf /var/lib/apt/lists/*
 
       - name: Check clippy
         run: cargo clippy --package cassette-gateway --package cassette-operator --features 'full,experimental' --verbose -- -D warnings
