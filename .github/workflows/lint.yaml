@@ -1,0 +1,54 @@
+name: lint
+
+on:
+  push:
+    paths:
+      - "**.rs"
+      - "**.toml"
+      - "**.yaml"
+      - "**.yml"
+  pull_request:
+    paths:
+      - "**.rs"
+      - "**.toml"
+      - "**.yaml"
+      - "**.yml"
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  cargo-deny:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+
+      - name: Install cargo-deny
+        run: cargo install cargo-deny
+
+      - name: Check cargo-deny
+        run: cargo deny check --show-stats
+
+  rustfmt:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+
+      - name: Run rustfmt
+        run: rustfmt --edition 2021 --check $(find ./crates -type f -iname '*.rs')

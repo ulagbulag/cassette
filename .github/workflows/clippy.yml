@@ -1,0 +1,52 @@
+name: pr_check
+
+on:
+  push:
+    paths:
+      - "**.rs"
+      - "**.toml"
+      - "**.yaml"
+      - "**.yml"
+  pull_request:
+    paths:
+      - "**.rs"
+      - "**.toml"
+      - "**.yaml"
+      - "**.yml"
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  clippy-app:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: wasm32-unknown-unknown
+          override: true
+          profile: minimal
+
+      - name: Check clippy
+        run: cargo clippy --package cassette --target wasm32-unknown-unknown --features 'full,experimental' --verbose -- -D warnings
+
+  clippy-server:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+
+      - name: Check clippy
+        run: cargo clippy --package cassette-gateway --package cassette-operator --features 'full,experimental' --verbose -- -D warnings
