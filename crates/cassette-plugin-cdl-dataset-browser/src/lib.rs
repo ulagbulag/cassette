@@ -1,8 +1,5 @@
 use cassette_core::{
-    cassette::CassetteContext,
-    components::ComponentRenderer,
-    prelude::*,
-    task::{TaskResult, TaskState},
+    cassette::CassetteContext, components::ComponentRenderer, prelude::*, task::TaskResult,
 };
 use serde::{Deserialize, Serialize};
 use yew::prelude::*;
@@ -16,7 +13,7 @@ pub struct Spec {}
 pub struct State {}
 
 impl ComponentRenderer<Spec> for State {
-    fn render(self, ctx: &mut CassetteContext, spec: Spec) -> TaskResult<Option<Self>> {
+    fn render(self, _ctx: &mut CassetteContext, spec: Spec) -> TaskResult<Option<Self>> {
         let Spec {} = spec;
 
         // TODO: to be implemented

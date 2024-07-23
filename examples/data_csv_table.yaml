@@ -1,0 +1,24 @@
+---
+apiVersion: cassette.ulagbulag.io/v1alpha1
+kind: Cassette
+metadata:
+  name: data-csv-table
+spec:
+  component: data-csv-table
+  group: Data
+---
+apiVersion: cassette.ulagbulag.io/v1alpha1
+kind: CassetteComponent
+metadata:
+  name: data-csv-table
+spec:
+  tasks:
+    - name: csv
+      kind: FileUpload
+      spec:
+        type: CSV
+
+    - name: show
+      kind: Table
+      spec:
+        table: :/csv

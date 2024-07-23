@@ -1,3 +1,5 @@
+mod file_upload;
+mod table;
 mod text;
 mod text_input;
 mod variable;
@@ -36,10 +38,12 @@ impl TaskRenderer for RootCassetteTask<'_> {
             }
             #[cfg(feature = "cdl-zone")]
             "CdlZone" => ::cassette_plugin_cdl_zone::State::render_with(ctx, spec),
+            "FileUpload" => self::file_upload::State::render_with(ctx, spec),
             #[cfg(feature = "kubernetes-list")]
             "KubernetesList" => ::cassette_plugin_kubernetes_list::State::render_with(ctx, spec),
             #[cfg(feature = "openai-chat")]
             "OpenAIChat" => ::cassette_plugin_openai_chat::State::render_with(ctx, spec),
+            "Table" => self::table::State::render_with(ctx, spec),
             "Text" => self::text::State::render_with(ctx, spec),
             "TextInput" => self::text_input::State::render_with(ctx, spec),
             "Variable" => self::variable::render(ctx, spec),

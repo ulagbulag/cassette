@@ -361,6 +361,15 @@ pub struct CassetteTaskHandle<T> {
 }
 
 #[cfg(feature = "ui")]
+impl<T> ops::Deref for CassetteTaskHandle<T> {
+    type Target = Rc<T>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.item
+    }
+}
+
+#[cfg(feature = "ui")]
 impl<T> Clone for CassetteTaskHandle<T> {
     fn clone(&self) -> Self {
         Self {
@@ -368,6 +377,13 @@ impl<T> Clone for CassetteTaskHandle<T> {
             id: self.id.clone(),
             item: self.item.clone(),
         }
+    }
+}
+
+#[cfg(feature = "ui")]
+impl<T> PartialEq for CassetteTaskHandle<T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id && Rc::ptr_eq(&self.item, &other.item)
     }
 }
 

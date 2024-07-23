@@ -21,7 +21,7 @@ workspace = true
 
 [features]
 default = ["full"]
-full = ["cdl", "kubernetes", "openai"]
+full = ["cdl", "openai"]
 experimental = []
 
 # for demo ONLY
@@ -37,10 +37,14 @@ cdl = [
     "cdl-dataset-stream-reader",
     "cdl-zone",
 ]
-cdl-catalog = ["dep:cassette-plugin-cdl-catalog"]
-cdl-dataset-browser = ["dep:cassette-plugin-cdl-dataset-browser"]
-cdl-dataset-stream-reader = ["dep:cassette-plugin-cdl-dataset-stream-reader"]
-cdl-zone = ["dep:cassette-plugin-cdl-zone"]
+cdl-core = ["cassette-core/cdl"]
+cdl-catalog = ["dep:cassette-plugin-cdl-catalog", "cdl-core"]
+cdl-dataset-browser = ["dep:cassette-plugin-cdl-dataset-browser", "cdl-core"]
+cdl-dataset-stream-reader = [
+    "dep:cassette-plugin-cdl-dataset-stream-reader",
+    "cdl-core",
+]
+cdl-zone = ["dep:cassette-plugin-cdl-zone", "cdl-core"]
 
 ## Kubernetes
 kubernetes = ["kubernetes-list"]
@@ -64,6 +68,8 @@ cassette-plugin-kubernetes-list = { path = "../cassette-plugin-kubernetes-list",
 cassette-plugin-openai-chat = { path = "../cassette-plugin-openai-chat", optional = true }
 
 browser-panic-hook = { workspace = true }
+byte-unit = { workspace = true }
+futures = { workspace = true }
 gloo-utils = { workspace = true }
 inflector = { workspace = true }
 itertools = { workspace = true }
@@ -75,6 +81,9 @@ tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 tracing-subscriber-wasm = { workspace = true }
 uuid = { workspace = true }
+wasm-streams = { workspace = true }
+web-sys = { workspace = true }
 yew = { workspace = true }
 yew-markdown = { workspace = true }
+yew-hooks = { workspace = true }
 yew-nested-router = { workspace = true }

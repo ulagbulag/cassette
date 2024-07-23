@@ -20,7 +20,7 @@ workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = ["default-tls"]
+default = []
 
 # TLS
 default-tls = ["openssl-tls"]
@@ -32,5 +32,5 @@ cassette-core = { path = "../cassette-core", features = ["api"] }
 
 actix-web = { workspace = true }
 anyhow = { workspace = true }
-dash-pipe-provider = { workspace = true }
+dash-pipe-provider = { workspace = true, features = ["kafka", "storage"] }
 tracing = { workspace = true }
