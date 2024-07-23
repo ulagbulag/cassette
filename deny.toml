@@ -95,7 +95,7 @@ allow = [
     "BSD-2-Clause",
     "BSD-3-Clause",
     "MIT",
-    # "OpenSSL",  # TODO: Track `ring` licence would be changed: https://github.com/briansmith/ring/issues/1827
+    # "LicenseRef-ring",
     "Unicode-DFS-2016",
     "Unlicense",
 ]
@@ -133,8 +133,8 @@ expression = "Unlicense"
 license-files = []
 
 [[licenses.clarify]]
-crate = "ring"
-expression = "MIT AND ISC AND OpenSSL"
+name = "ring"
+expression = "LicenseRef-ring"
 license-files = [{ path = "LICENSE", hash = 0xbd0eed23 }]
 
 [[licenses.clarify]]
