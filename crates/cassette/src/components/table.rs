@@ -1,4 +1,5 @@
-use cassette_core::data::table::DataTableLog;
+use cassette_core::cassette::CassetteTaskHandle;
+use cassette_core::data::table::{DataTableEntry, DataTableLog};
 use cassette_core::prelude::*;
 use cassette_core::{
     cassette::CassetteContext,
@@ -20,10 +21,12 @@ pub struct Spec {
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct State {}
+pub struct State {
+    entries: Vec<DataTableEntry>,
+}
 
 impl ComponentRenderer<Spec> for State {
-    fn render(self, _ctx: &mut CassetteContext, spec: Spec) -> TaskResult<Option<Self>> {
+    fn render(self, ctx: &mut CassetteContext, spec: Spec) -> TaskResult<Option<Self>> {
         let Spec { table } = spec;
 
         let data = table.data;
@@ -48,16 +51,40 @@ impl ComponentRenderer<Spec> for State {
             }
         };
 
-        Ok(TaskState::Continue {
-            body: html! {
-                <Inner
-                    { columns }
-                    { log }
-                    { records }
-                />
-            },
-            state: None,
-        })
+        let handler_name = "select";
+        let force_init = false;
+        let num_records = records.len();
+        let selections = ctx.use_state(handler_name, force_init, || vec![false; num_records]);
+
+        let selected: Vec<_> = selections
+            .iter()
+            .enumerate()
+            .filter(|(_, selected)| **selected)
+            .filter_map(|(index, _)| {
+                Some(DataTableEntry {
+                    index,
+                    values: records.get(index).cloned()?,
+                })
+            })
+            .collect();
+
+        let body = html! {
+            <Inner
+                { columns }
+                { log }
+                { records }
+                { selections }
+            />
+        };
+
+        if selected.is_empty() {
+            Ok(TaskState::Break { body, state: None })
+        } else {
+            Ok(TaskState::Continue {
+                body,
+                state: Some(Self { entries: selected }),
+            })
+        }
     }
 }
 
@@ -66,6 +93,7 @@ struct Props {
     columns: Vec<String>,
     log: DataTableLog,
     records: Vec<Vec<Value>>,
+    selections: CassetteTaskHandle<Vec<bool>>,
 }
 
 #[function_component(Inner)]
@@ -74,9 +102,10 @@ fn inner(props: &Props) -> Html {
         columns,
         log: _,
         records,
+        selections,
     } = props;
 
-    let header = Column::build_headers(columns);
+    let header = Column::build_headers(columns, selections);
 
     let offset = use_state_eq(|| 0);
     let limit = use_state_eq(|| 5);
@@ -87,7 +116,11 @@ fn inner(props: &Props) -> Html {
         records[*offset..(offset + limit).clamp(0, total_entries)]
             .into_iter()
             .cloned()
-            .map(Entry)
+            .enumerate()
+            .map(|(index, values)| Entry {
+                index: offset + index,
+                values,
+            })
             .collect()
     });
     let (entries, _) = use_table_data(MemoizedTableModel::new(entries));
@@ -143,27 +176,40 @@ fn inner(props: &Props) -> Html {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-struct Column {
-    index: usize,
-    key: String,
+enum Column {
+    Select {
+        selections: CassetteTaskHandle<Vec<bool>>,
+    },
+    Value {
+        index: usize,
+        key: String,
+    },
 }
 
 impl Column {
-    fn build_headers(columns: &[String]) -> VChild<TableHeader<Self>> {
+    fn build_headers(
+        columns: &[String],
+        selections: &CassetteTaskHandle<Vec<bool>>,
+    ) -> VChild<TableHeader<Self>> {
         let columns = columns.into_iter().enumerate().map(|(index, key)| {
             html_nested! {
                 <TableColumn<Self>
-                    label={ key.clone() }
-                    index={ Self {
+                    index={ Self::Value {
                         index,
                         key: key.clone(),
                     } }
+                    label={ key.clone() }
                 />
             }
         });
 
         html_nested! {
             <TableHeader<Self>>
+                <TableColumn<Self>
+                    index={ Self::Select {
+                        selections: selections.clone(),
+                    } }
+                />
                 { for columns }
             </TableHeader<Self>>
         }
@@ -171,18 +217,38 @@ impl Column {
 }
 
 #[derive(Clone)]
-struct Entry(Vec<Value>);
+struct Entry {
+    index: usize,
+    values: Vec<Value>,
+}
 
 impl TableEntryRenderer<Column> for Entry {
     fn render_cell(&self, context: CellContext<'_, Column>) -> Cell {
-        self.0
-            .get(context.column.index)
-            .map(|value| match value {
-                Value::Null => Html::default(),
-                Value::String(value) => html!(value.clone()),
-                value => html!(value.to_string()),
-            })
-            .unwrap_or_default()
-            .into()
+        match context.column {
+            Column::Select { selections } => html! {
+                <Checkbox
+                    checked={ match selections.get_item(self.index) {
+                        Some(true) => CheckboxState::Checked,
+                        Some(false) => CheckboxState::Unchecked,
+                        None => CheckboxState::Indeterminate,
+                    } }
+                    onchange={
+                        let index = self.index;
+                        let selections = selections.clone();
+                        Callback::from(move |state: CheckboxState| selections.set_item(index, state.into()))
+                    }
+                />
+            },
+            Column::Value { index, key: _ } => self
+                .values
+                .get(*index)
+                .map(|value| match value {
+                    Value::Null => Html::default(),
+                    Value::String(value) => html!(value.clone()),
+                    value => html!(value.to_string()),
+                })
+                .unwrap_or_default(),
+        }
+        .into()
     }
 }

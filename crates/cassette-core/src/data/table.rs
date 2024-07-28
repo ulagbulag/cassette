@@ -104,3 +104,9 @@ impl DataTableSourceType {
         }
     }
 }
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, JsonSchema)]
+pub struct DataTableEntry {
+    pub index: usize,
+    pub values: Vec<Value>,
+}

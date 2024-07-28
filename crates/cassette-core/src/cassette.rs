@@ -388,6 +388,9 @@ impl<T> PartialEq for CassetteTaskHandle<T> {
 }
 
 #[cfg(feature = "ui")]
+impl<T> Eq for CassetteTaskHandle<T> {}
+
+#[cfg(feature = "ui")]
 impl<T> IntoPropValue<T> for CassetteTaskHandle<T>
 where
     T: Clone,
@@ -423,6 +426,32 @@ impl<T> CassetteTaskHandle<T> {
     }
 }
 
+#[cfg(feature = "ui")]
+impl<T> CassetteTaskHandle<Vec<T>> {
+    pub fn get_item(&self, index: usize) -> Option<&T> {
+        self.item.get(index)
+    }
+
+    pub fn set_all(&self, value: T)
+    where
+        T: 'static + Copy,
+    {
+        let mut values = (*self.item).clone();
+        values.fill(value);
+        self.set(values)
+    }
+
+    pub fn set_item(&self, index: usize, value: T)
+    where
+        T: 'static + Clone,
+    {
+        let mut values = (*self.item).clone();
+        if let Some(place) = values.get_mut(index) {
+            *place = value;
+            self.set(values)
+        }
+    }
+}
 #[cfg(feature = "ui")]
 #[derive(Debug)]
 pub struct CassetteLazyHandle<T>(CassetteTaskHandle<T>);
