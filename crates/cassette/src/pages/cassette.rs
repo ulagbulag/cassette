@@ -9,7 +9,12 @@ use tracing::info;
 use uuid::Uuid;
 use yew::prelude::*;
 
-use crate::{components::RootCassetteTask, hooks::gateway::use_cassette, pages::error::ErrorKind};
+use crate::{
+    components::RootCassetteTask,
+    history::{History, HistoryLog},
+    hooks::gateway::use_cassette,
+    pages::error::ErrorKind,
+};
 
 #[derive(Clone, Debug, PartialEq, Properties)]
 pub struct Props {
@@ -27,9 +32,16 @@ pub fn cassette(props: &Props) -> Html {
             <CassetteFallback />
         },
         FetchState::Collecting(option) | FetchState::Completed(option) => match option.as_ref() {
-            Some(data) => html! {
-                <CassetteView data={ data.clone() } />
-            },
+            Some(data) => {
+                History::push(HistoryLog {
+                    id: data.id,
+                    name: data.name.clone(),
+                });
+
+                html! {
+                    <CassetteView data={ data.clone() } />
+                }
+            }
             None => html! {
                 <crate::pages::error::Error kind={ ErrorKind::NotFound } />
             },

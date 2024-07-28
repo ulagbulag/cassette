@@ -4,7 +4,7 @@ use byte_unit::{Byte, UnitType};
 use cassette_core::{
     cassette::{CassetteContext, CassetteTaskHandle, GenericCassetteTaskHandle},
     components::ComponentRenderer,
-    data::table::{DataTable, DataTableSourceType},
+    data::table::{DataTable, DataTableLog, DataTableSourceType},
     net::fetch::FetchState,
     prelude::*,
     task::{TaskResult, TaskState},
@@ -94,7 +94,7 @@ fn manager(props: &Props) -> Html {
 
     let label_detail = label_detail
         .clone()
-        .unwrap_or_else(|| format!("Please upload a {} file", r#type));
+        .unwrap_or_else(|| format!("Please upload a .{} file", r#type));
 
     let node = use_node_ref();
 
@@ -248,7 +248,11 @@ where
             let mut data = Vec::with_capacity(size);
             state.set(match stream.read_to_end(&mut data).await {
                 Ok(_) => match r#type.parse_bytes(data) {
-                    Ok(data) => FetchState::Completed(Rc::new(DataTable { name, data })),
+                    Ok(data) => FetchState::Completed(Rc::new(DataTable {
+                        name,
+                        data,
+                        log: DataTableLog::default(),
+                    })),
                     Err(error) => FetchState::Error(format!("Failed to parse file data: {error}")),
                 },
                 Err(error) => FetchState::Error(format!("Failed to fetch file data: {error}")),

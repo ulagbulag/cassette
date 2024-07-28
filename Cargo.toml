@@ -61,6 +61,7 @@ gloo-net = { version = "0.6", default-features = false, features = [
     "http",
     "json",
 ] }
+gloo-storage = { version = "0.3", default-features = false }
 gloo-utils = { version = "0.2", default-features = false }
 http = { version = "1.1", default-features = false }
 include_dir = { version = "0.7" }

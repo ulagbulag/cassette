@@ -1,6 +1,7 @@
 mod app;
 mod build_info;
 mod components;
+mod history;
 mod hooks;
 mod pages;
 mod panic_hook;

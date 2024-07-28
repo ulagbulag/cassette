@@ -1,12 +1,31 @@
 use anyhow::{bail, Result};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use strum::{Display, EnumString};
+use uuid::Uuid;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct DataTable<Data = DataTableSource> {
     pub name: String,
     pub data: Data,
+    #[serde(default)]
+    pub log: DataTableLog,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, JsonSchema)]
+pub struct DataTableLog {
+    id: Uuid,
+    version: u64,
+}
+
+impl Default for DataTableLog {
+    fn default() -> Self {
+        Self {
+            id: Uuid::new_v4(),
+            version: 0,
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, JsonSchema)]
@@ -18,6 +37,22 @@ pub enum DataTableSource {
 }
 
 impl DataTableSource {
+    pub fn columns(&self) -> Result<Vec<String>> {
+        match self {
+            DataTableSource::Cdl(data) => Ok(data.columns()),
+            DataTableSource::Csv(data) => Ok(data.columns()),
+            DataTableSource::Raw(_) => bail!("Raw data table has no columns"),
+        }
+    }
+
+    pub fn records(self) -> Result<Vec<Vec<Value>>> {
+        match self {
+            DataTableSource::Cdl(data) => Ok(data.records()),
+            DataTableSource::Csv(data) => Ok(data.records()),
+            DataTableSource::Raw(_) => bail!("Raw data table has no records"),
+        }
+    }
+
     pub fn is_empty(&self) -> bool {
         match self {
             DataTableSource::Cdl(data) => data.is_empty(),
@@ -51,6 +86,7 @@ impl DataTableSource {
     JsonSchema,
 )]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[strum(serialize_all = "kebab-case")]
 pub enum DataTableSourceType {
     Cdl,
     Csv,
