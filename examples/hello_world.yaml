@@ -22,4 +22,4 @@ spec:
     - name: show-hello-message
       kind: Text
       spec:
-        msg: ":/init/msg"
+        msg: :/init/msg

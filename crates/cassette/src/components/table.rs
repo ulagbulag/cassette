@@ -1,5 +1,5 @@
 use cassette_core::cassette::CassetteTaskHandle;
-use cassette_core::data::table::{DataTableEntry, DataTableLog};
+use cassette_core::data::table::DataTableLog;
 use cassette_core::prelude::*;
 use cassette_core::{
     cassette::CassetteContext,
@@ -22,7 +22,7 @@ pub struct Spec {
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct State {
-    entries: Vec<DataTableEntry>,
+    entries: Vec<Vec<Value>>,
 }
 
 impl ComponentRenderer<Spec> for State {
@@ -51,6 +51,13 @@ impl ComponentRenderer<Spec> for State {
             }
         };
 
+        if records.is_empty() {
+            return Ok(TaskState::Break {
+                body: html!("empty"),
+                state: None,
+            });
+        }
+
         let handler_name = "select";
         let force_init = false;
         let num_records = records.len();
@@ -60,12 +67,7 @@ impl ComponentRenderer<Spec> for State {
             .iter()
             .enumerate()
             .filter(|(_, selected)| **selected)
-            .filter_map(|(index, _)| {
-                Some(DataTableEntry {
-                    index,
-                    values: records.get(index).cloned()?,
-                })
-            })
+            .filter_map(|(index, _)| records.get(index).cloned())
             .collect();
 
         let body = html! {

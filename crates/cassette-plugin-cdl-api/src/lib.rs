@@ -1,14 +1,7 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
+mod zone;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+use actix_web::Scope;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
+pub fn build_services(scope: Scope) -> Scope {
+    scope.service(self::zone::list)
 }

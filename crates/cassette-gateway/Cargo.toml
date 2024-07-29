@@ -40,7 +40,7 @@ rustls-tls = [
 # plugins
 
 ## Connected Data Lake (CDL)
-cdl = ["dep:cassette-plugin-cdl-api"]
+cdl = ["cassette-core/cdl", "dep:cassette-plugin-cdl-api"]
 
 ## Kubernetes
 kubernetes = ["dep:cassette-plugin-kubernetes-api"]

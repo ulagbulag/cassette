@@ -13,5 +13,15 @@ metadata:
   name: cdl-zone
 spec:
   tasks:
-    - name: manage
-      kind: CdlZone
+    - name: all_zones
+      kind: CdlZoneLoad
+
+    - name: zones
+      kind: Table
+      spec:
+        table: :/all_zones
+
+    - name: act-zones
+      kind: CdlZoneActor
+      spec:
+        values: :/zones/entries

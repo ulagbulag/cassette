@@ -59,13 +59,13 @@ build *ARGS: ( _trunk "build" ARGS )
 
 run *ARGS: ( _trunk "serve" ARGS )
 
-run-examples *ARGS: ( _trunk "serve" "--features" "examples" ARGS )
+run-examples *ARGS: ( _trunk "serve" "--features" "examples,full,mock-release" ARGS )
 
 run-gateway *ARGS:
-  cargo watch -s 'clear && cargo run --package cassette-gateway'
+  cargo watch -s 'clear && cargo run --package cassette-gateway -- {{ ARGS }}'
 
 run-operator *ARGS:
-  cargo watch -s 'clear && cargo run --package cassette-operator'
+  cargo watch -s 'clear && cargo run --package cassette-operator -- {{ ARGS }}'
 
 _oci-build file oci_suffix *ARGS:
   mkdir -p "${OCI_BUILD_LOG_DIR}"

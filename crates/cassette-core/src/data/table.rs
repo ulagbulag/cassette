@@ -31,6 +31,7 @@ impl Default for DataTableLog {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[serde(tag = "kind", content = "data", rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum DataTableSource {
+    #[cfg(feature = "cdl")]
     Cdl(super::cdl::CdlTable),
     Csv(super::csv::CsvTable),
     Raw(Vec<u8>),
@@ -39,6 +40,7 @@ pub enum DataTableSource {
 impl DataTableSource {
     pub fn columns(&self) -> Result<Vec<String>> {
         match self {
+            #[cfg(feature = "cdl")]
             DataTableSource::Cdl(data) => Ok(data.columns()),
             DataTableSource::Csv(data) => Ok(data.columns()),
             DataTableSource::Raw(_) => bail!("Raw data table has no columns"),
@@ -47,6 +49,7 @@ impl DataTableSource {
 
     pub fn records(self) -> Result<Vec<Vec<Value>>> {
         match self {
+            #[cfg(feature = "cdl")]
             DataTableSource::Cdl(data) => Ok(data.records()),
             DataTableSource::Csv(data) => Ok(data.records()),
             DataTableSource::Raw(_) => bail!("Raw data table has no records"),
@@ -55,6 +58,7 @@ impl DataTableSource {
 
     pub fn is_empty(&self) -> bool {
         match self {
+            #[cfg(feature = "cdl")]
             DataTableSource::Cdl(data) => data.is_empty(),
             DataTableSource::Csv(data) => data.is_empty(),
             DataTableSource::Raw(data) => data.is_empty(),
@@ -63,6 +67,7 @@ impl DataTableSource {
 
     pub fn len(&self) -> usize {
         match self {
+            #[cfg(feature = "cdl")]
             DataTableSource::Cdl(data) => data.len(),
             DataTableSource::Csv(data) => data.len(),
             DataTableSource::Raw(data) => data.len(),
@@ -103,10 +108,4 @@ impl DataTableSourceType {
             Self::Raw => Ok(DataTableSource::Raw(bytes)),
         }
     }
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, JsonSchema)]
-pub struct DataTableEntry {
-    pub index: usize,
-    pub values: Vec<Value>,
 }

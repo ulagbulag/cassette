@@ -40,4 +40,4 @@ spec:
     - name: show
       kind: Text
       spec:
-        msg: ":/list/content"
+        msg: :/list/content

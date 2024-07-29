@@ -4,33 +4,36 @@ use actix_web::{
     body::BoxBody,
     http::StatusCode,
     web::{Path, Payload, Query},
-    HttpRequest, HttpResponse, Responder,
+    HttpRequest, HttpResponse, Responder, Scope,
 };
 use anyhow::{anyhow, Result};
 use cassette_plugin_jwt::get_authorization_token;
 use http::Request;
-use kube::{config::AuthInfo, core::ErrorResponse, Client, Config};
+pub use kube::Client;
+use kube::{config::AuthInfo, core::ErrorResponse, Config};
 use url::Url;
 
-pub async fn handle(
+pub fn build_services(scope: Scope) -> Scope {
+    scope.route("/kube/{path:.*}", ::actix_web::web::route().to(handle))
+}
+
+async fn handle(
     request: HttpRequest,
     payload: Payload,
     uri: Path<String>,
     queries: Query<BTreeMap<String, String>>,
 ) -> impl Responder {
-    let token = match get_authorization_token(&request) {
-        Ok(token) => token,
-        Err(error) => return response_error(StatusCode::UNAUTHORIZED, error),
-    };
-
-    try_handle(&request, token, uri.into_inner(), queries.0, payload)
-        .await
-        .unwrap_or_else(|error| response_error(StatusCode::METHOD_NOT_ALLOWED, error))
+    match load_client(&request).await {
+        Ok(client) => try_handle(&request, client, uri.into_inner(), queries.0, payload)
+            .await
+            .unwrap_or_else(|error| response_error(StatusCode::METHOD_NOT_ALLOWED, error)),
+        Err(error) => response_error(StatusCode::UNAUTHORIZED, error),
+    }
 }
 
 async fn try_handle(
     request: &HttpRequest,
-    token: &str,
+    client: Client,
     uri: String,
     queries: BTreeMap<String, String>,
     payload: Payload,
@@ -53,16 +56,7 @@ async fn try_handle(
     }
     let request = builder.body(body)?;
 
-    let config = Config {
-        auth_info: AuthInfo {
-            token: Some(token.to_string().into()),
-            ..Default::default()
-        },
-        ..Config::incluster()?
-    };
-    let client = Client::try_from(config)?;
     let response = client.send(request).await?;
-
     let status = StatusCode::from_u16(response.status().as_u16())?;
     let (parts, body) = response.into_parts();
     let headers = parts.headers;
@@ -74,6 +68,20 @@ async fn try_handle(
         response.append_header((key.as_str(), value.as_bytes()));
     }
     Ok(response.body(body))
+}
+
+pub async fn load_client(request: &HttpRequest) -> Result<Client> {
+    let token = get_authorization_token(request)?;
+    let config = Config {
+        auth_info: AuthInfo {
+            token: Some(token.to_string().into()),
+            ..Default::default()
+        },
+        ..Config::incluster()
+            .map_err(|error| anyhow!("failed to create a kubernetes config: {error}"))?
+    };
+    Client::try_from(config)
+        .map_err(|error| anyhow!("failed to create a kubernetes client: {error}"))
 }
 
 fn response_error(code: StatusCode, error: impl ToString) -> HttpResponse {

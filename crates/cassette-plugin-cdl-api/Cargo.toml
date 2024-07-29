@@ -29,8 +29,10 @@ rustls-tls = ["dash-pipe-provider/rustls-tls"]
 
 [dependencies]
 cassette-core = { path = "../cassette-core", features = ["api"] }
+cassette-plugin-kubernetes-api = { path = "../cassette-plugin-kubernetes-api" }
 
 actix-web = { workspace = true }
 anyhow = { workspace = true }
 dash-pipe-provider = { workspace = true, features = ["kafka", "storage"] }
+serde = { workspace = true }
 tracing = { workspace = true }

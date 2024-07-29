@@ -20,8 +20,9 @@ workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = ["full"]
-full = ["cdl", "openai"]
+default = ["full-local"]
+full = ["cdl", "kubernetes", "openai"]
+full-local = ["cdl", "openai"]
 experimental = []
 
 # for demo ONLY

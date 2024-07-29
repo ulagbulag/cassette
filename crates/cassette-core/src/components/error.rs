@@ -12,7 +12,9 @@ pub fn error(props: &Props) -> Html {
 
     html! {
         <Content>
-            <p>{ msg }</p>
+            <Alert inline=true title="Error" r#type={ AlertType::Danger }>
+                { msg.clone() }
+            </Alert>
         </Content>
     }
 }

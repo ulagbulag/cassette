@@ -18,7 +18,12 @@ spec:
       spec:
         type: CSV
 
-    - name: show
+    - name: table
       kind: Table
       spec:
         table: :/csv
+
+    - name: show
+      kind: Text
+      spec:
+        msg: :/table/entries

@@ -25,7 +25,7 @@ pub fn use_fetch(
         let stream = request.options.stream;
         let request = FetchRequest {
             method: Method::POST,
-            name: "chat completions",
+            name: handler_name,
             url: "/chat/completions",
             body: Some(Body::Json(request.clone())),
         };

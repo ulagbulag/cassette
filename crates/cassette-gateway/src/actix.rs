@@ -97,7 +97,7 @@ where
 {
     let scope = web::scope(base_url.unwrap_or(""));
     let scope = build_core_services(scope);
-    let scope = build_plugin_servicess(scope);
+    let scope = build_plugin_services(scope);
 
     app.route(
         base_url.filter(|&path| !path.is_empty()).unwrap_or("/"),
@@ -114,12 +114,11 @@ fn build_core_services(scope: Scope) -> Scope {
         .service(crate::routes::cassette::list)
 }
 
-fn build_plugin_servicess(scope: Scope) -> Scope {
+fn build_plugin_services(scope: Scope) -> Scope {
+    #[cfg(feature = "cdl")]
+    let scope = ::cassette_plugin_cdl_api::build_services(scope);
     #[cfg(feature = "kubernetes")]
-    let scope = scope.route(
-        "/kube/{path:.*}",
-        ::actix_web::web::route().to(::cassette_plugin_kubernetes_api::handle),
-    );
+    let scope = ::cassette_plugin_kubernetes_api::build_services(scope);
 
     scope
 }
