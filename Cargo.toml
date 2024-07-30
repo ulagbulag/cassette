@@ -44,10 +44,8 @@ ark-core = { git = "https://github.com/ulagbulag/OpenARK" }
 ark-core-k8s = { git = "https://github.com/ulagbulag/OpenARK" }
 dash-pipe-provider = { git = "https://github.com/ulagbulag/OpenARK", default-features = false }
 dash-api = { git = "https://github.com/ulagbulag/OpenARK", default-features = false }
-# vine-rbac = { git = "https://github.com/ulagbulag/OpenARK", default-features = false, features = [
-#     "actix",
-# ] }
-vine-rbac = { path = "../ipis-dev-env/netai-cloud/crates/vine/rbac", default-features = false, features = [
+vine-api = { git = "https://github.com/ulagbulag/OpenARK", default-features = false }
+vine-rbac = { git = "https://github.com/ulagbulag/OpenARK", default-features = false, features = [
     "actix",
 ] }
 

@@ -50,10 +50,14 @@ async fn try_loop_forever(agent: Agent) -> Result<()> {
     let redirect_error_404 = agent.redirect_error_404();
 
     let agent = web::Data::new(agent);
+    #[cfg(feature = "kubernetes")]
+    let kube = ::cassette_plugin_kubernetes_api::build_app_data().await?;
 
     // Create a http server
     let server = HttpServer::new(move || {
         let app = App::new().app_data(agent.clone());
+        #[cfg(feature = "kubernetes")]
+        let app = app.app_data(kube.clone());
         let app = build_default_service(app, redirect_error_404.clone());
         let app = build_services(app, base_url.as_deref());
 

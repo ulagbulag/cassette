@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use actix_web::{get, HttpRequest, HttpResponse, Responder};
+use actix_web::{get, web::Data, HttpRequest, HttpResponse, Responder};
 use anyhow::Result;
 use byte_unit::{Byte, UnitType};
 use cassette_core::{
@@ -12,11 +12,11 @@ use cassette_core::{
 };
 use cassette_plugin_kubernetes_api::{load_client, UserClient};
 use dash_api::storage::ModelStorageCrd;
-use kube::{api::ListParams, Api, ResourceExt};
+use kube::{api::ListParams, Api, Client, ResourceExt};
 use serde_json::Value;
 
 #[get("/cdl/zone")]
-pub async fn list(request: HttpRequest) -> impl Responder {
+pub async fn list(client: Data<Client>, request: HttpRequest) -> impl Responder {
     async fn try_handle(client: UserClient) -> Result<DataTable> {
         let api = Api::<ModelStorageCrd>::default_namespaced(client.kube);
         let lp = ListParams::default();
@@ -66,7 +66,7 @@ pub async fn list(request: HttpRequest) -> impl Responder {
         })
     }
 
-    match load_client(&request).await {
+    match load_client(client, &request).await {
         Ok(client) => HttpResponse::from(HttpResult::from(try_handle(client).await)),
         Err(error) => HttpResponse::Unauthorized().json(HttpResult::<()>::Err(error.to_string())),
     }

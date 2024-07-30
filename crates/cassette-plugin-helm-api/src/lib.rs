@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use actix_web::{get, HttpRequest, HttpResponse, Responder, Scope};
+use actix_web::{get, web::Data, HttpRequest, HttpResponse, Responder, Scope};
 use anyhow::Result;
 use cassette_core::{
     data::{
@@ -12,7 +12,7 @@ use cassette_core::{
 use cassette_plugin_kubernetes_api::{load_client, UserClient};
 use itertools::Itertools;
 use k8s_openapi::api::core::v1::Secret;
-use kube::{api::ListParams, Api, ResourceExt};
+use kube::{api::ListParams, Api, Client, ResourceExt};
 use serde_json::Value;
 
 pub fn build_services(scope: Scope) -> Scope {
@@ -20,12 +20,12 @@ pub fn build_services(scope: Scope) -> Scope {
 }
 
 #[get("/helm")]
-async fn list(request: HttpRequest) -> impl Responder {
+async fn list(client: Data<Client>, request: HttpRequest) -> impl Responder {
     async fn try_handle(client: UserClient) -> Result<DataTable> {
         let UserClient {
-            kube,
-            name,
             is_admin,
+            kube,
+            user_name,
         } = client;
 
         // Load data
@@ -47,7 +47,7 @@ async fn list(request: HttpRequest) -> impl Responder {
         const LABEL_STATE: &str = "status";
         const LABEL_VERSION: &str = "version";
 
-        let name = format!("helm-{name}");
+        let name = format!("helm-{user_name}");
         let headers = vec![
             "namespace".into(),
             "name".into(),
@@ -91,7 +91,7 @@ async fn list(request: HttpRequest) -> impl Responder {
         })
     }
 
-    match load_client(&request).await {
+    match load_client(client, &request).await {
         Ok(client) => HttpResponse::from(HttpResult::from(try_handle(client).await)),
         Err(error) => HttpResponse::Unauthorized().json(HttpResult::<()>::Err(error.to_string())),
     }

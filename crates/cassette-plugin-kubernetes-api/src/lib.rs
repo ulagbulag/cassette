@@ -3,25 +3,34 @@ use std::collections::BTreeMap;
 use actix_web::{
     body::BoxBody,
     http::StatusCode,
-    web::{Path, Payload, Query},
+    web::{Data, Path, Payload, Query},
     HttpRequest, HttpResponse, Responder, Scope,
 };
 use anyhow::{anyhow, Result};
+use cassette_plugin_jwt::parse_jwt;
 use http::Request;
 use kube::{core::ErrorResponse, Client};
 use url::Url;
+
+pub async fn build_app_data() -> Result<Data<Client>> {
+    Client::try_default()
+        .await
+        .map(Data::new)
+        .map_err(Into::into)
+}
 
 pub fn build_services(scope: Scope) -> Scope {
     scope.route("/kube/{path:.*}", ::actix_web::web::route().to(handle))
 }
 
 async fn handle(
+    client: Data<Client>,
     request: HttpRequest,
     payload: Payload,
     uri: Path<String>,
     queries: Query<BTreeMap<String, String>>,
 ) -> impl Responder {
-    match load_client(&request).await {
+    match load_client(client, &request).await {
         Ok(UserClient { kube: client, .. }) => {
             try_handle(&request, client, uri.into_inner(), queries.0, payload)
                 .await
@@ -72,27 +81,31 @@ async fn try_handle(
 
 #[derive(Clone)]
 pub struct UserClient {
-    pub kube: Client,
-    pub name: String,
     pub is_admin: bool,
+    pub kube: Client,
+    pub user_name: String,
 }
 
-#[cfg(not(feature = "vine"))]
-pub async fn load_client(request: &HttpRequest) -> Result<UserClient> {
+// #[cfg(not(feature = "vine"))]
+pub async fn load_client1(request: &HttpRequest) -> Result<UserClient> {
     use cassette_plugin_jwt::get_authorization_token;
     use kube::{config::AuthInfo, Config};
+    use serde::Deserialize;
+
+    #[derive(Deserialize)]
+    struct UserAuthPayload {
+        /// Preferred user name
+        #[serde(alias = "preferred_username")]
+        user_name: String,
+    }
 
     let token = get_authorization_token(request)?;
+    let UserAuthPayload { user_name } = parse_jwt(token)?;
 
     let config = Config {
         auth_info: AuthInfo {
             token: Some(token.to_string().into()),
             ..Default::default()
-        },
-        #[cfg(feature = "vine")]
-        default_namespace: {
-            let client = Client::try_default().await?;
-            ::vine_rbac::auth::get_user_namespace(&client, request).await?
         },
         ..Config::incluster()
             .map_err(|error| anyhow!("failed to create a kubernetes config: {error}"))?
@@ -101,24 +114,34 @@ pub async fn load_client(request: &HttpRequest) -> Result<UserClient> {
         .map_err(|error| anyhow!("failed to create a kubernetes client: {error}"))?;
 
     Ok(UserClient {
-        kube: client,
         is_admin: false,
+        kube: client,
+        user_name,
     })
 }
 
 #[cfg(feature = "vine")]
-pub async fn load_client(request: &HttpRequest) -> Result<UserClient> {
-    let client = Client::try_default().await?;
-    ::vine_rbac::auth::get_user_client(&client, request)
+pub async fn load_client(client: Data<Client>, request: &HttpRequest) -> Result<UserClient> {
+    use vine_api::user_session::UserSession;
+    use vine_rbac::auth::AuthUserSession;
+
+    UserSession::from_request(&client, request)
         .await
-        .map(
-            |::vine_rbac::auth::UserClient { kube, name, role }| UserClient {
-                kube,
-                name,
-                is_admin: role.is_admin,
+        .map_err(Into::into)
+        .and_then(
+            |UserSession {
+                 kube,
+                 role,
+                 user_name,
+                 ..
+             }| {
+                Ok(UserClient {
+                    is_admin: role.is_admin,
+                    kube: kube.ok_or_else(|| anyhow!("No kubernetes client"))?,
+                    user_name,
+                })
             },
         )
-        .map_err(Into::into)
 }
 
 fn response_error(code: StatusCode, error: impl ToString) -> HttpResponse {
