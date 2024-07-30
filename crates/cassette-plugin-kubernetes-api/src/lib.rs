@@ -24,9 +24,8 @@ pub async fn build_app_data() -> Result<Data<Client>> {
 }
 
 pub fn build_services(scope: Scope) -> Scope {
-    let scope = scope.route("/kube/{path:.*}", ::actix_web::web::route().to(handle));
     let scope = self::user::build_services(scope);
-    scope
+    scope.route("/kube/{path:.*}", ::actix_web::web::route().to(handle))
 }
 
 async fn handle(
