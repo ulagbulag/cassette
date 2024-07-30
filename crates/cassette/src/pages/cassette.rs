@@ -1,6 +1,7 @@
 use cassette_core::{
     cassette::{Cassette as CassetteData, CassetteState},
     net::fetch::FetchState,
+    prelude::*,
     task::{TaskRenderer, TaskState},
 };
 use patternfly_yew::prelude::*;
@@ -97,7 +98,7 @@ fn cassette_data(props: &DataProps) -> Html {
     }
 
     html! {
-        <super::PageBody {title} {subtitle} >
+        <super::PageBody { title } { subtitle } >
             { for contents }
         </super::PageBody>
     }
@@ -114,23 +115,22 @@ fn cassette_fallback(props: &FallbackProps) -> Html {
     let FallbackProps { error } = props;
 
     let title = if error.is_some() { "Error" } else { "" };
-    let subtitle = if error.is_some() {
-        None
-    } else {
-        Some("Loading...")
-    };
 
-    let error = props.error.as_deref().map(|error| {
-        html! {
-            <Alert inline=true title="Error" r#type={AlertType::Danger}>
-                { error }
-            </Alert>
-        }
-    });
+    let content = props
+        .error
+        .as_deref()
+        .map(|error| {
+            html! {
+                <Alert inline=true title="Error" r#type={AlertType::Danger}>
+                    { error }
+                </Alert>
+            }
+        })
+        .unwrap_or_else(|| html! { <Loading /> });
 
     html! {
-        <super::PageBody {title} {subtitle} >
-            { for error }
+        <super::PageBody { title } >
+            { content }
         </super::PageBody>
     }
 }
