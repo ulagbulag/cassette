@@ -23,6 +23,5 @@ workspace = true
 cassette-core = { path = "../cassette-core", features = ["ui"] }
 cassette-plugin-cdl-core = { path = "../cassette-plugin-cdl-core" }
 
-patternfly-yew = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 yew = { workspace = true }

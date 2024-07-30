@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -10,7 +12,7 @@ impl CdlTable {
         todo!()
     }
 
-    pub fn records(self) -> Vec<Vec<Value>> {
+    pub fn records(&self) -> Rc<Vec<Vec<Value>>> {
         todo!()
     }
 

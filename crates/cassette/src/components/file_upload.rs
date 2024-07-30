@@ -151,7 +151,12 @@ fn manager(props: &Props) -> Html {
             }),
         ),
         FetchState::Completed(file) => {
-            let data_size = Byte::from(file.data.len()).get_appropriate_unit(UnitType::Decimal);
+            let data_size = match r#type {
+                DataTableSourceType::Raw => Byte::from(file.data.len())
+                    .get_appropriate_unit(UnitType::Decimal)
+                    .to_string(),
+                _ => file.data.len().to_string(),
+            };
             (
                 false,
                 Some(html! {
@@ -250,7 +255,7 @@ where
                 Ok(_) => match r#type.parse_bytes(data) {
                     Ok(data) => FetchState::Completed(Rc::new(DataTable {
                         name,
-                        data,
+                        data: Rc::new(data),
                         log: DataTableLog::default(),
                     })),
                     Err(error) => FetchState::Error(format!("Failed to parse file data: {error}")),

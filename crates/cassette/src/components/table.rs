@@ -1,5 +1,8 @@
+use std::rc::Rc;
+
 use cassette_core::cassette::CassetteTaskHandle;
-use cassette_core::data::table::DataTableLog;
+use cassette_core::data::csv::CsvTable;
+use cassette_core::data::table::{DataTableLog, DataTableSource};
 use cassette_core::prelude::*;
 use cassette_core::{
     cassette::CassetteContext,
@@ -22,15 +25,15 @@ pub struct Spec {
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct State {
-    entries: Vec<Vec<Value>>,
+    #[serde(default, flatten)]
+    table: Option<Rc<DataTable>>,
 }
 
 impl ComponentRenderer<Spec> for State {
     fn render(self, ctx: &mut CassetteContext, spec: Spec) -> TaskResult<Option<Self>> {
-        let Spec { table } = spec;
-
-        let data = table.data;
-        let log = table.log;
+        let Spec {
+            table: DataTable { name, data, log },
+        } = spec;
 
         let columns = match data.columns() {
             Ok(columns) => columns,
@@ -72,8 +75,9 @@ impl ComponentRenderer<Spec> for State {
 
         let body = html! {
             <Inner
-                { columns }
+                columns={ columns.clone() }
                 { log }
+                name={ name.clone() }
                 { records }
                 { selections }
             />
@@ -84,7 +88,16 @@ impl ComponentRenderer<Spec> for State {
         } else {
             Ok(TaskState::Continue {
                 body,
-                state: Some(Self { entries: selected }),
+                state: Some(Self {
+                    table: Some(Rc::new(DataTable {
+                        name,
+                        data: Rc::new(DataTableSource::Csv(CsvTable {
+                            headers: columns,
+                            records: Rc::new(selected),
+                        })),
+                        log,
+                    })),
+                }),
             })
         }
     }
@@ -94,7 +107,8 @@ impl ComponentRenderer<Spec> for State {
 struct Props {
     columns: Vec<String>,
     log: DataTableLog,
-    records: Vec<Vec<Value>>,
+    name: String,
+    records: Rc<Vec<Vec<Value>>>,
     selections: CassetteTaskHandle<Vec<bool>>,
 }
 
@@ -103,6 +117,7 @@ fn inner(props: &Props) -> Html {
     let Props {
         columns,
         log: _,
+        name,
         records,
         selections,
     } = props;
@@ -116,7 +131,7 @@ fn inner(props: &Props) -> Html {
     let total_entries = records.len();
     let entries = use_memo((*offset, *limit), |(offset, limit)| {
         records[*offset..(offset + limit).clamp(0, total_entries)]
-            .into_iter()
+            .iter()
             .cloned()
             .enumerate()
             .map(|(index, values)| Entry {
@@ -147,15 +162,8 @@ fn inner(props: &Props) -> Html {
             <Toolbar>
                 <ToolbarContent>
                     // FIXME: add bulk-select support: https://www.patternfly.org/components/table/react-demos/bulk-select/
-                    <ToolbarItem r#type={ ToolbarItemType::Pagination }>
-                        <Pagination
-                            { total_entries }
-                            offset={ *offset }
-                            entries_per_page_choices={ entries_per_page_choices.clone() }
-                            selected_choice={ *limit }
-                            onlimit={ &limit_callback }
-                            onnavigation={ &nav_callback }
-                        />
+                    <ToolbarItem r#type={ ToolbarItemType::BulkSelect }>
+                        { name }
                     </ToolbarItem>
                 </ToolbarContent>
             </Toolbar>
@@ -193,7 +201,7 @@ impl Column {
         columns: &[String],
         selections: &CassetteTaskHandle<Vec<bool>>,
     ) -> VChild<TableHeader<Self>> {
-        let columns = columns.into_iter().enumerate().map(|(index, key)| {
+        let columns = columns.iter().enumerate().map(|(index, key)| {
             html_nested! {
                 <TableColumn<Self>
                     index={ Self::Value {

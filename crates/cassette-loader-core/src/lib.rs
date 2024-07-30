@@ -38,6 +38,7 @@ impl CassetteDB {
             component: component_name,
             name,
             group,
+            title,
             description,
             priority,
         } = self
@@ -60,6 +61,7 @@ impl CassetteDB {
             component,
             name,
             group,
+            title,
             description,
             priority,
         })
@@ -95,6 +97,7 @@ impl CassetteDB {
             component: cr.spec.component,
             name,
             group: cr.spec.group,
+            title: cr.spec.title,
             description: cr.spec.description,
             priority: cr.spec.priority,
         };
@@ -129,6 +132,7 @@ impl CassetteDB {
             component,
             name,
             group,
+            title,
             description,
             priority,
         } = cassette;
@@ -144,6 +148,7 @@ impl CassetteDB {
             component,
             name,
             group,
+            title,
             description,
             priority,
         })

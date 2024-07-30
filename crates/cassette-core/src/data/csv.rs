@@ -1,4 +1,4 @@
-use std::io::Read;
+use std::{io::Read, rc::Rc};
 
 use anyhow::Result;
 use schemars::JsonSchema;
@@ -8,7 +8,7 @@ use serde_json::Value;
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct CsvTable {
     pub headers: Vec<String>,
-    pub records: Vec<Vec<Value>>,
+    pub records: Rc<Vec<Vec<Value>>>,
 }
 
 impl CsvTable {
@@ -19,7 +19,8 @@ impl CsvTable {
         let records = reader
             .into_deserialize()
             .map(|record| record.map_err(Into::into))
-            .collect::<Result<_>>()?;
+            .collect::<Result<_>>()
+            .map(Rc::new)?;
 
         Ok(Self { headers, records })
     }
@@ -28,8 +29,8 @@ impl CsvTable {
         self.headers.clone()
     }
 
-    pub fn records(self) -> Vec<Vec<Value>> {
-        self.records
+    pub fn records(&self) -> Rc<Vec<Vec<Value>>> {
+        self.records.clone()
     }
 
     pub fn is_empty(&self) -> bool {

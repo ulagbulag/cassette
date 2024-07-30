@@ -20,9 +20,10 @@ workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = ["default-tls", "full"]
-full = ["cdl", "kubernetes"]
+default = ["default-tls", "full", "openark"]
+full = ["cdl", "helm", "kubernetes"]
 experimental = []
+openark = ["vine"]
 
 # TLS
 default-tls = ["openssl-tls"]
@@ -37,10 +38,21 @@ rustls-tls = [
     "kube/rustls-tls",
 ]
 
+# OpenARK
+
+vine = [
+    "cassette-plugin-cdl-api?/vine",
+    "cassette-plugin-helm-api?/vine",
+    "cassette-plugin-kubernetes-api?/vine",
+]
+
 # plugins
 
 ## Connected Data Lake (CDL)
 cdl = ["cassette-core/cdl", "dep:cassette-plugin-cdl-api"]
+
+## Helm
+helm = ["dep:cassette-plugin-helm-api"]
 
 ## Kubernetes
 kubernetes = ["dep:cassette-plugin-kubernetes-api"]
@@ -48,8 +60,9 @@ kubernetes = ["dep:cassette-plugin-kubernetes-api"]
 [dependencies]
 cassette-core = { path = "../cassette-core" }
 cassette-loader-core = { path = "../cassette-loader-core" }
-cassette-plugin-kubernetes-api = { path = "../cassette-plugin-kubernetes-api", optional = true }
 cassette-plugin-cdl-api = { path = "../cassette-plugin-cdl-api", optional = true }
+cassette-plugin-helm-api = { path = "../cassette-plugin-helm-api", optional = true }
+cassette-plugin-kubernetes-api = { path = "../cassette-plugin-kubernetes-api", optional = true }
 
 actix-cors = { workspace = true }
 actix-web = { workspace = true }

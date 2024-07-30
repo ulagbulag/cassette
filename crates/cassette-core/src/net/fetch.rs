@@ -37,8 +37,8 @@ impl<Url, Req> FetchRequest<Url, Req> {
         Url: fmt::Display,
     {
         let handler = |result| match result {
-            crate::result::Result::Ok(data) => FetchState::Completed(data),
-            crate::result::Result::Err(error) => FetchState::Error(error),
+            crate::result::HttpResult::Ok(data) => FetchState::Completed(data),
+            crate::result::HttpResult::Err(error) => FetchState::Error(error),
         };
         self.try_fetch_with(base_url, state, handler)
     }

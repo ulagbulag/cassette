@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use anyhow::{bail, Result};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -6,7 +8,7 @@ use strum::{Display, EnumString};
 use uuid::Uuid;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, JsonSchema)]
-pub struct DataTable<Data = DataTableSource> {
+pub struct DataTable<Data = Rc<DataTableSource>> {
     pub name: String,
     pub data: Data,
     #[serde(default)]
@@ -47,7 +49,7 @@ impl DataTableSource {
         }
     }
 
-    pub fn records(self) -> Result<Vec<Vec<Value>>> {
+    pub fn records(&self) -> Result<Rc<Vec<Vec<Value>>>> {
         match self {
             #[cfg(feature = "cdl")]
             DataTableSource::Cdl(data) => Ok(data.records()),

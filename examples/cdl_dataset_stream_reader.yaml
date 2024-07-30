@@ -5,7 +5,7 @@ metadata:
   name: cdl-dataset-stream-reader
 spec:
   component: cdl-dataset-stream-reader
-  group: Connected Data lake
+  group: Connected Data Lake
 ---
 apiVersion: cassette.ulagbulag.io/v1alpha1
 kind: CassetteComponent

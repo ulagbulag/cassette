@@ -31,12 +31,14 @@ pub fn get_authorization_token(request: &HttpRequest) -> Result<&str, Error> {
         })
 }
 
-pub fn parse_jwt<T>(request: &HttpRequest) -> Result<T, Error>
+pub fn parse_jwt<T>(token: &str) -> Result<T, Error>
 where
     T: DeserializeOwned,
 {
-    get_authorization_token(request)
-        .and_then(|token| token.split('.').nth(1).ok_or(Error::BearerTokenNotFound))
+    token
+        .split('.')
+        .nth(1)
+        .ok_or(Error::BearerTokenNotFound)
         .and_then(|payload| {
             ::base64::engine::general_purpose::STANDARD_NO_PAD
                 .decode(payload)

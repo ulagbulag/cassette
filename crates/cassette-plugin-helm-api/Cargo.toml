@@ -1,9 +1,9 @@
 [package]
-name = "cassette-plugin-cdl-api"
+name = "cassette-plugin-helm-api"
 
 authors = { workspace = true }
 description = { workspace = true }
-documentation = "https://docs.rs/cassette-plugin-cdl-api"
+documentation = "https://docs.rs/cassette-plugin-kubernetes-api"
 edition = { workspace = true }
 include = { workspace = true }
 keywords = { workspace = true }
@@ -23,20 +23,14 @@ workspace = true
 default = []
 vine = ["cassette-plugin-kubernetes-api/vine"]
 
-# TLS
-default-tls = ["openssl-tls"]
-openssl-tls = ["dash-pipe-provider/openssl-tls", "kube/openssl-tls"]
-rustls-tls = ["dash-pipe-provider/rustls-tls", "kube/rustls-tls"]
-
 [dependencies]
 cassette-core = { path = "../cassette-core", features = ["api"] }
 cassette-plugin-kubernetes-api = { path = "../cassette-plugin-kubernetes-api" }
 
 actix-web = { workspace = true }
 anyhow = { workspace = true }
-byte-unit = { workspace = true }
-dash-api = { workspace = true }
-dash-pipe-provider = { workspace = true, features = ["kafka", "storage"] }
+itertools = { workspace = true }
+k8s-openapi = { workspace = true }
 kube = { workspace = true }
 serde_json = { workspace = true }
 tracing = { workspace = true }

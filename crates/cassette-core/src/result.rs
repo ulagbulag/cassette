@@ -1,15 +1,15 @@
-#[cfg(feature = "actix-web")]
+#[cfg(feature = "api")]
 use actix_web::HttpResponse;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", tag = "result", content = "spec")]
-pub enum Result<T> {
+pub enum HttpResult<T> {
     Ok(T),
     Err(String),
 }
 
-impl<T, E> From<::core::result::Result<T, E>> for Result<T>
+impl<T, E> From<::core::result::Result<T, E>> for HttpResult<T>
 where
     E: ToString,
 {
@@ -21,15 +21,15 @@ where
     }
 }
 
-#[cfg(feature = "actix-web")]
-impl<T> From<Result<T>> for HttpResponse
+#[cfg(feature = "api")]
+impl<T> From<HttpResult<T>> for HttpResponse
 where
     T: Serialize,
 {
-    fn from(value: Result<T>) -> Self {
+    fn from(value: HttpResult<T>) -> Self {
         match value {
-            Result::Ok(_) => HttpResponse::Ok().json(value),
-            Result::Err(_) => HttpResponse::Forbidden().json(value),
+            HttpResult::Ok(_) => HttpResponse::Ok().json(value),
+            HttpResult::Err(_) => HttpResponse::MethodNotAllowed().json(value),
         }
     }
 }

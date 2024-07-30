@@ -42,6 +42,7 @@ anyhow = { workspace = true }
 csv = { workspace = true }
 garde = { workspace = true }
 gloo-net = { workspace = true, optional = true }
+inflector = { workspace = true }
 k8s-openapi = { workspace = true }
 kube = { workspace = true, features = ["derive"] }
 patternfly-yew = { workspace = true, optional = true }

@@ -2,15 +2,15 @@
 apiVersion: cassette.ulagbulag.io/v1alpha1
 kind: Cassette
 metadata:
-  name: cdl-zone
+  name: helm-list
 spec:
-  component: cdl-zone
-  group: Connected Data Lake
+  component: helm-list
+  group: Kubernetes Helm
 ---
 apiVersion: cassette.ulagbulag.io/v1alpha1
 kind: CassetteComponent
 metadata:
-  name: cdl-zone
+  name: helm-list
 spec:
   tasks:
     - name: list
@@ -27,6 +27,6 @@ spec:
       kind: Actor
       spec:
         delete: true
-        update: false
-        uri: /cdl/zone
+        update: true
+        uri: /helm
         values: :/filtered/table

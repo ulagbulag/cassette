@@ -5,7 +5,7 @@ metadata:
   name: cdl-catalog
 spec:
   component: cdl-catalog
-  group: Connected Data lake
+  group: Connected Data Lake
 ---
 apiVersion: cassette.ulagbulag.io/v1alpha1
 kind: CassetteComponent

@@ -161,17 +161,8 @@ fn render_cassette_list(cassettes: &[CassetteRef], group: &str, is_default: bool
 }
 
 fn render_cassette(cassette: &CassetteRef) -> Html {
-    let CassetteRef {
-        id,
-        component: _,
-        name,
-        group: _,
-        description: _,
-        priority: _,
-    } = cassette;
-
-    let id = *id;
-    let name = name.to_title_case();
+    let id = cassette.id;
+    let name = cassette.title();
 
     html! {
         <NavRouterItem<AppRoute> to={AppRoute::Cassette { id }}>{ name }</NavRouterItem<AppRoute>>

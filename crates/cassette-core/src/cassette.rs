@@ -7,6 +7,7 @@ use std::{
 };
 
 use garde::Validate;
+use inflector::Inflector;
 use kube::CustomResource;
 use schemars::JsonSchema;
 #[cfg(feature = "ui")]
@@ -52,6 +53,9 @@ pub struct CassetteSpec {
     #[garde(length(min = 1, max = 1024))]
     #[serde(default)]
     pub group: Option<String>,
+    #[garde(length(min = 1, max = 1024))]
+    #[serde(default)]
+    pub title: Option<String>,
     #[garde(skip)]
     #[serde(default)]
     pub priority: Option<u32>,
@@ -67,6 +71,8 @@ pub struct Cassette<Component = CassetteComponentSpec> {
     pub name: String,
     #[serde(default)]
     pub group: Option<String>,
+    #[serde(default)]
+    pub title: Option<String>,
     #[serde(default)]
     pub description: Option<String>,
     #[serde(default)]
@@ -117,6 +123,14 @@ impl<Component> Borrow<Uuid> for Cassette<Component> {
     }
 }
 
+impl<Component> Cassette<Component> {
+    pub fn title(&self) -> String {
+        self.title
+            .clone()
+            .unwrap_or_else(|| self.name.to_title_case())
+    }
+}
+
 #[cfg(feature = "ui")]
 #[derive(Debug)]
 pub struct CassetteState {
@@ -125,9 +139,9 @@ pub struct CassetteState {
 
 #[cfg(feature = "ui")]
 impl CassetteState {
-    pub fn new(trigger: UseForceUpdateHandle) -> Self {
+    pub fn new(id: Uuid, trigger: UseForceUpdateHandle) -> Self {
         Self {
-            root: RootCassetteState::new(trigger),
+            root: RootCassetteState::new(id, trigger),
         }
     }
 
@@ -155,11 +169,22 @@ impl Reducible for RootCassetteState {
 impl RootCassetteState {
     #[cfg(feature = "ui")]
     thread_local! {
+        static ID: RefCell<Option<Uuid>> = Default::default();
         static HANDLERS: RefCell<BTreeMap<(String, String), Rc<dyn Any>>> = Default::default();
         static SPEC: RefCell<crate::task::TaskSpec> = Default::default();
     }
 
-    const fn new(trigger: UseForceUpdateHandle) -> Self {
+    fn new(id: Uuid, trigger: UseForceUpdateHandle) -> Self {
+        // Cleanup when id mismatch
+        if Self::ID.with_borrow_mut(|ph| {
+            let mismatched = Some(id) != *ph;
+            ph.replace(id);
+            mismatched
+        }) {
+            Self::HANDLERS.with_borrow_mut(|handlers| handlers.clear());
+            Self::SPEC.with_borrow_mut(|handlers| handlers.clear());
+        }
+
         Self { trigger }
     }
 

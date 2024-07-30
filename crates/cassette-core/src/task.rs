@@ -121,6 +121,10 @@ impl TaskSpec {
 
 #[cfg(feature = "ui")]
 impl TaskSpec {
+    pub(crate) fn clear(&mut self) {
+        self.0 = Value::Object(Default::default())
+    }
+
     pub(crate) fn get(&self, key: &str) -> Result<&Value, String> {
         self.try_get(key)
             .ok_or_else(|| format!("no such key: {key}"))

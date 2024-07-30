@@ -3,7 +3,6 @@ use cassette_core::{
     net::fetch::FetchState,
     task::{TaskRenderer, TaskState},
 };
-use inflector::Inflector;
 use patternfly_yew::prelude::*;
 use tracing::info;
 use uuid::Uuid;
@@ -63,13 +62,13 @@ fn cassette_data(props: &DataProps) -> Html {
 
     info!("Rendering tasks");
 
-    let title = data.name.to_title_case();
+    let title = data.title();
     let subtitle = data.description.clone();
 
     let mut contents = vec![];
     {
         let trigger = use_force_update();
-        let mut root_state = CassetteState::new(trigger);
+        let mut root_state = CassetteState::new(data.id, trigger);
 
         for task in data.component.tasks.iter().map(RootCassetteTask) {
             match task.render(&mut root_state) {

@@ -13,6 +13,7 @@ members = [
     "crates/cassette-plugin-cdl-dataset-browser",
     "crates/cassette-plugin-cdl-dataset-stream-reader",
     "crates/cassette-plugin-cdl-zone",
+    "crates/cassette-plugin-helm-api",
     "crates/cassette-plugin-jwt",
     "crates/cassette-plugin-kubernetes-api",
     "crates/cassette-plugin-kubernetes-core",
@@ -42,6 +43,13 @@ blocks_in_conditions = "allow" # opentelemetry tracing macro would be noisy
 ark-core = { git = "https://github.com/ulagbulag/OpenARK" }
 ark-core-k8s = { git = "https://github.com/ulagbulag/OpenARK" }
 dash-pipe-provider = { git = "https://github.com/ulagbulag/OpenARK", default-features = false }
+dash-api = { git = "https://github.com/ulagbulag/OpenARK", default-features = false }
+# vine-rbac = { git = "https://github.com/ulagbulag/OpenARK", default-features = false, features = [
+#     "actix",
+# ] }
+vine-rbac = { path = "../ipis-dev-env/netai-cloud/crates/vine/rbac", default-features = false, features = [
+    "actix",
+] }
 
 actix-cors = { version = "0.7" }
 actix-web = { version = "4.8", default-features = false, features = ["macros"] }

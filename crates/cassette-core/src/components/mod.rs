@@ -1,4 +1,6 @@
 #[cfg(feature = "ui")]
+pub mod actor;
+#[cfg(feature = "ui")]
 pub mod error;
 #[cfg(feature = "ui")]
 pub mod loading;
