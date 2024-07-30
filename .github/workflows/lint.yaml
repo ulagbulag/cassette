@@ -22,14 +22,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Install toolchain
-        uses: actions-rs/toolchain@v1
+        uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: stable
-          override: true
-          profile: minimal
+          target: wasm32-unknown-unknown
 
       - name: Install cargo-deny
         run: cargo install cargo-deny
@@ -41,14 +40,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Install toolchain
-        uses: actions-rs/toolchain@v1
+        uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: stable
-          override: true
-          profile: minimal
+          target: wasm32-unknown-unknown
+          components: rustfmt
 
       - name: Run rustfmt
-        run: rustfmt --edition 2021 --check $(find ./crates -type f -iname '*.rs')
+        uses: actions-rust-lang/rustfmt@v1
