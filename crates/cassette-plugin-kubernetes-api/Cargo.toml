@@ -21,17 +21,17 @@ workspace = true
 
 [features]
 default = []
-vine = ["dep:vine-api", "dep:vine-rbac"]
+vine = ["cassette-plugin-kubernetes-core/vine", "dep:vine-api", "dep:vine-rbac"]
 
 [dependencies]
 cassette-core = { path = "../cassette-core", features = ["api"] }
 cassette-plugin-jwt = { path = "../cassette-plugin-jwt" }
+cassette-plugin-kubernetes-core = { path = "../cassette-plugin-kubernetes-core" }
 
 actix-web = { workspace = true }
 anyhow = { workspace = true }
 http = { workspace = true }
 kube = { workspace = true }
-serde = { workspace = true, features = ["derive"] }
 tracing = { workspace = true }
 url = { workspace = true }
 vine-api = { workspace = true, optional = true }

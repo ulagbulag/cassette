@@ -21,7 +21,9 @@ workspace = true
 
 [dependencies]
 cassette-core = { path = "../cassette-core", features = ["ui"] }
-cassette-plugin-kubernetes-core = { path = "../cassette-plugin-kubernetes-core" }
+cassette-plugin-kubernetes-core = { path = "../cassette-plugin-kubernetes-core", features = [
+    "ui",
+] }
 
 kube-core = { workspace = true }
 serde = { workspace = true, features = ["derive"] }

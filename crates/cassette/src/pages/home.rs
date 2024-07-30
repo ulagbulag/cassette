@@ -14,6 +14,18 @@ pub fn home() -> Html {
     let title = env!("CARGO_PKG_NAME").to_title_case();
     let subtitle = env!("CARGO_PKG_DESCRIPTION");
 
+    let user = {
+        #[cfg(feature = "kubernetes")]
+        {
+            html! { <super::user::UserAbout /> }
+        }
+
+        #[cfg(not(feature = "kubernetes"))]
+        {
+            Html::default()
+        }
+    };
+
     let logs = use_memo((), |()| {
         History::get()
             .into_iter()
@@ -35,6 +47,7 @@ pub fn home() -> Html {
     html! {
         <super::PageBody {title} {subtitle} >
             <Content>
+                { user }
                 <h2>{ "Recently Played" }</h2>
                 <Table<KeyColumns, UseTableData<KeyColumns, MemoizedTableModel<Entry>>>
                     { mode }

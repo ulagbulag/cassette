@@ -19,17 +19,39 @@ workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[dependencies]
-cassette-core = { path = "../cassette-core", features = ["ui"] }
+[features]
+default = []
+ui = [
+    "dep:anyhow",
+    "cassette-core/ui",
+    "dep:gloo-net",
+    "dep:http",
+    "dep:js-sys",
+    "dep:k8s-openapi",
+    "dep:kube-core",
+    "dep:once_cell",
+    "dep:tracing",
+    "dep:web-sys",
+    "dep:yew",
+]
 
-anyhow = { workspace = true }
-gloo-net = { workspace = true }
-http = { workspace = true }
-js-sys = { workspace = true }
-k8s-openapi = { workspace = true }
-kube-core = { workspace = true }
-once_cell = { workspace = true }
+# OpenARK
+
+vine = ["dep:anyhow", "dep:kube", "dep:vine-api"]
+
+[dependencies]
+cassette-core = { path = "../cassette-core" }
+
+anyhow = { workspace = true, optional = true }
+gloo-net = { workspace = true, optional = true }
+http = { workspace = true, optional = true }
+js-sys = { workspace = true, optional = true }
+k8s-openapi = { workspace = true, optional = true }
+kube = { workspace = true, optional = true }
+kube-core = { workspace = true, optional = true }
+once_cell = { workspace = true, optional = true }
 serde = { workspace = true, features = ["derive"] }
-tracing = { workspace = true }
-web-sys = { workspace = true }
-yew = { workspace = true }
+tracing = { workspace = true, optional = true }
+vine-api = { workspace = true, optional = true }
+web-sys = { workspace = true, optional = true }
+yew = { workspace = true, optional = true }

@@ -10,7 +10,7 @@ use cassette_core::{
     },
     result::HttpResult,
 };
-use cassette_plugin_kubernetes_api::{load_client, UserClient};
+use cassette_plugin_kubernetes_api::UserClient;
 use dash_api::storage::ModelStorageCrd;
 use kube::{api::ListParams, Api, Client, ResourceExt};
 use serde_json::Value;
@@ -66,7 +66,7 @@ pub async fn list(client: Data<Client>, request: HttpRequest) -> impl Responder 
         })
     }
 
-    match load_client(client, &request).await {
+    match UserClient::from_request(client, &request).await {
         Ok(client) => HttpResponse::from(HttpResult::from(try_handle(client).await)),
         Err(error) => HttpResponse::Unauthorized().json(HttpResult::<()>::Err(error.to_string())),
     }

@@ -1,3 +1,6 @@
+#[cfg(feature = "vine")]
+pub mod user;
+
 use std::collections::BTreeMap;
 
 use actix_web::{
@@ -7,9 +10,10 @@ use actix_web::{
     HttpRequest, HttpResponse, Responder, Scope,
 };
 use anyhow::{anyhow, Result};
-use cassette_plugin_jwt::parse_jwt;
+use cassette_plugin_jwt::{get_authorization_token, parse_jwt};
+use cassette_plugin_kubernetes_core::user::{UserMetadata, UserRoleSpec, UserSpec};
 use http::Request;
-use kube::{core::ErrorResponse, Client};
+use kube::{config::AuthInfo, core::ErrorResponse, Client, Config};
 use url::Url;
 
 pub async fn build_app_data() -> Result<Data<Client>> {
@@ -20,7 +24,9 @@ pub async fn build_app_data() -> Result<Data<Client>> {
 }
 
 pub fn build_services(scope: Scope) -> Scope {
-    scope.route("/kube/{path:.*}", ::actix_web::web::route().to(handle))
+    let scope = scope.route("/kube/{path:.*}", ::actix_web::web::route().to(handle));
+    let scope = self::user::build_services(scope);
+    scope
 }
 
 async fn handle(
@@ -30,7 +36,7 @@ async fn handle(
     uri: Path<String>,
     queries: Query<BTreeMap<String, String>>,
 ) -> impl Responder {
-    match load_client(client, &request).await {
+    match UserClient::from_request(client, &request).await {
         Ok(UserClient { kube: client, .. }) => {
             try_handle(&request, client, uri.into_inner(), queries.0, payload)
                 .await
@@ -81,67 +87,69 @@ async fn try_handle(
 
 #[derive(Clone)]
 pub struct UserClient {
-    pub is_admin: bool,
     pub kube: Client,
-    pub user_name: String,
+    pub spec: UserSpec,
 }
 
-// #[cfg(not(feature = "vine"))]
-pub async fn load_client1(request: &HttpRequest) -> Result<UserClient> {
-    use cassette_plugin_jwt::get_authorization_token;
-    use kube::{config::AuthInfo, Config};
-    use serde::Deserialize;
-
-    #[derive(Deserialize)]
-    struct UserAuthPayload {
-        /// Preferred user name
-        #[serde(alias = "preferred_username")]
-        user_name: String,
+impl UserClient {
+    pub async fn from_request(client: Data<Client>, request: &HttpRequest) -> Result<Self> {
+        #[cfg(not(feature = "vine"))]
+        {
+            let _ = client;
+            Self::from_request_with_oidc(request).await
+        }
+        #[cfg(feature = "vine")]
+        {
+            Self::from_request_with_vine(client, request).await
+        }
     }
 
-    let token = get_authorization_token(request)?;
-    let UserAuthPayload { user_name } = parse_jwt(token)?;
+    pub async fn from_request_with_oidc(request: &HttpRequest) -> Result<Self> {
+        let token = get_authorization_token(request)?;
+        let metadata: UserMetadata = parse_jwt(token)?;
 
-    let config = Config {
-        auth_info: AuthInfo {
-            token: Some(token.to_string().into()),
-            ..Default::default()
-        },
-        ..Config::incluster()
-            .map_err(|error| anyhow!("failed to create a kubernetes config: {error}"))?
-    };
-    let client = Client::try_from(config)
-        .map_err(|error| anyhow!("failed to create a kubernetes client: {error}"))?;
-
-    Ok(UserClient {
-        is_admin: false,
-        kube: client,
-        user_name,
-    })
-}
-
-#[cfg(feature = "vine")]
-pub async fn load_client(client: Data<Client>, request: &HttpRequest) -> Result<UserClient> {
-    use vine_api::user_session::UserSession;
-    use vine_rbac::auth::AuthUserSession;
-
-    UserSession::from_request(&client, request)
-        .await
-        .map_err(Into::into)
-        .and_then(
-            |UserSession {
-                 kube,
-                 role,
-                 user_name,
-                 ..
-             }| {
-                Ok(UserClient {
-                    is_admin: role.is_admin,
-                    kube: kube.ok_or_else(|| anyhow!("No kubernetes client"))?,
-                    user_name,
-                })
+        let config = Config {
+            auth_info: AuthInfo {
+                token: Some(token.to_string().into()),
+                ..Default::default()
             },
-        )
+            ..Config::incluster()
+                .map_err(|error| anyhow!("failed to create a kubernetes config: {error}"))?
+        };
+        let client = Client::try_from(config)
+            .map_err(|error| anyhow!("failed to create a kubernetes client: {error}"))?;
+
+        let name = metadata.preferred_username.clone();
+        let namespace = client.default_namespace().into();
+
+        Ok(Self {
+            kube: client,
+            spec: UserSpec {
+                metadata,
+                name,
+                namespace,
+                role: UserRoleSpec::default(),
+            },
+        })
+    }
+
+    #[cfg(feature = "vine")]
+    pub async fn from_request_with_vine(
+        client: Data<Client>,
+        request: &HttpRequest,
+    ) -> Result<Self> {
+        use vine_api::user_session::UserSession;
+        use vine_rbac::auth::AuthUserSession;
+
+        let token = get_authorization_token(request)?;
+        let metadata = parse_jwt(token)?;
+
+        UserSession::from_request(&client, request)
+            .await
+            .map_err(Into::into)
+            .and_then(|session| UserSpec::from_vine_session(metadata, session))
+            .map(|(spec, kube)| Self { kube, spec })
+    }
 }
 
 fn response_error(code: StatusCode, error: impl ToString) -> HttpResponse {

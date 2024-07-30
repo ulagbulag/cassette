@@ -26,6 +26,7 @@ vine = ["cassette-plugin-kubernetes-api/vine"]
 [dependencies]
 cassette-core = { path = "../cassette-core", features = ["api"] }
 cassette-plugin-kubernetes-api = { path = "../cassette-plugin-kubernetes-api" }
+cassette-plugin-kubernetes-core = { path = "../cassette-plugin-kubernetes-core" }
 
 actix-web = { workspace = true }
 anyhow = { workspace = true }

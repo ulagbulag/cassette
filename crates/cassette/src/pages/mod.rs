@@ -3,6 +3,8 @@ pub mod error;
 pub mod home;
 pub mod license;
 pub mod profile;
+#[cfg(feature = "kubernetes")]
+pub mod user;
 
 use patternfly_yew::prelude::*;
 use yew::prelude::*;
