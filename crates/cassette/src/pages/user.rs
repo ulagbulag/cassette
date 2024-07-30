@@ -28,24 +28,29 @@ pub fn user_about() -> Html {
 
 #[hook]
 fn use_user_spec() -> UseStateHandle<FetchState<UserSpec>> {
-    #[cfg(all(feature = "examples", features = "mock-release"))]
+    #[cfg(all(feature = "examples", not(feature = "mock-release")))]
     {
         use std::rc::Rc;
 
-        use cassette_plugin_kubernetes_core::user::{UserMetadata, UserRoleSpec};
+        use cassette_plugin_kubernetes_core::{
+            net::DEFAULT_NAMESPACE,
+            user::{UserMetadata, UserRoleSpec},
+        };
 
-        FetchState::Completed(Rc::new(UserSpec {
-            metadata: UserMetadata {
-                email: "guest@example.com".into(),
-                preferred_username: "guest".into(),
-            },
-            name: "guest".into(),
-            namespace: "default".into(),
-            role: UserRoleSpec { is_admin: true },
-        }))
+        use_state_eq(|| {
+            FetchState::Completed(Rc::new(UserSpec {
+                metadata: UserMetadata {
+                    email: "guest@example.com".into(),
+                    preferred_username: "guest".into(),
+                },
+                name: "guest".into(),
+                namespace: DEFAULT_NAMESPACE,
+                role: UserRoleSpec { is_admin: true },
+            }))
+        })
     }
 
-    #[cfg(not(all(feature = "examples", features = "mock-release")))]
+    #[cfg(not(all(feature = "examples", not(feature = "mock-release"))))]
     {
         use cassette_core::net::{
             fetch::{FetchRequestWithoutBody, Method},

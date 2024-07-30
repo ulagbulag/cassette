@@ -80,7 +80,7 @@ RUN \
     # Disable terminal hooks
     && sed -i '/\[\[hooks\]\]/,$d' 'Trunk.toml' \
     # Build
-    && trunk build --dist '/out' --release
+    && trunk build --dist '/out' --release --features 'full'
 
 # Copy executable files
 FROM server

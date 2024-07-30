@@ -50,6 +50,17 @@ rules:
       - get
       - list
       - watch
+  - apiGroups:
+      - vine.ulagbulag.io
+    resources:
+      - users
+      - userboxesquotas
+      - userboxesquotabindings
+      - userrolebindings
+      - userroles
+    verbs:
+      - get
+      - list
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
