@@ -22,8 +22,19 @@ CMD [ "/bin/bash" ]
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
+    curl \
     hwloc \
     # Cleanup
+    && apt-get clean all \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install helm
+ARG HELM_URL="https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3"
+RUN apt-get update && apt-get install -y git \
+    && curl "${HELM_URL}" | bash \
+    # Cleanup
+    && apt-get remove -y git \
+    && apt-get autoremove -y \
     && apt-get clean all \
     && rm -rf /var/lib/apt/lists/*
 
