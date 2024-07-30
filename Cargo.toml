@@ -58,6 +58,7 @@ base64 = { version = "0.22" }
 browser-panic-hook = { version = "0.2" }
 built = { version = "0.7", features = ["chrono", "dependency-tree", "git2"] }
 byte-unit = { version = "5.1" }
+chrono = { version = "0.4", default-features = false }
 clap = { version = "4.5", features = ["derive", "env", "string"] }
 csv = { version = "1.3" }
 futures = { version = "0.3" }

@@ -10,6 +10,7 @@ use cassette_core::{
     data::table::DataTable,
     task::{TaskResult, TaskState},
 };
+use chrono::Utc;
 use patternfly_yew::prelude::*;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -19,7 +20,15 @@ use yew::virtual_dom::VChild;
 #[derive(Clone, Debug, PartialEq, Deserialize, Properties)]
 #[serde(rename_all = "camelCase")]
 pub struct Spec {
+    #[serde(default = "Spec::default_label_bulk_select")]
+    label_bulk_select: String,
     table: DataTable,
+}
+
+impl Spec {
+    fn default_label_bulk_select() -> String {
+        "All".into()
+    }
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
@@ -32,6 +41,7 @@ pub struct State {
 impl ComponentRenderer<Spec> for State {
     fn render(self, ctx: &mut CassetteContext, spec: Spec) -> TaskResult<Option<Self>> {
         let Spec {
+            label_bulk_select,
             table: DataTable { name, data, log },
         } = spec;
 
@@ -76,6 +86,7 @@ impl ComponentRenderer<Spec> for State {
         let body = html! {
             <Inner
                 columns={ columns.clone() }
+                { label_bulk_select }
                 { log }
                 name={ name.clone() }
                 { records }
@@ -106,6 +117,7 @@ impl ComponentRenderer<Spec> for State {
 #[derive(Clone, Debug, PartialEq, Properties)]
 struct Props {
     columns: Vec<String>,
+    label_bulk_select: String,
     log: DataTableLog,
     name: String,
     records: Rc<Vec<Vec<Value>>>,
@@ -116,11 +128,17 @@ struct Props {
 fn inner(props: &Props) -> Html {
     let Props {
         columns,
+        label_bulk_select,
         log: _,
         name,
         records,
         selections,
     } = props;
+
+    let updated_at = use_memo((), |()| Utc::now());
+
+    let chip_name = format!("Name: {name}");
+    let chip_updated_at = format!("Updated At: {}", updated_at.to_rfc3339());
 
     let header = Column::build_headers(columns, selections);
 
@@ -161,9 +179,31 @@ fn inner(props: &Props) -> Html {
         <>
             <Toolbar>
                 <ToolbarContent>
-                    // FIXME: add bulk-select support: https://www.patternfly.org/components/table/react-demos/bulk-select/
                     <ToolbarItem r#type={ ToolbarItemType::BulkSelect }>
-                        { name }
+                        <Checkbox
+                            checked={
+                                if selections.is_all(true) {
+                                    CheckboxState::Checked
+                                } else {
+                                    CheckboxState::Unchecked
+                                }
+                            }
+                            label={ label_bulk_select.clone() }
+                            onchange={
+                                let selections = selections.clone();
+                                Callback::from(move |state: CheckboxState| selections.set_all(state.into()))
+                            }
+                        />
+                    </ToolbarItem>
+                    <ToolbarItem r#type={ ToolbarItemType::ChipGroup }>
+                        <ChipGroup>
+                            <Chip
+                                text={ chip_name }
+                            />
+                            <Chip
+                                text={ chip_updated_at }
+                            />
+                        </ChipGroup>
                     </ToolbarItem>
                 </ToolbarContent>
             </Toolbar>

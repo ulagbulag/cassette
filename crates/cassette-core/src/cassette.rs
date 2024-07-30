@@ -457,6 +457,13 @@ impl<T> CassetteTaskHandle<Vec<T>> {
         self.item.get(index)
     }
 
+    pub fn is_all(&self, value: T) -> bool
+    where
+        T: PartialEq,
+    {
+        self.item.iter().all(|v| *v == value)
+    }
+
     pub fn set_all(&self, value: T)
     where
         T: 'static + Copy,
@@ -477,6 +484,7 @@ impl<T> CassetteTaskHandle<Vec<T>> {
         }
     }
 }
+
 #[cfg(feature = "ui")]
 #[derive(Debug)]
 pub struct CassetteLazyHandle<T>(CassetteTaskHandle<T>);
