@@ -23,7 +23,7 @@ workspace = true
 default = ["default-tls"]
 
 # TLS
-default-tls = ["openssl-tls"]
+default-tls = ["rustls-tls"]
 openssl-tls = ["kube/openssl-tls"]
 rustls-tls = ["kube/rustls-tls"]
 

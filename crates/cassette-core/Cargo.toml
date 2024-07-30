@@ -31,7 +31,7 @@ stream = ["dep:wasm-streams"]
 examples = []
 mock-release = []
 
-# plugins
+# Plugins
 
 ## Connected Data Lake (CDL)
 cdl = []

@@ -24,7 +24,7 @@ default = []
 vine = ["cassette-plugin-kubernetes-api/vine"]
 
 # TLS
-default-tls = ["openssl-tls"]
+default-tls = ["rustls-tls"]
 openssl-tls = ["dash-pipe-provider/openssl-tls", "kube/openssl-tls"]
 rustls-tls = ["dash-pipe-provider/rustls-tls", "kube/rustls-tls"]
 

@@ -29,7 +29,7 @@ experimental = []
 examples = ["cassette-core/examples", "dep:cassette-loader-file"]
 mock-release = ["cassette-core/mock-release"]
 
-# plugins
+# Plugins
 
 ## Connected Data Lake (CDL)
 cdl = [
