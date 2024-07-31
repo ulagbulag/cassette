@@ -407,9 +407,9 @@ fn build_form_delete(ctx: FormDeleteContext) -> Html {
         label_apply,
     } = ctx;
 
-    let handler_name = format!("form delete apply");
+    let handler_name = "form delete apply";
     let force_init = false;
-    let state = ctx.use_state(&handler_name, force_init, || FetchState::<Value>::Pending);
+    let state = ctx.use_state(handler_name, force_init, || FetchState::<Value>::Pending);
 
     let onclick = {
         let base_url = base_url.cloned();
@@ -420,7 +420,7 @@ fn build_form_delete(ctx: FormDeleteContext) -> Html {
             let base_url = base_url.clone().unwrap_or(get_gateway());
             let request = FetchRequest {
                 method: Method::POST,
-                name: Cow::Owned(handler_name.clone()),
+                name: Cow::Borrowed(handler_name),
                 uri: uri.clone(),
                 body: Some(Body::Json(Value::default())),
             };
