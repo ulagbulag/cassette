@@ -1,6 +1,7 @@
 use cassette_core::{
     cassette::{CassetteContext, GenericCassetteTaskHandle},
     components::ComponentRenderer,
+    keycode::KEYCODE_ENTER,
     task::{TaskResult, TaskState},
 };
 use patternfly_yew::prelude::*;
@@ -46,6 +47,7 @@ impl ComponentRenderer<Spec> for State {
         let text = ctx
             .use_state(handler_name, force_init, || default.unwrap_or_default())
             .lazy();
+
         let onchange = {
             let text = text.clone();
             Callback::from(move |updated_text: String| {
@@ -57,7 +59,6 @@ impl ComponentRenderer<Spec> for State {
         let onkeydown = {
             let text = text.clone();
             Callback::from(move |e: KeyboardEvent| {
-                const KEYCODE_ENTER: u32 = 13;
                 if e.key_code() == KEYCODE_ENTER {
                     e.prevent_default();
                     text.trigger()

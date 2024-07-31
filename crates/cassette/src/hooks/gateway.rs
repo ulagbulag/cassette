@@ -1,5 +1,5 @@
 #[cfg(not(feature = "examples"))]
-use std::ops;
+use std::{borrow::Cow, ops};
 
 #[cfg(not(feature = "examples"))]
 use cassette_core::{
@@ -49,8 +49,8 @@ pub fn use_cassette(id: Uuid) -> UseStateHandle<CassetteState> {
         let state = CassetteStateHandle(state.clone());
         let request = FetchRequestWithoutBody {
             method: Method::GET,
-            name: "get",
-            url: format!("/c/{namespace}/{id}"),
+            name: Cow::Borrowed("get"),
+            uri: format!("/c/{namespace}/{id}"),
             body: None,
         };
         use_effect(move || request.try_fetch(&gateway_url, state))
@@ -71,8 +71,8 @@ pub fn use_cassette_list() -> UseStateHandle<FetchState<Vec<CassetteRef>>> {
     {
         use_fetch(move || FetchRequestWithoutBody {
             method: Method::GET,
-            name: "list",
-            url: format!("/c/{namespace}/"),
+            name: Cow::Borrowed("list"),
+            uri: format!("/c/{namespace}/"),
             body: None,
         })
     }

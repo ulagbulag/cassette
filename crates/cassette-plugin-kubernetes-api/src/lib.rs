@@ -128,6 +128,7 @@ impl UserClient {
                 name,
                 namespace,
                 role: UserRoleSpec::default(),
+                token: token.into(),
             },
         })
     }

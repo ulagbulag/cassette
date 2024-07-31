@@ -14,6 +14,7 @@ members = [
     "crates/cassette-plugin-cdl-dataset-stream-reader",
     "crates/cassette-plugin-cdl-zone",
     "crates/cassette-plugin-helm-api",
+    "crates/cassette-plugin-helm-core",
     "crates/cassette-plugin-jwt",
     "crates/cassette-plugin-kubernetes-api",
     "crates/cassette-plugin-kubernetes-core",
@@ -41,7 +42,7 @@ blocks_in_conditions = "allow" # opentelemetry tracing macro would be noisy
 
 [workspace.dependencies]
 ark-core = { git = "https://github.com/ulagbulag/OpenARK" }
-ark-core-k8s = { git = "https://github.com/ulagbulag/OpenARK" }
+ark-core-k8s = { git = "https://github.com/ulagbulag/OpenARK", default-features = false }
 dash-pipe-provider = { git = "https://github.com/ulagbulag/OpenARK", default-features = false }
 dash-api = { git = "https://github.com/ulagbulag/OpenARK", default-features = false }
 vine-api = { git = "https://github.com/ulagbulag/OpenARK", default-features = false }
@@ -86,6 +87,12 @@ patternfly-yew = { version = "0.6", default-features = false, features = [
     "yew-nested-router",
 ] }
 regex = { version = "1.10", default-features = false }
+reqwest = { version = "0.12", default-features = false, features = [
+    "charset",
+    "http2",
+    "json",
+    "macos-system-configuration",
+] }
 schemars = { version = "0.8", default-features = false, features = ["uuid1"] }
 serde = { version = "1.0", default-features = false }
 serde_json = { version = "1.0", default-features = false }

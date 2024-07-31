@@ -52,6 +52,8 @@ fn use_user_spec() -> UseStateHandle<FetchState<UserSpec>> {
 
     #[cfg(not(all(feature = "examples", not(feature = "mock-release"))))]
     {
+        use std::borrow::Cow;
+
         use cassette_core::net::{
             fetch::{FetchRequestWithoutBody, Method},
             gateway::use_fetch,
@@ -59,8 +61,8 @@ fn use_user_spec() -> UseStateHandle<FetchState<UserSpec>> {
 
         use_fetch(move || FetchRequestWithoutBody {
             method: Method::GET,
-            name: "user spec",
-            url: "/user/me",
+            name: Cow::Borrowed("user spec"),
+            uri: "/user/me",
             body: None,
         })
     }

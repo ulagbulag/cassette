@@ -15,6 +15,10 @@ pub struct UserSpec {
 
     /// User role
     pub role: UserRoleSpec,
+
+    /// User access token
+    #[serde(skip)]
+    pub token: String,
 }
 
 impl UserSpec {
@@ -35,6 +39,7 @@ impl UserSpec {
                     is_dev: _,
                     is_ops: _,
                 },
+            token,
             user: _,
             user_name,
         } = session;
@@ -44,6 +49,7 @@ impl UserSpec {
             name: user_name,
             namespace,
             role: UserRoleSpec { is_admin },
+            token: token.ok_or_else(|| ::anyhow::anyhow!("No user token"))?,
         };
 
         let client = kube.ok_or_else(|| ::anyhow::anyhow!("No kubernetes client"))?;

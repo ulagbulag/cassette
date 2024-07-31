@@ -1,3 +1,4 @@
+mod actor;
 mod file_upload;
 mod load;
 mod table;
@@ -27,6 +28,7 @@ impl TaskRenderer for RootCassetteTask<'_> {
         let ctx = CassetteContext::new(state, task);
 
         match kind.as_str() {
+            "Actor" => self::actor::State::render_with(ctx, spec),
             #[cfg(feature = "cdl-catalog")]
             "CdlCatalog" => ::cassette_plugin_cdl_catalog::State::render_with(ctx, spec),
             #[cfg(feature = "cdl-dataset-browser")]

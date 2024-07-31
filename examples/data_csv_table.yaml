@@ -26,4 +26,4 @@ spec:
     - name: show
       kind: Text
       spec:
-        msg: :/table/entries
+        msg: :/table

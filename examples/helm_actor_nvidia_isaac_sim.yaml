@@ -1,0 +1,26 @@
+---
+apiVersion: cassette.ulagbulag.io/v1alpha1
+kind: Cassette
+metadata:
+  name: helm-actor-nvidia-isaac-sim
+spec:
+  component: helm-actor-nvidia-isaac-sim
+  group: Kubernetes Helm
+  title: "Helm Chart : NVIDIA Isaac Sim"
+---
+apiVersion: cassette.ulagbulag.io/v1alpha1
+kind: CassetteComponent
+metadata:
+  name: helm-actor-nvidia-isaac-sim
+spec:
+  tasks:
+    - name: act
+      kind: Actor
+      spec:
+        create: true
+        uri: /helm
+        default:
+          chartName: nvidia-isaac-sim
+          repo: https://smartx-team.github.io/mobilex-api
+          name: omni01
+          namespace: name-twin

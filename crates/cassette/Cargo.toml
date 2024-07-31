@@ -21,7 +21,8 @@ workspace = true
 
 [features]
 default = ["full-local"]
-full = ["cdl", "kubernetes", "openai"]
+full = ["full-gateway", "full-local"]
+full-gateway = ["helm", "kubernetes"]
 full-local = ["cdl", "openai"]
 experimental = []
 
@@ -47,6 +48,9 @@ cdl-dataset-stream-reader = [
 ]
 cdl-zone = ["dep:cassette-plugin-cdl-zone", "cdl-core"]
 
+## Helm
+helm = ["dep:cassette-plugin-helm-core"]
+
 ## Kubernetes
 kubernetes = ["dep:cassette-plugin-kubernetes-core", "kubernetes-list"]
 kubernetes-list = ["dep:cassette-plugin-kubernetes-list"]
@@ -65,6 +69,7 @@ cassette-plugin-cdl-catalog = { path = "../cassette-plugin-cdl-catalog", optiona
 cassette-plugin-cdl-dataset-browser = { path = "../cassette-plugin-cdl-dataset-browser", optional = true }
 cassette-plugin-cdl-dataset-stream-reader = { path = "../cassette-plugin-cdl-dataset-stream-reader", optional = true }
 cassette-plugin-cdl-zone = { path = "../cassette-plugin-cdl-zone", optional = true }
+cassette-plugin-helm-core = { path = "../cassette-plugin-helm-core", optional = true }
 cassette-plugin-kubernetes-core = { path = "../cassette-plugin-kubernetes-core", optional = true }
 cassette-plugin-kubernetes-list = { path = "../cassette-plugin-kubernetes-list", optional = true }
 cassette-plugin-openai-chat = { path = "../cassette-plugin-openai-chat", optional = true }
@@ -79,6 +84,7 @@ inflector = { workspace = true }
 itertools = { workspace = true }
 patternfly-yew = { workspace = true }
 regex = { workspace = true }
+schemars = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 tracing = { workspace = true }

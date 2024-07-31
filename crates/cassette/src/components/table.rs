@@ -94,23 +94,19 @@ impl ComponentRenderer<Spec> for State {
             />
         };
 
-        if selected.is_empty() {
-            Ok(TaskState::Break { body, state: None })
-        } else {
-            Ok(TaskState::Continue {
-                body,
-                state: Some(Self {
-                    table: Some(Rc::new(DataTable {
-                        name,
-                        data: Rc::new(DataTableSource::Csv(CsvTable {
-                            headers: columns,
-                            records: Rc::new(selected),
-                        })),
-                        log,
+        Ok(TaskState::Continue {
+            body,
+            state: Some(Self {
+                table: Some(Rc::new(DataTable {
+                    name,
+                    data: Rc::new(DataTableSource::Csv(CsvTable {
+                        headers: columns,
+                        records: Rc::new(selected),
                     })),
-                }),
-            })
-        }
+                    log,
+                })),
+            }),
+        })
     }
 }
 
@@ -167,11 +163,11 @@ fn inner(props: &Props) -> Html {
             let o = match page {
                 Navigation::First => 0,
                 Navigation::Last => ((total_entries - 1) / limit) * limit,
-                Navigation::Previous => **offset - limit,
+                Navigation::Previous => **offset - (*limit).min(**offset),
                 Navigation::Next => **offset + limit,
                 Navigation::Page(n) => n * limit,
             };
-            offset.set(o);
+            offset.set(o.min(total_entries - 1));
         },
     );
 

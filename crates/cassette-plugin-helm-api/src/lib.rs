@@ -1,6 +1,12 @@
+mod client;
+
 use std::rc::Rc;
 
-use actix_web::{get, web::Data, HttpRequest, HttpResponse, Responder, Scope};
+use actix_web::{
+    get, post, put,
+    web::{Data, Json, Path},
+    HttpRequest, HttpResponse, Responder, Scope,
+};
 use anyhow::Result;
 use cassette_core::{
     data::{
@@ -9,15 +15,42 @@ use cassette_core::{
     },
     result::HttpResult,
 };
+use cassette_plugin_helm_core::{HelmDelete, HelmPost, HelmPut};
 use cassette_plugin_kubernetes_api::UserClient;
 use cassette_plugin_kubernetes_core::user::{UserRoleSpec, UserSpec};
 use itertools::Itertools;
 use k8s_openapi::api::core::v1::Secret;
 use kube::{api::ListParams, Api, Client, ResourceExt};
 use serde_json::Value;
+use uuid::Uuid;
 
 pub fn build_services(scope: Scope) -> Scope {
-    scope.service(list)
+    scope
+        .service(actor)
+        .service(delete)
+        .service(list)
+        .service(post)
+        .service(put)
+}
+
+#[get("/helm/_actor")]
+async fn actor() -> impl Responder {
+    HttpResponse::from(HttpResult::Ok(::cassette_plugin_helm_core::actor()))
+}
+
+#[post("/helm/{id}/delete")]
+async fn delete(
+    client: Data<Client>,
+    request: HttpRequest,
+    id: Path<Uuid>,
+    data: Json<HelmDelete>,
+) -> impl Responder {
+    match UserClient::from_request(client, &request).await {
+        Ok(client) => HttpResponse::from(HttpResult::from(
+            self::client::delete(client, id.into_inner(), data.0).await,
+        )),
+        Err(error) => HttpResponse::Unauthorized().json(HttpResult::<()>::Err(error.to_string())),
+    }
 }
 
 #[get("/helm")]
@@ -48,10 +81,6 @@ async fn list(client: Data<Client>, request: HttpRequest) -> impl Responder {
 
         // Create a data table
 
-        const LABEL_NAME: &str = "name";
-        const LABEL_STATE: &str = "status";
-        const LABEL_VERSION: &str = "version";
-
         let name = format!("helm-{name}");
         let headers = vec![
             "namespace".into(),
@@ -65,7 +94,7 @@ async fn list(client: Data<Client>, request: HttpRequest) -> impl Responder {
             .into_iter()
             .filter(|item| {
                 item.labels()
-                    .get(LABEL_STATE)
+                    .get(self::labels::LABEL_STATE)
                     .map(|state| state != "superseded")
                     .unwrap_or_default()
             })
@@ -74,9 +103,9 @@ async fn list(client: Data<Client>, request: HttpRequest) -> impl Responder {
 
                 Some(vec![
                     Value::String(item.namespace()?),
-                    get_label(LABEL_NAME)?,
-                    get_label(LABEL_VERSION)?,
-                    get_label(LABEL_STATE)?,
+                    get_label(self::labels::LABEL_NAME)?,
+                    get_label(self::labels::LABEL_VERSION)?,
+                    get_label(self::labels::LABEL_STATE)?,
                     Value::String(item.creation_timestamp()?.0.to_rfc3339()),
                 ])
             })
@@ -100,4 +129,35 @@ async fn list(client: Data<Client>, request: HttpRequest) -> impl Responder {
         Ok(client) => HttpResponse::from(HttpResult::from(try_handle(client).await)),
         Err(error) => HttpResponse::Unauthorized().json(HttpResult::<()>::Err(error.to_string())),
     }
+}
+
+#[post("/helm/{id}")]
+async fn post(
+    client: Data<Client>,
+    request: HttpRequest,
+    id: Path<Uuid>,
+    data: Json<HelmPost>,
+) -> impl Responder {
+    match UserClient::from_request(client, &request).await {
+        Ok(client) => HttpResponse::from(HttpResult::from(
+            self::client::upgrade(client, id.into_inner(), data.0).await,
+        )),
+        Err(error) => HttpResponse::Unauthorized().json(HttpResult::<()>::Err(error.to_string())),
+    }
+}
+
+#[put("/helm")]
+async fn put(client: Data<Client>, request: HttpRequest, data: Json<HelmPut>) -> impl Responder {
+    match UserClient::from_request(client, &request).await {
+        Ok(client) => HttpResponse::from(HttpResult::from(
+            self::client::install(client, data.0).await,
+        )),
+        Err(error) => HttpResponse::Unauthorized().json(HttpResult::<()>::Err(error.to_string())),
+    }
+}
+
+mod labels {
+    pub const LABEL_NAME: &str = "name";
+    pub const LABEL_STATE: &str = "status";
+    pub const LABEL_VERSION: &str = "version";
 }

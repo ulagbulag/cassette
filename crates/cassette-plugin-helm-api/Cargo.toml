@@ -3,7 +3,7 @@ name = "cassette-plugin-helm-api"
 
 authors = { workspace = true }
 description = { workspace = true }
-documentation = "https://docs.rs/cassette-plugin-kubernetes-api"
+documentation = "https://docs.rs/cassette-plugin-helm-api"
 edition = { workspace = true }
 include = { workspace = true }
 keywords = { workspace = true }
@@ -25,6 +25,7 @@ vine = ["cassette-plugin-kubernetes-api/vine"]
 
 [dependencies]
 cassette-core = { path = "../cassette-core", features = ["api"] }
+cassette-plugin-helm-core = { path = "../cassette-plugin-helm-core" }
 cassette-plugin-kubernetes-api = { path = "../cassette-plugin-kubernetes-api" }
 cassette-plugin-kubernetes-core = { path = "../cassette-plugin-kubernetes-core" }
 
@@ -33,5 +34,10 @@ anyhow = { workspace = true }
 itertools = { workspace = true }
 k8s-openapi = { workspace = true }
 kube = { workspace = true }
+reqwest = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
+serde_yml = { workspace = true }
+tokio = { workspace = true, features = ["process"] }
 tracing = { workspace = true }
+uuid = { workspace = true }

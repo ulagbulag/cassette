@@ -31,11 +31,13 @@ openssl-tls = [
     "actix-web/openssl",
     "cassette-plugin-cdl-api/openssl-tls",
     "kube/openssl-tls",
+    "reqwest?/native-tls",
 ]
 rustls-tls = [
     "actix-web/rustls",
     "cassette-plugin-cdl-api/rustls-tls",
     "kube/rustls-tls",
+    "reqwest?/rustls-tls",
 ]
 
 # OpenARK
@@ -52,7 +54,7 @@ vine = [
 cdl = ["cassette-core/cdl", "dep:cassette-plugin-cdl-api"]
 
 ## Helm
-helm = ["dep:cassette-plugin-helm-api"]
+helm = ["dep:cassette-plugin-helm-api", "dep:reqwest"]
 
 ## Kubernetes
 kubernetes = ["dep:cassette-plugin-kubernetes-api"]
@@ -73,6 +75,7 @@ clap = { workspace = true }
 futures = { workspace = true }
 kube = { workspace = true, features = ["client", "runtime", "ws"] }
 mime = { workspace = true }
+reqwest = { workspace = true, optional = true }
 serde = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
 tracing = { workspace = true }

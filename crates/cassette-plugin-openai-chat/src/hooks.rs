@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use anyhow::{anyhow, bail, Result};
 use cassette_core::{
     cassette::{CassetteContext, CassetteTaskHandle, GenericCassetteTaskHandle},
@@ -25,8 +27,8 @@ pub fn use_fetch(
         let stream = request.options.stream;
         let request = FetchRequest {
             method: Method::POST,
-            name: handler_name,
-            url: "/chat/completions",
+            name: Cow::Borrowed(handler_name),
+            uri: "/chat/completions",
             body: Some(Body::Json(request.clone())),
         };
 

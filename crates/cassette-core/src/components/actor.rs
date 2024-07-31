@@ -11,6 +11,9 @@ pub struct Props {
     pub values: Rc<DataTable>,
 
     #[prop_or_default]
+    pub create: Option<bool>,
+
+    #[prop_or_default]
     pub delete: Option<bool>,
 
     #[prop_or_default]

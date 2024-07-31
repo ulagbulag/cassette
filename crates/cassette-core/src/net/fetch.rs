@@ -1,4 +1,4 @@
-use std::{fmt, future::Future, marker::PhantomData, mem, ops, rc::Rc};
+use std::{borrow::Cow, fmt, future::Future, marker::PhantomData, mem, ops, rc::Rc};
 
 #[cfg(feature = "stream")]
 use anyhow::Result;
@@ -13,12 +13,12 @@ use yew::platform::spawn_local;
 
 use crate::cassette::GenericCassetteTaskHandle;
 
-pub type FetchRequestWithoutBody<Url> = FetchRequest<Url, ()>;
+pub type FetchRequestWithoutBody<Uri> = FetchRequest<Uri, ()>;
 
-pub struct FetchRequest<Url, Req> {
+pub struct FetchRequest<Uri, Req> {
     pub method: Method,
-    pub name: &'static str,
-    pub url: Url,
+    pub name: Cow<'static, str>,
+    pub uri: Uri,
     pub body: Option<Body<Req>>,
 }
 
@@ -26,7 +26,7 @@ pub enum Body<T> {
     Json(T),
 }
 
-impl<Url, Req> FetchRequest<Url, Req> {
+impl<Uri, Req> FetchRequest<Uri, Req> {
     pub fn try_fetch<State, Res>(self, base_url: &str, state: State)
     where
         State: 'static + GenericCassetteTaskHandle<FetchState<Res>>,
@@ -34,13 +34,29 @@ impl<Url, Req> FetchRequest<Url, Req> {
             ops::Deref<Target = FetchState<Res>>,
         Req: 'static + Serialize,
         Res: 'static + DeserializeOwned,
-        Url: fmt::Display,
+        Uri: fmt::Display,
     {
         let handler = |result| match result {
             crate::result::HttpResult::Ok(data) => FetchState::Completed(data),
             crate::result::HttpResult::Err(error) => FetchState::Error(error),
         };
-        self.try_fetch_with(base_url, state, handler)
+        self.try_fetch_with(base_url, state, handler, false)
+    }
+
+    pub fn try_fetch_force<State, Res>(self, base_url: &str, state: State)
+    where
+        State: 'static + GenericCassetteTaskHandle<FetchState<Res>>,
+        for<'a> <State as GenericCassetteTaskHandle<FetchState<Res>>>::Ref<'a>:
+            ops::Deref<Target = FetchState<Res>>,
+        Req: 'static + Serialize,
+        Res: 'static + DeserializeOwned,
+        Uri: fmt::Display,
+    {
+        let handler = |result| match result {
+            crate::result::HttpResult::Ok(data) => FetchState::Completed(data),
+            crate::result::HttpResult::Err(error) => FetchState::Error(error),
+        };
+        self.try_fetch_with(base_url, state, handler, true)
     }
 
     pub fn try_fetch_unchecked<State, Res>(self, base_url: &str, state: State)
@@ -50,33 +66,51 @@ impl<Url, Req> FetchRequest<Url, Req> {
             ops::Deref<Target = FetchState<Res>>,
         Req: 'static + Serialize,
         Res: 'static + DeserializeOwned,
-        Url: fmt::Display,
+        Uri: fmt::Display,
     {
         let handler = FetchState::Completed;
-        self.try_fetch_with(base_url, state, handler)
+        self.try_fetch_with(base_url, state, handler, false)
     }
 
-    fn try_fetch_with<State, Res, ResRaw, F>(self, base_url: &str, state: State, handler: F)
+    pub fn try_fetch_unchecked_force<State, Res>(self, base_url: &str, state: State)
     where
         State: 'static + GenericCassetteTaskHandle<FetchState<Res>>,
         for<'a> <State as GenericCassetteTaskHandle<FetchState<Res>>>::Ref<'a>:
             ops::Deref<Target = FetchState<Res>>,
         Req: 'static + Serialize,
         Res: 'static + DeserializeOwned,
+        Uri: fmt::Display,
+    {
+        let handler = FetchState::Completed;
+        self.try_fetch_with(base_url, state, handler, true)
+    }
+
+    fn try_fetch_with<State, Res, ResRaw, F>(
+        self,
+        base_url: &str,
+        state: State,
+        handler: F,
+        force: bool,
+    ) where
+        State: 'static + GenericCassetteTaskHandle<FetchState<Res>>,
+        for<'a> <State as GenericCassetteTaskHandle<FetchState<Res>>>::Ref<'a>:
+            ops::Deref<Target = FetchState<Res>>,
+        Req: 'static + Serialize,
+        Res: 'static + DeserializeOwned,
         ResRaw: 'static + DeserializeOwned,
-        Url: fmt::Display,
+        Uri: fmt::Display,
         F: 'static + FnOnce(ResRaw) -> FetchState<Res>,
     {
-        if matches!(*state.get(), FetchState::Pending) {
+        if force || matches!(*state.get(), FetchState::Pending) {
             state.set(FetchState::Fetching);
 
             let Self {
                 method,
                 name,
-                url: suffix_url,
+                uri,
                 body,
             } = self;
-            let url = format!("{base_url}{suffix_url}");
+            let url = format!("{base_url}{uri}");
 
             let state = state.clone();
             spawn_local(async move {
@@ -92,10 +126,19 @@ impl<Url, Req> FetchRequest<Url, Req> {
 
                 let value = match builder {
                     Ok(builder) => match builder.send().await {
-                        Ok(response) => match response.json().await {
-                            Ok(data) => handler(data),
+                        Ok(response) => match response.text().await {
+                            Ok(text) => match ::serde_json::from_str(&text) {
+                                Ok(data) => handler(data),
+                                Err(_) => {
+                                    if text.is_empty() {
+                                        FetchState::Error("No Response".into())
+                                    } else {
+                                        FetchState::Error(text)
+                                    }
+                                }
+                            },
                             Err(error) => {
-                                FetchState::Error(format!("Failed to parse the {name}: {error}"))
+                                FetchState::Error(format!("Failed to read the {name}: {error}"))
                             }
                         },
                         Err(error) => {
@@ -104,7 +147,7 @@ impl<Url, Req> FetchRequest<Url, Req> {
                     },
                     Err(state) => state,
                 };
-                if matches!(*state.get(), FetchState::Pending | FetchState::Fetching) {
+                if force || matches!(*state.get(), FetchState::Pending | FetchState::Fetching) {
                     state.set(value);
                 }
             })
@@ -112,7 +155,7 @@ impl<Url, Req> FetchRequest<Url, Req> {
     }
 }
 
-impl<Url, Req> FetchRequest<Url, Req> {
+impl<Uri, Req> FetchRequest<Uri, Req> {
     pub fn try_stream_with<'reader, State, Res, F, Fut>(
         self,
         base_url: &str,
@@ -124,7 +167,7 @@ impl<Url, Req> FetchRequest<Url, Req> {
             ops::Deref<Target = FetchState<Res>>,
         Req: 'static + Serialize,
         Res: 'static + DeserializeOwned,
-        Url: fmt::Display,
+        Uri: fmt::Display,
         F: 'static + FnMut(StreamContext<'reader, State, Req, Res>) -> Fut,
         Fut: Future<Output = Result<StreamState<Req, Res>>>,
     {
@@ -134,10 +177,10 @@ impl<Url, Req> FetchRequest<Url, Req> {
             let Self {
                 method,
                 name,
-                url: suffix_url,
+                uri,
                 mut body,
             } = self;
-            let url = format!("{base_url}{suffix_url}");
+            let url = format!("{base_url}{uri}");
 
             let mut last_data = None;
             let state = state.clone();

@@ -6,13 +6,13 @@ use yew::prelude::*;
 use super::fetch::{FetchRequest, FetchState};
 
 #[hook]
-pub fn use_fetch<Req, Res, Url>(
-    request: impl 'static + FnOnce() -> FetchRequest<Url, Req>,
+pub fn use_fetch<Req, Res, Uri>(
+    request: impl 'static + FnOnce() -> FetchRequest<Uri, Req>,
 ) -> UseStateHandle<FetchState<Res>>
 where
     Req: 'static + Serialize,
     Res: 'static + DeserializeOwned,
-    Url: 'static + fmt::Display,
+    Uri: 'static + fmt::Display,
 {
     let state = use_state(|| FetchState::<Res>::Pending);
     {
@@ -24,13 +24,13 @@ where
 }
 
 #[hook]
-fn use_fetch_unchecked<Req, Res, Url>(
-    request: impl 'static + FnOnce() -> FetchRequest<Url, Req>,
+fn use_fetch_unchecked<Req, Res, Uri>(
+    request: impl 'static + FnOnce() -> FetchRequest<Uri, Req>,
 ) -> UseStateHandle<FetchState<Res>>
 where
     Req: 'static + Serialize,
     Res: 'static + DeserializeOwned,
-    Url: 'static + fmt::Display,
+    Uri: 'static + fmt::Display,
 {
     let state = use_state(|| FetchState::<Res>::Pending);
     {
@@ -92,10 +92,12 @@ pub fn use_gateway_status() -> String {
 
     #[cfg(not(feature = "examples"))]
     {
+        use std::borrow::Cow;
+
         let state = use_fetch_unchecked::<(), String, _>(move || super::fetch::FetchRequest {
             method: super::fetch::Method::GET,
-            name: "gateway health",
-            url: "/_health",
+            name: Cow::Borrowed("gateway health"),
+            uri: "/_health",
             body: None,
         });
         state.to_string()

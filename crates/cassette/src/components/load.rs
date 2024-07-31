@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::rc::Rc;
 
 use cassette_core::cassette::{CassetteTaskHandle, GenericCassetteTaskHandle};
@@ -19,7 +20,7 @@ use yew::prelude::*;
 pub struct Spec {
     #[serde(default)]
     base_url: Option<String>,
-    url: String,
+    uri: String,
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
@@ -31,11 +32,11 @@ pub struct State {
 
 impl ComponentRenderer<Spec> for State {
     fn render(self, ctx: &mut CassetteContext, spec: Spec) -> TaskResult<Option<Self>> {
-        let Spec { base_url, url } = spec;
+        let Spec { base_url, uri } = spec;
 
         let force_init = false;
 
-        match use_fetch(ctx, base_url, url, force_init).get() {
+        match use_fetch(ctx, base_url, uri, force_init).get() {
             FetchState::Pending | FetchState::Fetching => Ok(TaskState::Break {
                 body: html! { <Loading /> },
                 state: Some(Self { data: None }),
@@ -43,7 +44,7 @@ impl ComponentRenderer<Spec> for State {
             FetchState::Collecting(content) | FetchState::Completed(content) => {
                 Ok(TaskState::Skip {
                     state: Some(Self {
-                        data: Some((**content).clone()),
+                        data: Some((*content).clone()),
                     }),
                 })
             }
@@ -58,9 +59,9 @@ impl ComponentRenderer<Spec> for State {
 fn use_fetch(
     ctx: &mut CassetteContext,
     base_url: Option<String>,
-    url: String,
+    uri: String,
     force: bool,
-) -> CassetteTaskHandle<FetchState<Rc<DataTable>>> {
+) -> CassetteTaskHandle<FetchState<DataTable>> {
     let handler_name = "fetch";
     let state = ctx.use_state(handler_name, force, || FetchState::Pending);
     {
@@ -68,8 +69,8 @@ fn use_fetch(
         let base_url = base_url.unwrap_or(get_gateway());
         let request = FetchRequestWithoutBody {
             method: Method::GET,
-            name: handler_name,
-            url,
+            name: Cow::Borrowed(handler_name),
+            uri,
             body: None,
         };
 
