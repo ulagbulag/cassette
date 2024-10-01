@@ -34,9 +34,11 @@ test: clippy
 
 init:
   @# Node
+  @which npm >/dev/null 2>/dev/null || ( echo >&2 'Error: node.js is not installed' && exit 1 )
   @test -d node_modules || npm clean-install
 
   @# Rust
+  @which rustup >/dev/null 2>/dev/null || ( echo >&2 'Error: rustup is not installed' && exit 1 )
   @rustup target list | grep wasm32-unknown-unknown | grep -q '(installed)' || rustup target add wasm32-unknown-unknown
 
   @# Rust Deny
