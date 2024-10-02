@@ -51,6 +51,7 @@ impl TaskRenderer for RootCassetteTask<'_> {
             "Text" => self::text::State::render_with(ctx, spec),
             "TextInput" => self::text_input::State::render_with(ctx, spec),
             "Variable" => self::variable::render(ctx, spec),
+            "WebcamAudio" => ::cassette_plugin_webcam_audio::State::render_with(ctx, spec),
             _ => Err(format!("Unknown type: {name:?} as {kind}")),
         }
     }

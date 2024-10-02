@@ -1,0 +1,25 @@
+---
+apiVersion: cassette.ulagbulag.io/v1alpha1
+kind: Cassette
+metadata:
+  name: record-audio
+spec:
+  component: record-audio
+  group: Webcam
+---
+apiVersion: cassette.ulagbulag.io/v1alpha1
+kind: CassetteComponent
+metadata:
+  name: record-audio
+spec:
+  tasks:
+    - name: help
+      kind: Text
+      spec:
+        msg: Hello world!
+
+    - name: audio
+      kind: WebcamAudio
+      spec:
+        duration: 3000 # 3 seconds
+        url: http://localhost:9090/

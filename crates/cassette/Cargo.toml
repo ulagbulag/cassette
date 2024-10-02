@@ -23,7 +23,7 @@ workspace = true
 default = ["full-local"]
 full = ["full-gateway", "full-local"]
 full-gateway = ["helm", "kubernetes"]
-full-local = ["cdl", "openai"]
+full-local = ["cdl", "openai", "webcam"]
 experimental = []
 
 # for demo ONLY
@@ -59,6 +59,10 @@ kubernetes-list = ["dep:cassette-plugin-kubernetes-list"]
 openai = ["openai-chat"]
 openai-chat = ["dep:cassette-plugin-openai-chat"]
 
+## Webcam
+webcam = ["webcam-audio"]
+webcam-audio = ["dep:cassette-plugin-webcam-audio"]
+
 [build-dependencies]
 built = { workspace = true }
 
@@ -73,6 +77,7 @@ cassette-plugin-helm-core = { path = "../cassette-plugin-helm-core", optional = 
 cassette-plugin-kubernetes-core = { path = "../cassette-plugin-kubernetes-core", optional = true }
 cassette-plugin-kubernetes-list = { path = "../cassette-plugin-kubernetes-list", optional = true }
 cassette-plugin-openai-chat = { path = "../cassette-plugin-openai-chat", optional = true }
+cassette-plugin-webcam-audio = { path = "../cassette-plugin-webcam-audio", optional = true }
 
 browser-panic-hook = { workspace = true }
 byte-unit = { workspace = true }

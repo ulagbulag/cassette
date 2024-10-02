@@ -1,0 +1,57 @@
+[package]
+name = "cassette-plugin-webcam-core"
+
+authors = { workspace = true }
+description = { workspace = true }
+documentation = "https://docs.rs/cassette-plugin-webcam-core"
+edition = { workspace = true }
+include = { workspace = true }
+keywords = { workspace = true }
+license = { workspace = true }
+readme = { workspace = true }
+rust-version = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+version = { workspace = true }
+
+[lints]
+workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+default = []
+ui = [
+    "cassette-core/ui",
+    "dep:anyhow",
+    "dep:js-sys",
+    "dep:wasm-bindgen",
+    "dep:web-sys",
+    "dep:yew",
+]
+
+[dependencies]
+cassette-core = { path = "../cassette-core" }
+
+anyhow = { workspace = true, optional = true }
+js-sys = { workspace = true, optional = true }
+serde = { workspace = true }
+wasm-bindgen = { workspace = true, optional = true }
+web-sys = { workspace = true, optional = true, features = [
+    "MediaStream",
+    "MediaRecorder",
+    "MediaDevices",
+    "MediaStreamConstraints",
+    "MediaTrackConstraints",
+    "HtmlElement",
+    "Window",
+    "console",
+    "Url",
+    "Blob",
+    "BlobEvent",
+    "EventTarget",
+    "HtmlAnchorElement",
+    "Document",
+    "Navigator",
+] }
+yew = { workspace = true, optional = true }

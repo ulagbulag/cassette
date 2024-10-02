@@ -44,6 +44,9 @@ init:
   @# Rust Deny
   @which cargo-deny >/dev/null || cargo install cargo-deny
 
+  @# Rust Mobile
+  @which cargo-mobile >/dev/null || cargo install cargo-mobile2
+
   @# Rust Trunk
   @which trunk >/dev/null || cargo install trunk
   @which wasm-bindgen >/dev/null || cargo install wasm-bindgen-cli
@@ -61,7 +64,7 @@ build *ARGS: ( _trunk "build" ARGS )
 
 run *ARGS: ( _trunk "serve" ARGS )
 
-run-examples *ARGS: ( _trunk "serve" "--features" "examples,full,mock-release" ARGS )
+run-examples *ARGS: ( _trunk "serve" "--features" "examples,full" ARGS )
 
 run-gateway *ARGS:
   cargo watch -s 'clear && cargo run --package cassette-gateway -- {{ ARGS }}'

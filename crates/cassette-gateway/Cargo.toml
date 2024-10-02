@@ -21,7 +21,7 @@ workspace = true
 
 [features]
 default = ["default-tls", "full", "openark"]
-full = ["cdl", "helm", "kubernetes"]
+full = ["helm", "kubernetes"]
 experimental = []
 openark = ["vine"]
 
@@ -29,13 +29,13 @@ openark = ["vine"]
 default-tls = ["rustls-tls"]
 openssl-tls = [
     "actix-web/openssl",
-    "cassette-plugin-cdl-api/openssl-tls",
+    "cassette-plugin-cdl-api?/openssl-tls",
     "kube/openssl-tls",
     "reqwest?/native-tls",
 ]
 rustls-tls = [
     "actix-web/rustls",
-    "cassette-plugin-cdl-api/rustls-tls",
+    "cassette-plugin-cdl-api?/rustls-tls",
     "kube/rustls-tls",
     "reqwest?/rustls-tls",
 ]

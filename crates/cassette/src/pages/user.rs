@@ -32,10 +32,8 @@ fn use_user_spec() -> UseStateHandle<FetchState<UserSpec>> {
     {
         use std::rc::Rc;
 
-        use cassette_plugin_kubernetes_core::{
-            net::DEFAULT_NAMESPACE,
-            user::{UserMetadata, UserRoleSpec},
-        };
+        use cassette_core::net::DEFAULT_NAMESPACE;
+        use cassette_plugin_kubernetes_core::user::{UserMetadata, UserRoleSpec};
 
         use_state_eq(|| {
             FetchState::Completed(Rc::new(UserSpec {
@@ -44,8 +42,9 @@ fn use_user_spec() -> UseStateHandle<FetchState<UserSpec>> {
                     preferred_username: "guest".into(),
                 },
                 name: "guest".into(),
-                namespace: DEFAULT_NAMESPACE,
+                namespace: DEFAULT_NAMESPACE.into(),
                 role: UserRoleSpec { is_admin: true },
+                token: Default::default(),
             }))
         })
     }
