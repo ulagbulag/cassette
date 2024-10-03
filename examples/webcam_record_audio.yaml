@@ -21,5 +21,5 @@ spec:
     - name: audio
       kind: WebcamAudio
       spec:
-        duration: 3000 # 3 seconds
-        url: http://localhost:9090/
+        duration: 60000 # 60 seconds
+        url: ws://localhost:9090

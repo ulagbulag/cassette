@@ -38,6 +38,6 @@ impl Default for Handler {
 
 impl Handler {
     const fn default_interval() -> u32 {
-        1000 // 1 second
+        20 // 20 ms
     }
 }

@@ -38,20 +38,20 @@ js-sys = { workspace = true, optional = true }
 serde = { workspace = true }
 wasm-bindgen = { workspace = true, optional = true }
 web-sys = { workspace = true, optional = true, features = [
-    "MediaStream",
-    "MediaRecorder",
-    "MediaDevices",
-    "MediaStreamConstraints",
-    "MediaTrackConstraints",
-    "HtmlElement",
-    "Window",
-    "console",
-    "Url",
     "Blob",
     "BlobEvent",
+    "console",
+    "Event",
     "EventTarget",
-    "HtmlAnchorElement",
-    "Document",
+    "HtmlElement",
+    "MediaDevices",
+    "MediaRecorder",
+    "MediaRecorderOptions",
+    "MediaStream",
+    "MediaStreamConstraints",
+    "MediaTrackConstraints",
     "Navigator",
+    "WebSocket",
+    "Window",
 ] }
 yew = { workspace = true, optional = true }

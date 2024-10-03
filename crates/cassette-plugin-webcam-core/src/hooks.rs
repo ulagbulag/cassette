@@ -1,14 +1,11 @@
-use std::{
-    rc::Rc,
-    sync::atomic::{AtomicU64, Ordering},
-};
+use std::rc::Rc;
 
 use anyhow::{anyhow, Result};
 use cassette_core::cassette::{CassetteContext, CassetteTaskHandle};
 use wasm_bindgen::{prelude::Closure, JsCast, JsValue};
 use web_sys::{
-    window, Blob, BlobEvent, Document, HtmlAnchorElement, MediaDevices, MediaRecorder, MediaStream,
-    MediaStreamConstraints, Navigator, Url, Window,
+    window, Blob, BlobEvent, ErrorEvent, Event, MediaDevices, MediaRecorder, MediaRecorderOptions,
+    MediaStream, MediaStreamConstraints, WebSocket, Window,
 };
 
 use crate::recorder::WebcamRecorder;
@@ -33,7 +30,7 @@ fn build_webcam(
 
     // Load a global window object
     let window = window().ok_or_else(|| anyhow!("Global window object not found"))?;
-    let navigator: Navigator = window.navigator();
+    let navigator = window.navigator();
 
     // Load media devices
     let media_devices: MediaDevices = navigator
@@ -88,100 +85,130 @@ fn handle_stream(media_stream: JsValue, window: &Window, handler: &crate::Handle
         url,
     } = handler;
 
-    let stream: MediaStream = media_stream.unchecked_into();
-
-    // Configure MediaRecorder
-    let recorder =
-        MediaRecorder::new_with_media_stream(&stream).expect("MediaRecorder creation failed");
+    // Configure WebSocket connection
+    let ws = WebSocket::new(url).expect("Failed to create WebSocket");
 
     // Configure Session
-    let session = Rc::new(Session::new(url.clone()));
+    let session = Rc::new(Session::new(ws));
+
+    // Configure MediaRecorder
+    let stream: MediaStream = media_stream.unchecked_into();
+    let options = MediaRecorderOptions::new();
+    options.set_mime_type("audio/webm;codecs=opus");
+
+    let recorder =
+        MediaRecorder::new_with_media_stream_and_media_recorder_options(&stream, &options)
+            .expect("MediaRecorder creation failed");
 
     // Configure the event handler: `ondataavailable`
     {
         let session = session.clone();
         let ondataavailable = Closure::wrap(Box::new(move |event: BlobEvent| {
             let blob = event.data().expect("No data available");
-            session.commit(blob)
+            session.commit(&blob)
         }) as Box<dyn FnMut(_)>);
 
         recorder.set_ondataavailable(Some(ondataavailable.as_ref().unchecked_ref()));
-        ondataavailable.forget();
-    }
-
-    // Start recording!
-    {
-        let time_slice = (*interval).try_into().expect("Too large interval");
-        recorder
-            .start_with_time_slice(time_slice)
-            .expect("Failed to start recorder")
-    };
-
-    // Set the timeout to break
-    if let Some(timeout) = *duration {
-        let recorder = recorder.clone();
-        let stop_recorder =
-            Closure::wrap(
-                Box::new(move || recorder.stop().expect("Failed to stop recorder"))
-                    as Box<dyn Fn()>,
-            );
-
-        window
-            .set_timeout_with_callback_and_timeout_and_arguments_0(
-                stop_recorder.as_ref().unchecked_ref(),
-                timeout.try_into().expect("Too large interval"),
-            )
-            .expect("Failed to set timeout");
-        stop_recorder.forget();
+        ondataavailable.forget()
     }
 
     // Configure the event handler: `onstop`
     {
+        let session = session.clone();
         let onstop = Closure::wrap(Box::new(move || session.finalize()) as Box<dyn Fn()>);
 
         recorder.set_onstop(Some(onstop.as_ref().unchecked_ref()));
-        onstop.forget();
+        onstop.forget()
+    }
+
+    // Configure the main loop
+    let start_recording = {
+        let duration = *duration;
+        let time_slice = (*interval).try_into().expect("Too large interval");
+        let window = window.clone();
+        move || {
+            // Start recording!
+            recorder
+                .start_with_time_slice(time_slice)
+                .expect("Failed to start recorder");
+
+            // Set the timeout to break
+            if let Some(timeout) = duration {
+                let recorder = recorder.clone();
+                let stop_recorder = Closure::wrap(Box::new(move || {
+                    recorder.stop().expect("Failed to stop recorder")
+                }) as Box<dyn Fn()>);
+
+                window
+                    .set_timeout_with_callback_and_timeout_and_arguments_0(
+                        stop_recorder.as_ref().unchecked_ref(),
+                        timeout.try_into().expect("Too large interval"),
+                    )
+                    .expect("Failed to set timeout");
+                stop_recorder.forget()
+            }
+        }
+    };
+
+    // Configure the event handler: `onopen`
+    {
+        let onopen = Closure::wrap(Box::new(move |_: Event| {
+            ::web_sys::console::log_1(&"WebSocket connection opened".into());
+            start_recording()
+        }) as Box<dyn FnMut(_)>);
+
+        session.ws.set_onopen(Some(onopen.as_ref().unchecked_ref()));
+        onopen.forget()
+    }
+
+    // Configure the event handler: `onerror`
+    {
+        let onerror = Closure::wrap(Box::new(move |e: ErrorEvent| {
+            ::web_sys::console::error_1(&format!("WebSocket error: {e:?}").into());
+        }) as Box<dyn FnMut(_)>);
+
+        session
+            .ws
+            .set_onerror(Some(onerror.as_ref().unchecked_ref()));
+        onerror.forget()
+    }
+
+    // Configure the event handler: `onclose`
+    {
+        let onclose = Closure::wrap(Box::new(move |_: Event| {
+            ::web_sys::console::log_1(&"WebSocket connection closed".into());
+        }) as Box<dyn FnMut(_)>);
+
+        session
+            .ws
+            .set_onclose(Some(onclose.as_ref().unchecked_ref()));
+        onclose.forget()
     }
 }
 
 struct Session {
-    index: AtomicU64,
-    url: String,
+    ws: WebSocket,
 }
 
 impl Session {
-    fn new(url: String) -> Self {
-        Self {
-            index: AtomicU64::default(),
-            url,
+    fn new(ws: WebSocket) -> Self {
+        Self { ws }
+    }
+
+    fn commit(&self, blob: &Blob) {
+        let Self { ws } = self;
+
+        // Start sending Blob
+        if ws.ready_state() == WebSocket::OPEN {
+            ws.send_with_blob(&blob)
+                .expect("Failed to send data via WebSocket")
         }
     }
 
-    fn commit(&self, blob: Blob) {
-        let Self { index, url } = self;
+    fn finalize(&self) {
+        let Self { ws } = self;
 
-        // Generate an index
-        let index = index.fetch_add(1, Ordering::SeqCst);
-
-        // Create a download link using Blob
-        let url = Url::create_object_url_with_blob(&blob).expect("Failed to create object URL");
-        let window = window().expect("Global window object not found");
-        let document: Document = window.document().expect("No document on window");
-        let a: HtmlAnchorElement = document
-            .create_element("a")
-            .expect("Failed to create anchor element")
-            .unchecked_into();
-
-        // Force to download the recorded data
-        a.set_href(&url);
-        a.set_download("audio.webm");
-        a.click();
-
-        // Release the URL after use
-        Url::revoke_object_url(&url).expect("Failed to revoke object URL");
-
-        // todo!()
+        // Close websocket
+        ws.close().expect("Failed to close WebSocket")
     }
-
-    fn finalize(&self) {}
 }
