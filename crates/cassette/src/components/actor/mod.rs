@@ -39,6 +39,9 @@ pub struct Spec {
     #[serde(default)]
     pub table: Option<Rc<DataTable>>,
 
+    #[serde(default = "Spec::default_primary_key")]
+    pub primary_key: String,
+
     #[serde(default = "Spec::default_label_create")]
     pub label_create: String,
     #[serde(default = "Spec::default_label_delete")]
@@ -57,6 +60,10 @@ pub struct Spec {
 }
 
 impl Spec {
+    fn default_primary_key() -> String {
+        "id".into()
+    }
+
     fn default_label_create() -> String {
         "Create".into()
     }
@@ -94,6 +101,7 @@ impl ComponentRenderer<Spec> for State {
             schema,
             default,
             table,
+            primary_key,
             label_create,
             label_delete,
             label_update,
@@ -173,6 +181,7 @@ impl ComponentRenderer<Spec> for State {
                 base_url: base_url.as_ref(),
                 uri: &uri,
                 table: table.clone().unwrap(),
+                primary_key: &primary_key,
                 label_apply: label_delete.clone(),
             }));
             tabs.push(TabIndex::Delete);
@@ -389,6 +398,7 @@ struct FormDeleteContext<'a, 'b> {
     uri: &'a String,
     #[allow(dead_code)]
     table: Rc<DataTable>,
+    primary_key: &'a String,
     label_apply: String,
 }
 
@@ -397,9 +407,33 @@ fn build_form_delete(ctx: FormDeleteContext) -> Html {
         ctx,
         base_url,
         uri,
-        table: _,
+        table,
+        primary_key,
         label_apply,
     } = ctx;
+
+    let value = match table.data.first_row_as_json() {
+        Ok(Some(value)) => value,
+        Ok(None) => {
+            return html! {
+                <Error msg={ "Item not found" } />
+            }
+        }
+        Err(msg) => {
+            return html! {
+                <Error msg={ msg.to_string() } />
+            }
+        }
+    };
+    let id = match value.get(primary_key) {
+        Some(Value::String(id)) => id.clone(),
+        Some(value) => value.to_string(),
+        None => {
+            return html! {
+                <Error msg={ format!("Primary key {primary_key} not found") } />
+            }
+        }
+    };
 
     let handler_name = "form delete apply";
     let force_init = false;
@@ -407,8 +441,9 @@ fn build_form_delete(ctx: FormDeleteContext) -> Html {
 
     let onclick = {
         let base_url = base_url.cloned();
-        let uri = uri.clone();
+        let uri = format!("{uri}/{id}/delete");
         let state = state.clone();
+        let value = Value::Object(value);
         Callback::from(move |_: MouseEvent| {
             let state = state.clone();
             let base_url = base_url.clone().unwrap_or(get_gateway());
@@ -416,7 +451,7 @@ fn build_form_delete(ctx: FormDeleteContext) -> Html {
                 method: Method::POST,
                 name: Cow::Borrowed(handler_name),
                 uri: uri.clone(),
-                body: Some(Body::Json(Value::default())),
+                body: Some(Body::Json(value.clone())),
             };
 
             request.try_fetch_force(&base_url, state)

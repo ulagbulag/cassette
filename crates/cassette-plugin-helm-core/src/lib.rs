@@ -20,6 +20,13 @@ pub struct HelmDelete {
 
 pub type HelmDeleteOutput = String;
 
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct HelmList {
+    #[serde(default)]
+    pub namespace: Option<String>,
+}
+
 pub type HelmPost = HelmPut;
 
 pub type HelmPostOutput = String;

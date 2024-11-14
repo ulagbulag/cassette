@@ -14,6 +14,7 @@ use cassette_plugin_jwt::{get_authorization_token, parse_jwt};
 use cassette_plugin_kubernetes_core::user::{UserMetadata, UserRoleSpec, UserSpec};
 use http::Request;
 use kube::{config::AuthInfo, core::ErrorResponse, Client, Config};
+use tracing::{instrument, Level};
 use url::Url;
 
 pub async fn build_app_data() -> Result<Data<Client>> {
@@ -29,6 +30,7 @@ pub fn build_services(scope: Scope) -> Scope {
     scope.route("/kube/{path:.*}", ::actix_web::web::route().to(handle))
 }
 
+#[instrument(level = Level::INFO, skip_all)]
 async fn handle(
     client: Data<Client>,
     request: HttpRequest,
@@ -124,7 +126,7 @@ impl UserClient {
                 metadata: UserMetadata::default(),
                 name,
                 namespace,
-                role: UserRoleSpec::default(),
+                role: UserRoleSpec { is_admin: true },
                 token: Default::default(),
             },
         })

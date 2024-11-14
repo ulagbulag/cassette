@@ -4,7 +4,7 @@ use std::rc::Rc;
 
 use actix_web::{
     get, post, put,
-    web::{Data, Json, Path},
+    web::{Data, Json, Path, Query},
     HttpRequest, HttpResponse, Responder, Scope,
 };
 use anyhow::Result;
@@ -15,13 +15,14 @@ use cassette_core::{
     },
     result::HttpResult,
 };
-use cassette_plugin_helm_core::{HelmDelete, HelmPost, HelmPut};
+use cassette_plugin_helm_core::{HelmDelete, HelmList, HelmPost, HelmPut};
 use cassette_plugin_kubernetes_api::UserClient;
 use cassette_plugin_kubernetes_core::user::{UserRoleSpec, UserSpec};
 use itertools::Itertools;
 use k8s_openapi::api::core::v1::Secret;
 use kube::{api::ListParams, Api, Client, ResourceExt};
 use serde_json::Value;
+use tracing::{instrument, Level};
 use uuid::Uuid;
 
 pub fn build_services(scope: Scope) -> Scope {
@@ -33,11 +34,13 @@ pub fn build_services(scope: Scope) -> Scope {
         .service(put)
 }
 
+#[instrument(level = Level::INFO, skip_all)]
 #[get("/helm/_actor")]
 async fn actor() -> impl Responder {
     HttpResponse::from(HttpResult::Ok(::cassette_plugin_helm_core::actor()))
 }
 
+#[instrument(level = Level::INFO, skip_all)]
 #[post("/helm/{id}/delete")]
 async fn delete(
     client: Data<Client>,
@@ -53,9 +56,14 @@ async fn delete(
     }
 }
 
+#[instrument(level = Level::INFO, skip_all)]
 #[get("/helm")]
-async fn list(client: Data<Client>, request: HttpRequest) -> impl Responder {
-    async fn try_handle(client: UserClient) -> Result<DataTable> {
+async fn list(
+    client: Data<Client>,
+    request: HttpRequest,
+    query: Query<HelmList>,
+) -> impl Responder {
+    async fn try_handle(client: UserClient, query: HelmList) -> Result<DataTable> {
         let UserClient {
             kube,
             spec:
@@ -68,8 +76,13 @@ async fn list(client: Data<Client>, request: HttpRequest) -> impl Responder {
 
         // Load data
 
+        let HelmList { namespace } = query;
+
         let api = if is_admin {
-            Api::<Secret>::all(kube)
+            match namespace {
+                Some(namespace) => Api::<Secret>::namespaced(kube, &namespace),
+                None => Api::<Secret>::all(kube),
+            }
         } else {
             Api::<Secret>::default_namespaced(kube)
         };
@@ -83,6 +96,7 @@ async fn list(client: Data<Client>, request: HttpRequest) -> impl Responder {
 
         let name = format!("helm-{name}");
         let headers = vec![
+            "id".into(),
             "namespace".into(),
             "name".into(),
             "version".into(),
@@ -102,6 +116,7 @@ async fn list(client: Data<Client>, request: HttpRequest) -> impl Responder {
                 let get_label = |name| item.labels().get(name).cloned().map(Value::String);
 
                 Some(vec![
+                    Value::String(item.uid()?),
                     Value::String(item.namespace()?),
                     get_label(self::labels::LABEL_NAME)?,
                     get_label(self::labels::LABEL_VERSION)?,
@@ -126,11 +141,12 @@ async fn list(client: Data<Client>, request: HttpRequest) -> impl Responder {
     }
 
     match UserClient::from_request(client, &request).await {
-        Ok(client) => HttpResponse::from(HttpResult::from(try_handle(client).await)),
+        Ok(client) => HttpResponse::from(HttpResult::from(try_handle(client, query.0).await)),
         Err(error) => HttpResponse::Unauthorized().json(HttpResult::<()>::Err(error.to_string())),
     }
 }
 
+#[instrument(level = Level::INFO, skip_all)]
 #[post("/helm/{id}")]
 async fn post(
     client: Data<Client>,
@@ -146,6 +162,7 @@ async fn post(
     }
 }
 
+#[instrument(level = Level::INFO, skip_all)]
 #[put("/helm")]
 async fn put(client: Data<Client>, request: HttpRequest, data: Json<HelmPut>) -> impl Responder {
     match UserClient::from_request(client, &request).await {

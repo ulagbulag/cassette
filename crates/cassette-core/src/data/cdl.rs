@@ -12,6 +12,10 @@ impl CdlTable {
         todo!()
     }
 
+    pub fn first_row(&self) -> Option<Vec<Value>> {
+        todo!()
+    }
+
     pub fn records(&self) -> Rc<Vec<Vec<Value>>> {
         todo!()
     }

@@ -27,7 +27,7 @@ impl ComponentRenderer<Spec> for State {
             audio: true,
             video: false,
         };
-        let webcam = match use_webcam(ctx, &handler, &constraints).get() {
+        let _webcam = match use_webcam(ctx, &handler, &constraints).get() {
             Ok(webcam) => webcam,
             Err(msg) => {
                 return Ok(TaskState::Break {

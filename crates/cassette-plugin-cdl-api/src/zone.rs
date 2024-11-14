@@ -14,7 +14,9 @@ use cassette_plugin_kubernetes_api::UserClient;
 use dash_api::storage::ModelStorageCrd;
 use kube::{api::ListParams, Api, Client, ResourceExt};
 use serde_json::Value;
+use tracing::{instrument, Level};
 
+#[instrument(level = Level::INFO, skip_all)]
 #[get("/cdl/zone")]
 pub async fn list(client: Data<Client>, request: HttpRequest) -> impl Responder {
     async fn try_handle(client: UserClient) -> Result<DataTable> {

@@ -3,7 +3,7 @@ use std::rc::Rc;
 use anyhow::{bail, Result};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
+use serde_json::{Map, Value};
 use strum::{Display, EnumString};
 use uuid::Uuid;
 
@@ -46,6 +46,29 @@ impl DataTableSource {
             DataTableSource::Cdl(data) => Ok(data.columns()),
             DataTableSource::Csv(data) => Ok(data.columns()),
             DataTableSource::Raw(_) => bail!("Raw data table has no columns"),
+        }
+    }
+
+    pub fn first_row(&self) -> Result<Option<Vec<Value>>> {
+        match self {
+            #[cfg(feature = "cdl")]
+            DataTableSource::Cdl(data) => Ok(data.first_row()),
+            DataTableSource::Csv(data) => Ok(data.first_row()),
+            DataTableSource::Raw(_) => bail!("Raw data table has no records"),
+        }
+    }
+
+    pub fn first_row_as_json(&self) -> Result<Option<Map<String, Value>>> {
+        match self.first_row()? {
+            Some(row) => {
+                let columns = self.columns()?;
+                let mut map = Map::default();
+                for (key, value) in columns.into_iter().zip(row.into_iter()) {
+                    map.insert(key, value);
+                }
+                Ok(Some(map))
+            }
+            None => Ok(None),
         }
     }
 

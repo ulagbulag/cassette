@@ -1,4 +1,5 @@
 use std::borrow::Cow;
+use std::collections::BTreeMap;
 use std::rc::Rc;
 
 use cassette_core::cassette::{CassetteTaskHandle, GenericCassetteTaskHandle};
@@ -21,6 +22,8 @@ pub struct Spec {
     #[serde(default)]
     base_url: Option<String>,
     uri: String,
+    #[serde(default)]
+    query: BTreeMap<String, String>,
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
@@ -32,11 +35,15 @@ pub struct State {
 
 impl ComponentRenderer<Spec> for State {
     fn render(self, ctx: &mut CassetteContext, spec: Spec) -> TaskResult<Option<Self>> {
-        let Spec { base_url, uri } = spec;
+        let Spec {
+            base_url,
+            uri,
+            query,
+        } = spec;
 
         let force_init = false;
 
-        match use_fetch(ctx, base_url, uri, force_init).get() {
+        match use_fetch(ctx, base_url, uri, query, force_init).get() {
             FetchState::Pending | FetchState::Fetching => Ok(TaskState::Break {
                 body: html! { <Loading /> },
                 state: Some(Self { data: None }),
@@ -59,7 +66,8 @@ impl ComponentRenderer<Spec> for State {
 fn use_fetch(
     ctx: &mut CassetteContext,
     base_url: Option<String>,
-    uri: String,
+    mut uri: String,
+    query: BTreeMap<String, String>,
     force: bool,
 ) -> CassetteTaskHandle<FetchState<DataTable>> {
     let handler_name = "fetch";
@@ -70,7 +78,20 @@ fn use_fetch(
         let request = FetchRequestWithoutBody {
             method: Method::GET,
             name: Cow::Borrowed(handler_name),
-            uri,
+            uri: if query.is_empty() {
+                uri
+            } else {
+                uri.push_str("?");
+                for (index, (key, value)) in query.iter().enumerate() {
+                    if index > 0 {
+                        uri.push('&');
+                    }
+                    uri.push_str(key);
+                    uri.push('=');
+                    uri.push_str(value);
+                }
+                uri
+            },
             body: None,
         };
 

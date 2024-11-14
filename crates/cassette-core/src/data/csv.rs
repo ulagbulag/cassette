@@ -29,6 +29,10 @@ impl CsvTable {
         self.headers.clone()
     }
 
+    pub fn first_row(&self) -> Option<Vec<Value>> {
+        self.records.first().cloned()
+    }
+
     pub fn records(&self) -> Rc<Vec<Vec<Value>>> {
         self.records.clone()
     }

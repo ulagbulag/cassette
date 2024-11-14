@@ -27,7 +27,7 @@ pub async fn delete(client: UserClient, id: Uuid, data: HelmDelete) -> Result<He
     // Validate data
     validate_id(&client.kube, id, namespace, name).await?;
 
-    todo!()
+    execute_delete(&client.spec.token, client.spec.namespace, &data).await
 }
 
 pub async fn install(client: UserClient, data: HelmPut) -> Result<HelmPutOutput> {

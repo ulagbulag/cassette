@@ -2,16 +2,16 @@
 apiVersion: cassette.ulagbulag.io/v1alpha1
 kind: Cassette
 metadata:
-  name: helm-actor-nvidia-isaac-sim
+  name: helm-actor-mobilex-vstation
 spec:
-  component: helm-actor-nvidia-isaac-sim
+  component: helm-actor-mobilex-vstation
   group: Kubernetes Helm
-  title: "Helm Chart : NVIDIA Isaac Sim"
+  title: "Helm Chart : MobileX vStation"
 ---
 apiVersion: cassette.ulagbulag.io/v1alpha1
 kind: CassetteComponent
 metadata:
-  name: helm-actor-nvidia-isaac-sim
+  name: helm-actor-mobilex-vstation
 spec:
   tasks:
     - name: act
@@ -29,7 +29,11 @@ spec:
               string: {}
             - name: IP Address
               path: /values/service/loadBalancerIP
-              number: {}
+              string:
+                default: "0.0.0.0"
+            - name: Password
+              path: /values/serviceAccount/password
+              string: {}
             - name: Amount of CPUs
               path: /values/resources/limits/cpu
               string: {}
@@ -38,16 +42,19 @@ spec:
               string: {}
             - name: Number of GPUs
               path: /values/resources/limits/nvidia.com~1gpu
-              number:
-                default: 1
+              number: {}
         default:
           chartName: mobilex-vstation
           repo: https://smartx-team.github.io/mobilex-api
+          name: vstation01
           namespace: name-twin
           values:
             resources:
               limits:
                 cpu: "11"
                 memory: 31Gi
+                nvidia.com/gpu: 1
             service:
               type: LoadBalancer
+            serviceAccount:
+              password: "myPassword!"
