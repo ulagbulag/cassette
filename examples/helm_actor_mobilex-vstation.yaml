@@ -27,6 +27,9 @@ spec:
             - name: Namespace
               path: /namespace
               string: {}
+            - name: IP Address
+              path: /values/service/loadBalancerIP
+              number: {}
             - name: Amount of CPUs
               path: /values/resources/limits/cpu
               string: {}
@@ -38,12 +41,13 @@ spec:
               number:
                 default: 1
         default:
-          chartName: nvidia-isaac-sim
+          chartName: mobilex-vstation
           repo: https://smartx-team.github.io/mobilex-api
-          name: omni01
           namespace: name-twin
           values:
             resources:
               limits:
                 cpu: "11"
                 memory: 31Gi
+            service:
+              type: LoadBalancer
