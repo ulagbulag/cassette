@@ -22,9 +22,10 @@ pub fn build_form(
 
     let value = match default {
         Value::String(value) => value.clone(),
-        value => ::serde_json::to_string_pretty(value)
-            .ok()
-            .or_else(|| spec.default.clone())
+        value => spec
+            .default
+            .clone()
+            .or_else(|| ::serde_json::to_string_pretty(value).ok())
             .unwrap_or_default(),
     };
 

@@ -35,12 +35,10 @@ spec:
               string: {}
             - name: Amount of CPUs
               path: /values/resources/limits/cpu
-              string:
-                default: "4"
+              string: {}
             - name: Amount of Memory
               path: /values/resources/limits/memory
-              string:
-                default: 16Gi
+              string: {}
             - name: Number of GPUs
               path: /values/resources/limits/nvidia.com~1gpu
               number:
@@ -50,3 +48,8 @@ spec:
           repo: https://smartx-team.github.io/mobilex-api
           name: omni01
           namespace: name-twin
+          values:
+            resources:
+              limits:
+                cpu: "4"
+                memory: 16Gi
