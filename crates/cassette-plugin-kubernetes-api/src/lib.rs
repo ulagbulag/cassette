@@ -24,6 +24,7 @@ pub async fn build_app_data() -> Result<Data<Client>> {
 }
 
 pub fn build_services(scope: Scope) -> Scope {
+    #[cfg(feature = "vine")]
     let scope = self::user::build_services(scope);
     scope.route("/kube/{path:.*}", ::actix_web::web::route().to(handle))
 }
@@ -92,15 +93,41 @@ pub struct UserClient {
 
 impl UserClient {
     pub async fn from_request(client: Data<Client>, request: &HttpRequest) -> Result<Self> {
-        #[cfg(not(feature = "vine"))]
+        #[cfg(feature = "unsafe-mock")]
+        {
+            let _ = (client, request);
+            Self::new_mocked().await
+        }
+        #[cfg(all(not(feature = "unsafe-mock"), not(feature = "vine")))]
         {
             let _ = client;
             Self::from_request_with_oidc(request).await
         }
-        #[cfg(feature = "vine")]
+        #[cfg(all(not(feature = "unsafe-mock"), feature = "vine"))]
         {
             Self::from_request_with_vine(client, request).await
         }
+    }
+
+    #[cfg(feature = "unsafe-mock")]
+    async fn new_mocked() -> Result<Self> {
+        let client = Client::try_default()
+            .await
+            .map_err(|error| anyhow!("failed to create a kubernetes client: {error}"))?;
+
+        let name = "localhost".into();
+        let namespace = client.default_namespace().into();
+
+        Ok(Self {
+            kube: client,
+            spec: UserSpec {
+                metadata: UserMetadata::default(),
+                name,
+                namespace,
+                role: UserRoleSpec::default(),
+                token: Default::default(),
+            },
+        })
     }
 
     pub async fn from_request_with_oidc(request: &HttpRequest) -> Result<Self> {

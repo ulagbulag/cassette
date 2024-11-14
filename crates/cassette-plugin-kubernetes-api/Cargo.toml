@@ -22,6 +22,7 @@ workspace = true
 [features]
 default = []
 vine = ["cassette-plugin-kubernetes-core/vine", "dep:vine-api", "dep:vine-rbac"]
+unsafe-mock = []
 
 [dependencies]
 cassette-core = { path = "../cassette-core", features = ["api"] }

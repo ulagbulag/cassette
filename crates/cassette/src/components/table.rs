@@ -64,13 +64,6 @@ impl ComponentRenderer<Spec> for State {
             }
         };
 
-        if records.is_empty() {
-            return Ok(TaskState::Break {
-                body: html!("empty"),
-                state: None,
-            });
-        }
-
         let handler_name = "select";
         let force_init = false;
         let num_records = records.len();

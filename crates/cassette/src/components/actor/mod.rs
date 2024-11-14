@@ -1,9 +1,19 @@
+mod array;
+mod boolean;
+mod generic;
+mod number;
+mod root;
+mod string;
+
 use std::{borrow::Cow, rc::Rc};
 
 use cassette_core::{
     cassette::{CassetteContext, CassetteTaskHandle, GenericCassetteTaskHandle},
     components::ComponentRenderer,
-    data::{actor::JsonSchemaActor, table::DataTable},
+    data::{
+        actor::{SchemaActor, SchemaArray},
+        table::DataTable,
+    },
     net::{
         fetch::{Body, FetchRequest, FetchRequestWithoutBody, FetchState, Method},
         gateway::get_gateway,
@@ -12,7 +22,6 @@ use cassette_core::{
     task::{TaskResult, TaskState},
 };
 use patternfly_yew::prelude::*;
-use schemars::schema::RootSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use yew::prelude::*;
@@ -23,6 +32,8 @@ pub struct Spec {
     #[serde(default)]
     pub base_url: Option<String>,
     pub uri: String,
+    #[serde(default)]
+    pub schema: Rc<SchemaActor>,
     #[serde(default)]
     pub default: Value,
     #[serde(default)]
@@ -80,6 +91,7 @@ impl ComponentRenderer<Spec> for State {
         let Spec {
             base_url,
             uri,
+            schema,
             default,
             table,
             label_create,
@@ -118,18 +130,17 @@ impl ComponentRenderer<Spec> for State {
                 .map(|table| table.data.len() == 0)
                 .unwrap_or(true)
         {
-            if let Some(schema) = content.create.as_ref() {
-                sections.push(build_form(FormContext {
-                    ctx,
-                    base_url: base_url.as_ref(),
-                    uri: &uri,
-                    schema,
-                    default: &default,
-                    table: None,
-                    label_submit: label_create.clone(),
-                }));
-                tabs.push(TabIndex::Create);
-            }
+            sections.push(build_form(FormContext {
+                ctx,
+                base_url: base_url.as_ref(),
+                uri: &uri,
+                schema: content.create.as_ref(),
+                schema_additional: schema.create.as_ref(),
+                default: &default,
+                table: None,
+                label_submit: label_create.clone(),
+            }));
+            tabs.push(TabIndex::Create);
         }
         if update
             && table
@@ -139,18 +150,17 @@ impl ComponentRenderer<Spec> for State {
         {
             // TODO: load data
 
-            if let Some(schema) = content.update.as_ref() {
-                sections.push(build_form(FormContext {
-                    ctx,
-                    base_url: base_url.as_ref(),
-                    uri: &uri,
-                    schema,
-                    default: &default,
-                    table: table.clone(),
-                    label_submit: label_update.clone(),
-                }));
-                tabs.push(TabIndex::Update);
-            }
+            sections.push(build_form(FormContext {
+                ctx,
+                base_url: base_url.as_ref(),
+                uri: &uri,
+                schema: content.update.as_ref().or(content.create.as_ref()),
+                schema_additional: schema.create.as_ref(),
+                default: &default,
+                table: None,
+                label_submit: label_create.clone(),
+            }));
+            tabs.push(TabIndex::Update);
         }
         if delete
             && table
@@ -251,8 +261,8 @@ struct FormContext<'a, 'b> {
     ctx: &'a mut CassetteContext<'b>,
     base_url: Option<&'a String>,
     uri: &'a String,
-    #[allow(dead_code)]
-    schema: &'a RootSchema,
+    schema: Option<&'a SchemaArray>,
+    schema_additional: Option<&'a SchemaArray>,
     default: &'a Value,
     table: Option<Rc<DataTable>>,
     label_submit: String,
@@ -263,9 +273,8 @@ fn build_form(ctx: FormContext) -> Html {
         ctx,
         base_url,
         uri,
-        // TODO: generate sample data
-        // TODO: validate json schema
-        schema: _,
+        schema,
+        schema_additional,
         default,
         table,
         label_submit,
@@ -280,45 +289,43 @@ fn build_form(ctx: FormContext) -> Html {
         FetchState::<Value>::Pending
     });
 
-    let handler_name_text = format!("{handler_name_prefix} text");
-    let form_text = ctx.use_state(handler_name_text, force_init, || match default {
-        Value::Null => "{}".into(),
-        value => ::serde_json::to_string_pretty(value).unwrap_or_else(|_| "{}".into()),
-    });
-
-    let onchange = {
-        let form_text = form_text.clone();
-        Callback::from(move |updated_text: String| {
-            if form_text.get().as_str() != updated_text.as_str() {
-                form_text.set(updated_text)
-            }
-        })
+    let handler_name_data = format!("{handler_name_prefix} data");
+    let handle_data = ctx.use_state(handler_name_data, force_init, || default.clone());
+    let disabled = matches!(
+        submit_state.get(),
+        FetchState::Fetching | FetchState::Collecting(_)
+    );
+    let schema = match (schema, schema_additional) {
+        (Some(schema), Some(schema_additional)) => {
+            let mut schema = schema.clone();
+            schema.0.extend_from_slice(&schema_additional.0);
+            Some(schema)
+        }
+        (Some(schema), None) | (None, Some(schema)) => Some(schema.clone()),
+        (None, None) => None,
     };
+    let form_data = self::root::build_form(&handle_data, schema, disabled);
+
     let onclick = {
         let base_url = base_url.cloned();
         let uri = uri.clone();
         let submit_state = submit_state.clone();
-        let form_text = form_text.clone();
+        let handle_data = handle_data.clone();
         Callback::from(move |_: MouseEvent| {
             let base_url = base_url.clone();
             let handler_name = handler_name_submit.clone();
             let uri = uri.clone();
 
-            match ::serde_json::from_str::<Value>(form_text.get().as_str()) {
-                Ok(data) => {
-                    let state = submit_state.clone();
-                    let base_url = base_url.unwrap_or(get_gateway());
-                    let request = FetchRequest {
-                        method: if is_post { Method::POST } else { Method::PUT },
-                        name: Cow::Owned(handler_name),
-                        uri,
-                        body: Some(Body::Json(data)),
-                    };
+            let state = submit_state.clone();
+            let base_url = base_url.unwrap_or(get_gateway());
+            let request = FetchRequest {
+                method: if is_post { Method::POST } else { Method::PUT },
+                name: Cow::Owned(handler_name),
+                uri,
+                body: Some(Body::Json(handle_data.get().clone())),
+            };
 
-                    request.try_fetch_force(&base_url, state)
-                }
-                Err(error) => submit_state.set(FetchState::Error(error.to_string())),
-            }
+            request.try_fetch_force(&base_url, state)
         })
     };
 
@@ -356,24 +363,11 @@ fn build_form(ctx: FormContext) -> Html {
     } else {
         ButtonVariant::Primary
     };
-    let disabled = matches!(
-        submit_state.get(),
-        FetchState::Fetching | FetchState::Collecting(_)
-    );
-    let placeholder = "{}";
 
     html! {
         <Stack gutter=true>
             <StackItem>
-                <TextArea
-                    autofocus=true
-                    { disabled }
-                    { onchange }
-                    { placeholder }
-                    required=true
-                    resize={ ResizeOrientation::Vertical }
-                    value={ form_text }
-                />
+                { form_data }
             </StackItem>
             <StackItem>
                 <Button
@@ -485,7 +479,7 @@ fn use_fetch_actor(
     base_url: Option<String>,
     uri: &str,
     force: bool,
-) -> CassetteTaskHandle<FetchState<JsonSchemaActor>> {
+) -> CassetteTaskHandle<FetchState<SchemaActor>> {
     let handler_name = "fetch";
     let state = ctx.use_state(handler_name, force, || FetchState::Pending);
     {

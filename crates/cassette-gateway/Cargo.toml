@@ -24,6 +24,7 @@ default = ["default-tls", "full", "openark"]
 full = ["helm", "kubernetes"]
 experimental = []
 openark = ["vine"]
+unsafe-mock = ["cassette-plugin-kubernetes-api?/unsafe-mock"]
 
 # TLS
 default-tls = ["rustls-tls"]
@@ -60,7 +61,7 @@ helm = ["dep:cassette-plugin-helm-api", "dep:reqwest"]
 kubernetes = ["dep:cassette-plugin-kubernetes-api"]
 
 [dependencies]
-cassette-core = { path = "../cassette-core" }
+cassette-core = { path = "../cassette-core", features = ["api"] }
 cassette-loader-core = { path = "../cassette-loader-core" }
 cassette-plugin-cdl-api = { path = "../cassette-plugin-cdl-api", optional = true }
 cassette-plugin-helm-api = { path = "../cassette-plugin-helm-api", optional = true }

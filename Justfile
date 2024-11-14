@@ -67,7 +67,7 @@ run *ARGS: ( _trunk "serve" ARGS )
 run-examples *ARGS: ( _trunk "serve" "--features" "examples,full" ARGS )
 
 run-gateway *ARGS:
-  cargo watch -s 'clear && cargo run --package cassette-gateway -- {{ ARGS }}'
+  cargo watch -s 'clear && cargo run --package cassette-gateway --features "unsafe-mock" -- {{ ARGS }}'
 
 run-operator *ARGS:
   cargo watch -s 'clear && cargo run --package cassette-operator -- {{ ARGS }}'

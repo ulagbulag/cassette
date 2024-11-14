@@ -19,6 +19,32 @@ spec:
       spec:
         create: true
         uri: /helm
+        schema:
+          create:
+            - name: Chart Name
+              path: /chartName
+              string: {}
+            - name: Chart Repository
+              path: /repo
+              string: {}
+            - name: Name
+              path: /name
+              string: {}
+            - name: Namespace
+              path: /namespace
+              string: {}
+            - name: Amount of CPUs
+              path: /values/resources/limits/cpu
+              string:
+                default: "4"
+            - name: Amount of Memory
+              path: /values/resources/limits/memory
+              string:
+                default: 16Gi
+            - name: Number of GPUs
+              path: /values/resources/limits/nvidia.com~1gpu
+              number:
+                default: 1
         default:
           chartName: nvidia-isaac-sim
           repo: https://smartx-team.github.io/mobilex-api

@@ -1,12 +1,12 @@
-use cassette_core::data::actor::JsonSchemaActor;
-use schemars::{schema_for, JsonSchema};
+use cassette_core::data::actor::SchemaActor;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-pub fn actor() -> JsonSchemaActor {
-    JsonSchemaActor {
-        create: Some(schema_for!(HelmPut)),
-        update: Some(schema_for!(HelmPost)),
+pub fn actor() -> SchemaActor {
+    SchemaActor {
+        create: None,
+        update: None,
     }
 }
 

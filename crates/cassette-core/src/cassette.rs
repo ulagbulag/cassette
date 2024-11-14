@@ -363,7 +363,10 @@ where
 
 #[cfg(feature = "ui")]
 impl<T> GenericCassetteTaskHandle<T> for UseStateHandle<T> {
-    type Ref<'a> = &'a T where T: 'a;
+    type Ref<'a>
+        = &'a T
+    where
+        T: 'a;
 
     fn get<'a>(&'a self) -> <Self as GenericCassetteTaskHandle<T>>::Ref<'a>
     where
@@ -427,7 +430,10 @@ where
 
 #[cfg(feature = "ui")]
 impl<T> GenericCassetteTaskHandle<T> for CassetteTaskHandle<T> {
-    type Ref<'a> = &'a T where T: 'a;
+    type Ref<'a>
+        = &'a T
+    where
+        T: 'a;
 
     fn get<'a>(&'a self) -> <Self as GenericCassetteTaskHandle<T>>::Ref<'a>
     where
@@ -486,6 +492,21 @@ impl<T> CassetteTaskHandle<Vec<T>> {
 }
 
 #[cfg(feature = "ui")]
+impl CassetteTaskHandle<::serde_json::Value> {
+    pub fn get_item(&self, path: &crate::data::actor::SchemaPath) -> &::serde_json::Value {
+        path.get(self.get())
+    }
+
+    pub fn set_item(&self, path: &crate::data::actor::SchemaPath, value: ::serde_json::Value) {
+        if *self.get_item(path) != value {
+            let mut target = self.get().clone();
+            path.set(&mut target, value);
+            self.set(target)
+        }
+    }
+}
+
+#[cfg(feature = "ui")]
 #[derive(Debug)]
 pub struct CassetteLazyHandle<T>(CassetteTaskHandle<T>);
 
@@ -508,7 +529,10 @@ where
 
 #[cfg(feature = "ui")]
 impl<T> GenericCassetteTaskHandle<T> for CassetteLazyHandle<T> {
-    type Ref<'a> = &'a T where T: 'a;
+    type Ref<'a>
+        = &'a T
+    where
+        T: 'a;
 
     fn get<'a>(&'a self) -> <Self as GenericCassetteTaskHandle<T>>::Ref<'a>
     where
