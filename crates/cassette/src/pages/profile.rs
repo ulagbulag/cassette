@@ -287,7 +287,7 @@ enum KeyColumns {
     Value,
 }
 
-impl<'a> TableEntryRenderer<KeyColumns> for Entry<'a> {
+impl TableEntryRenderer<KeyColumns> for Entry<'_> {
     fn render_cell(&self, ctx: CellContext<KeyColumns>) -> Cell {
         let Self { key, value, link } = self;
         match ctx.column {
@@ -325,7 +325,7 @@ enum VersionColumns {
     Version,
 }
 
-impl<'a> TableEntryRenderer<VersionColumns> for Entry<'a> {
+impl TableEntryRenderer<VersionColumns> for Entry<'_> {
     fn render_cell(&self, ctx: CellContext<VersionColumns>) -> Cell {
         let Self { key, value, link } = self;
         match ctx.column {

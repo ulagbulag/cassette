@@ -200,7 +200,7 @@ impl Session {
 
         // Start sending Blob
         if ws.ready_state() == WebSocket::OPEN {
-            ws.send_with_blob(&blob)
+            ws.send_with_blob(blob)
                 .expect("Failed to send data via WebSocket")
         }
     }

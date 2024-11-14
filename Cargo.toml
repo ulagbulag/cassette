@@ -97,7 +97,7 @@ uuid = { version = "=1.11", default-features = false, features = [
     "serde",
     "v4",
 ] }
-wasm-bindgen = { version = "=0.2" }
+wasm-bindgen = { version = "=0.2.93" } # FIXME: wait <=0.2.93 until issue is resolved: https://github.com/rustwasm/wasm-pack/issues/1441
 wasm-streams = { version = "=0.4" }
 web-sys = { version = "=0.3", features = [
     "FileList",

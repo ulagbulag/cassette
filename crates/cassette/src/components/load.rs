@@ -81,7 +81,7 @@ fn use_fetch(
             uri: if query.is_empty() {
                 uri
             } else {
-                uri.push_str("?");
+                uri.push('?');
                 for (index, (key, value)) in query.iter().enumerate() {
                     if index > 0 {
                         uri.push('&');

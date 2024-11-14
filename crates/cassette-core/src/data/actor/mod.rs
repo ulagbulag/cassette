@@ -60,7 +60,7 @@ impl FromStr for SchemaPath {
                 .map(|item| {
                     item.parse()
                         .map(SchemaPathItem::List)
-                        .unwrap_or_else(|_| SchemaPathItem::Object(item.into()))
+                        .unwrap_or(SchemaPathItem::Object(item))
                 })
                 .collect(),
         ))
@@ -97,7 +97,7 @@ impl<'de> Deserialize<'de> for SchemaPath {
     {
         struct SchemaPathVisitor;
 
-        impl<'de> de::Visitor<'de> for SchemaPathVisitor {
+        impl de::Visitor<'_> for SchemaPathVisitor {
             type Value = SchemaPath;
 
             #[inline]
@@ -168,7 +168,7 @@ impl SchemaPath {
                         let mut map = Map::default();
                         map.insert(i.clone(), Value::Null);
                         *target = Value::Object(map);
-                        target.get_mut(&i).unwrap()
+                        target.get_mut(i).unwrap()
                     }
                 },
             };

@@ -74,8 +74,13 @@ ignore = [
     #{ id = "RUSTSEC-0000-0000", reason = "you can specify a reason the advisory is ignored" },
     #"a-crate-that-is-yanked@0.1.1", # you can also ignore yanked crate versions if you wish
     #{ crate = "a-crate-that-is-yanked@0.1.1", reason = "you can specify why you are ignoring the yanked crate" },
+    { id = "RUSTSEC-2023-0086", reason = "Uncontrollable crate: anstyle-query" },
+    { id = "RUSTSEC-2024-0320", reason = "Uncontrollable crate: yaml-rust" },
     { id = "RUSTSEC-2024-0336", reason = "Pending to release the external package: actix-web" },
     { id = "RUSTSEC-2024-0358", reason = "Pending to release the external package: deltalake" },
+    { id = "RUSTSEC-2024-0370", reason = "Uncontrollable crate: proc-macro-error" },
+    { id = "RUSTSEC-2024-0384", reason = "Uncontrollable crate: instant" },
+    { id = "RUSTSEC-2024-0388", reason = "Uncontrollable crate: derivative" },
 ]
 # If this is true, then cargo deny will use the git executable to fetch advisory database.
 # If this is false, then it uses a built-in git library.
@@ -102,6 +107,7 @@ allow = [
     "LicenseRef-ring",
     "MIT",
     "MPL-2.0",
+    "Unicode-3.0",
     "Unicode-DFS-2016",
     "Unlicense",
 ]
@@ -122,7 +128,139 @@ crate = "ark-core"
 
 [[licenses.exceptions]]
 allow = ["GPL-3.0 WITH Classpath-exception-2.0"]
+crate = "ark-api"
+
+[[licenses.exceptions]]
+allow = ["GPL-3.0 WITH Classpath-exception-2.0"]
 crate = "ark-core-k8s"
+
+[[licenses.exceptions]]
+allow = ["AGPL-3.0"]
+crate = "cassette"
+
+[[licenses.exceptions]]
+allow = ["AGPL-3.0"]
+crate = "cassette-core"
+
+[[licenses.exceptions]]
+allow = ["AGPL-3.0"]
+crate = "cassette-gateway"
+
+[[licenses.exceptions]]
+allow = ["AGPL-3.0"]
+crate = "cassette-loader-core"
+
+[[licenses.exceptions]]
+allow = ["AGPL-3.0"]
+crate = "cassette-loader-file"
+
+[[licenses.exceptions]]
+allow = ["AGPL-3.0"]
+crate = "cassette-operator"
+
+[[licenses.exceptions]]
+allow = ["AGPL-3.0"]
+crate = "cassette-plugin-cdl-api"
+
+[[licenses.exceptions]]
+allow = ["AGPL-3.0"]
+crate = "cassette-plugin-cdl-catalog"
+
+[[licenses.exceptions]]
+allow = ["AGPL-3.0"]
+crate = "cassette-plugin-cdl-core"
+
+[[licenses.exceptions]]
+allow = ["AGPL-3.0"]
+crate = "cassette-plugin-cdl-dataset-browser"
+
+[[licenses.exceptions]]
+allow = ["AGPL-3.0"]
+crate = "cassette-plugin-cdl-dataset-stream-reader"
+
+[[licenses.exceptions]]
+allow = ["AGPL-3.0"]
+crate = "cassette-plugin-cdl-zone"
+
+[[licenses.exceptions]]
+allow = ["AGPL-3.0"]
+crate = "cassette-plugin-helm-api"
+
+[[licenses.exceptions]]
+allow = ["AGPL-3.0"]
+crate = "cassette-plugin-helm-core"
+
+[[licenses.exceptions]]
+allow = ["AGPL-3.0"]
+crate = "cassette-plugin-jwt"
+
+[[licenses.exceptions]]
+allow = ["AGPL-3.0"]
+crate = "cassette-plugin-kubernetes-api"
+
+[[licenses.exceptions]]
+allow = ["AGPL-3.0"]
+crate = "cassette-plugin-kubernetes-core"
+
+[[licenses.exceptions]]
+allow = ["AGPL-3.0"]
+crate = "cassette-plugin-kubernetes-list"
+
+[[licenses.exceptions]]
+allow = ["AGPL-3.0"]
+crate = "cassette-plugin-openai-chat"
+
+[[licenses.exceptions]]
+allow = ["AGPL-3.0"]
+crate = "cassette-plugin-webcam-audio"
+
+[[licenses.exceptions]]
+allow = ["AGPL-3.0"]
+crate = "cassette-plugin-webcam-core"
+
+[[licenses.exceptions]]
+allow = ["GPL-3.0 WITH Classpath-exception-2.0"]
+crate = "dash-api"
+
+[[licenses.exceptions]]
+allow = ["GPL-3.0 WITH Classpath-exception-2.0"]
+crate = "dash-pipe-api"
+
+[[licenses.exceptions]]
+allow = ["GPL-3.0 WITH Classpath-exception-2.0"]
+crate = "dash-pipe-provider"
+
+[[licenses.exceptions]]
+allow = ["GPL-3.0 WITH Classpath-exception-2.0"]
+crate = "dash-provider"
+
+[[licenses.exceptions]]
+allow = ["GPL-3.0 WITH Classpath-exception-2.0"]
+crate = "dash-provider-api"
+
+[[licenses.exceptions]]
+allow = ["GPL-3.0 WITH Classpath-exception-2.0"]
+crate = "kiss-api"
+
+[[licenses.exceptions]]
+allow = ["GPL-3.0 WITH Classpath-exception-2.0"]
+crate = "straw-api"
+
+[[licenses.exceptions]]
+allow = ["GPL-3.0 WITH Classpath-exception-2.0"]
+crate = "vine-api"
+
+[[licenses.exceptions]]
+allow = ["GPL-3.0 WITH Classpath-exception-2.0"]
+crate = "vine-rbac"
+
+[[licenses.exceptions]]
+allow = ["GPL-3.0 WITH Classpath-exception-2.0"]
+crate = "vine-session"
+
+[[licenses.exceptions]]
+allow = ["GPL-3.0 WITH Classpath-exception-2.0"]
+crate = "vine-storage"
 
 # Some crates don't have (easily) machine readable licensing information,
 # adding a clarification entry for it allows you to manually specify the

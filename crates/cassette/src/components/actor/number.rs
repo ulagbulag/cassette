@@ -24,7 +24,7 @@ pub fn build_form(
         })
     };
 
-    let build_default = || Number::from(0 as u8);
+    let build_default = || Number::from(0u8);
     let value = match default {
         Value::Bool(value) => Number::from(*value as u8),
         Value::Number(value) => value.clone(),
