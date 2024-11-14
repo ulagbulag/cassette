@@ -5,8 +5,8 @@ metadata:
   name: helm-actor-nvidia-isaac-sim
 spec:
   component: helm-actor-nvidia-isaac-sim
-  group: Kubernetes Helm
-  title: "Helm Chart : NVIDIA Isaac Sim"
+  group: MobileX
+  title: NVIDIA Isaac Sim
 ---
 apiVersion: cassette.ulagbulag.io/v1alpha1
 kind: CassetteComponent

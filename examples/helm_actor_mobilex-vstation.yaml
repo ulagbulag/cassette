@@ -5,8 +5,8 @@ metadata:
   name: helm-actor-mobilex-vstation
 spec:
   component: helm-actor-mobilex-vstation
-  group: Kubernetes Helm
-  title: "Helm Chart : MobileX vStation"
+  group: MobileX
+  title: MobileX vStation
 ---
 apiVersion: cassette.ulagbulag.io/v1alpha1
 kind: CassetteComponent
