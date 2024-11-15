@@ -20,7 +20,7 @@ workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = ["default-tls", "full", "openark"]
+default = ["default-tls", "full"]
 full = ["helm", "kubernetes"]
 experimental = []
 openark = ["vine"]
