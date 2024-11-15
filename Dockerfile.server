@@ -67,7 +67,7 @@ RUN \
     mkdir /out \
     # Build
     && cargo build --release \
-    --no-default-features --features 'full,openark,rustls-tls' \
+    --no-default-features --features 'full,rustls-tls' \
     --package 'cassette-gateway' \
     --package 'cassette-operator' \
     && find ./target/release/ -maxdepth 1 -type f -perm -a=x -print0 | xargs -0 -I {} mv {} /out
