@@ -1,0 +1,47 @@
+---
+apiVersion: cassette.ulagbulag.io/v1alpha1
+kind: Cassette
+metadata:
+  name: cdl-pond-create-owned
+spec:
+  component: cdl-pond-create-owned
+  group: Connected Data Lake
+  title: Data Pond | Create Owned
+---
+apiVersion: cassette.ulagbulag.io/v1alpha1
+kind: CassetteComponent
+metadata:
+  name: cdl-pond-create-owned
+spec:
+  tasks:
+    - name: act
+      kind: Actor
+      spec:
+        create: true
+        uri: /helm
+        schema:
+          create:
+            - name: Namespace
+              path: /namespace
+              string: {}
+            - name: Total Quota
+              path: /values/resources/requests/storage
+              string: {}
+            - name: Total Nodes
+              path: /values/totalNodes
+              number: {}
+            - name: Total Volumes per Node
+              path: /values/totalVolumesPerNode
+              number: {}
+        default:
+          chartName: data-pond
+          repo: https://smartx-team.github.io/mobilex-api
+          name: object-storage-pool
+          namespace: name-twin
+          values:
+            resources:
+              requests:
+                storage: 10Ti
+            storageType: Owned
+            totalNodes: 1
+            totalVolumesPerNode: 4

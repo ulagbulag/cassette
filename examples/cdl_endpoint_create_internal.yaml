@@ -1,0 +1,31 @@
+---
+apiVersion: cassette.ulagbulag.io/v1alpha1
+kind: Cassette
+metadata:
+  name: cdl-endpoint-create-internal
+spec:
+  component: cdl-endpoint-create-internal
+  group: Connected Data Lake
+  title: Endpoint | Create Internal
+---
+apiVersion: cassette.ulagbulag.io/v1alpha1
+kind: CassetteComponent
+metadata:
+  name: cdl-endpoint-create-internal
+spec:
+  tasks:
+    - name: act
+      kind: Actor
+      spec:
+        create: true
+        uri: /helm
+        schema:
+          create:
+            - name: Namespace
+              path: /namespace
+              string: {}
+        default:
+          chartName: cdl-endpoint
+          repo: https://smartx-team.github.io/mobilex-api
+          name: object-storage
+          namespace: name-twin

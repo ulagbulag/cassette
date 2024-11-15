@@ -1,4 +1,5 @@
 pub mod boolean;
+pub mod r#enum;
 pub mod number;
 pub mod string;
 
@@ -37,6 +38,7 @@ pub enum SchemaType {
     Boolean(self::boolean::SchemaSpec),
     Number(self::number::SchemaSpec),
     String(self::string::SchemaSpec),
+    Enum(self::r#enum::SchemaSpec),
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]

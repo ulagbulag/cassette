@@ -2,16 +2,16 @@
 apiVersion: cassette.ulagbulag.io/v1alpha1
 kind: Cassette
 metadata:
-  name: helm-list
+  name: cdl-catalog
 spec:
-  component: helm-list
-  group: MobileX
-  title: List All
+  component: cdl-catalog
+  group: Connected Data Lake
+  title: Dataset | Catalog
 ---
 apiVersion: cassette.ulagbulag.io/v1alpha1
 kind: CassetteComponent
 metadata:
-  name: helm-list
+  name: cdl-catalog
 spec:
   tasks:
     - name: list
@@ -19,7 +19,7 @@ spec:
       spec:
         uri: /helm
         query:
-          namespace: name-twin
+          chartName: cdl-dataset
 
     - name: filtered
       kind: Table

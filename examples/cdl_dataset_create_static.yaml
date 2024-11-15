@@ -1,0 +1,55 @@
+---
+apiVersion: cassette.ulagbulag.io/v1alpha1
+kind: Cassette
+metadata:
+  name: cdl-dataset-create-static
+spec:
+  component: cdl-dataset-create-static
+  group: Connected Data Lake
+  title: Dataset | Create Static
+---
+apiVersion: cassette.ulagbulag.io/v1alpha1
+kind: CassetteComponent
+metadata:
+  name: cdl-dataset-create-static
+spec:
+  tasks:
+    - name: act
+      kind: Actor
+      spec:
+        create: true
+        uri: /helm
+        schema:
+          create:
+            - name: Name
+              path: /name
+              string: {}
+            - name: Namespace
+              path: /namespace
+              string: {}
+            - name: Deletion Policy
+              path: /values/deletionPolicy
+              enum:
+                choices:
+                  - Delete
+                  - Retain
+            - name: Total Quota
+              path: /values/resources/requests/storage
+              string: {}
+            - name: Target Storage Name
+              path: /values/static/targetStorageName
+              string: {}
+        default:
+          chartName: cdl-dataset
+          repo: https://smartx-team.github.io/mobilex-api
+          name: ""
+          namespace: name-twin
+          values:
+            claim:
+              enabled: false
+            deletionPolicy: Delete
+            resources:
+              requests:
+                storage: 1Ti
+            static:
+              targetStorageName: ""

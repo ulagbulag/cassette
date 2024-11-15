@@ -2,21 +2,24 @@
 apiVersion: cassette.ulagbulag.io/v1alpha1
 kind: Cassette
 metadata:
-  name: cdl-zone
+  name: cdl-endpoint-list
 spec:
-  component: cdl-zone
+  component: cdl-endpoint-list
   group: Connected Data Lake
+  title: Endpoint | List
 ---
 apiVersion: cassette.ulagbulag.io/v1alpha1
 kind: CassetteComponent
 metadata:
-  name: cdl-zone
+  name: cdl-endpoint-list
 spec:
   tasks:
     - name: list
       kind: Load
       spec:
-        uri: /cdl/zone
+        uri: /helm
+        query:
+          chartName: cdl-endpoint
 
     - name: filtered
       kind: Table
@@ -26,7 +29,8 @@ spec:
     - name: act
       kind: Actor
       spec:
+        create: false
         delete: true
         update: false
-        uri: /cdl/zone
+        uri: /helm
         table: :/filtered

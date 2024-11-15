@@ -100,11 +100,19 @@ async fn execute(
     let namespace = namespace.clone().unwrap_or(user_namespace);
     let values = ::serde_json::to_string(values)?;
 
+    let labels = {
+        let key_chart_name = crate::labels::LABEL_CHART_NALE;
+        format!("controller=cassette,{key_chart_name}={chart_name}")
+    };
+
     info!("Executing helm command");
     let mut command = Command::new("helm")
         .args(mode.as_args())
         .arg(name)
         .arg(chart)
+        .arg("--atomic")
+        .arg("--labels")
+        .arg(&labels)
         .arg("--namespace")
         .arg(namespace)
         .arg("--values")

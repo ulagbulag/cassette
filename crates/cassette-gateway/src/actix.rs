@@ -119,8 +119,6 @@ fn build_core_services(scope: Scope) -> Scope {
 }
 
 fn build_plugin_services(scope: Scope) -> Scope {
-    #[cfg(feature = "cdl")]
-    let scope = ::cassette_plugin_cdl_api::build_services(scope);
     #[cfg(feature = "helm")]
     let scope = ::cassette_plugin_helm_api::build_services(scope);
     #[cfg(feature = "kubernetes")]

@@ -76,7 +76,16 @@ async fn list(
 
         // Load data
 
-        let HelmList { namespace } = query;
+        let HelmList {
+            chart_name,
+            namespace,
+        } = query;
+
+        let mut label_selector = "owner=helm".to_string();
+        if let Some(chart_name) = chart_name {
+            let key = crate::labels::LABEL_CHART_NALE;
+            label_selector = format!("{label_selector},{key}={chart_name}");
+        }
 
         let api = if is_admin {
             match namespace {
@@ -87,7 +96,7 @@ async fn list(
             Api::<Secret>::default_namespaced(kube)
         };
         let lp = ListParams {
-            label_selector: Some("owner=helm".into()),
+            label_selector: Some(label_selector),
             ..Default::default()
         };
         let list = api.list_metadata(&lp).await?;
@@ -99,6 +108,7 @@ async fn list(
             "id".into(),
             "namespace".into(),
             "name".into(),
+            "chart_name".into(),
             "version".into(),
             "state".into(),
             "created_at".into(),
@@ -119,6 +129,7 @@ async fn list(
                     Value::String(item.uid()?),
                     Value::String(item.namespace()?),
                     get_label(self::labels::LABEL_NAME)?,
+                    get_label(self::labels::LABEL_CHART_NALE)?,
                     get_label(self::labels::LABEL_VERSION)?,
                     get_label(self::labels::LABEL_STATE)?,
                     Value::String(item.creation_timestamp()?.0.to_rfc3339()),
@@ -174,6 +185,7 @@ async fn put(client: Data<Client>, request: HttpRequest, data: Json<HelmPut>) ->
 }
 
 mod labels {
+    pub const LABEL_CHART_NALE: &str = "chartName";
     pub const LABEL_NAME: &str = "name";
     pub const LABEL_STATE: &str = "status";
     pub const LABEL_VERSION: &str = "version";

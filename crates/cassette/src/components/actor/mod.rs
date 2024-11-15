@@ -1,5 +1,6 @@
 mod array;
 mod boolean;
+mod r#enum;
 mod generic;
 mod number;
 mod root;
@@ -195,11 +196,7 @@ impl ComponentRenderer<Spec> for State {
 
         match tabs.len() {
             0 => Ok(TaskState::Break {
-                body: html! {
-                    <Content>
-                        { "No available actions" }
-                    </Content>
-                },
+                body: html! {},
                 state: Some(self),
             }),
             1 => Ok(TaskState::Break {
@@ -341,8 +338,14 @@ fn build_form(ctx: FormContext) -> Html {
     let output_success = |msg| {
         html! {
             <Content>
-                <Alert inline=true title="Success" r#type={ AlertType::Success }>
-                    { msg }
+                <Alert
+                    inline=true
+                    title="Success"
+                    r#type={ AlertType::Success }
+                >
+                    <p style="white-space: pre-line;">
+                        { msg }
+                    </p>
                 </Alert>
             </Content>
         }
@@ -462,8 +465,14 @@ fn build_form_delete(ctx: FormDeleteContext) -> Html {
         // TODO: use toast instead, and force-reload
         html! {
             <Content>
-                <Alert inline=true title="Success" r#type={ AlertType::Success }>
-                    { msg }
+                <Alert
+                    inline=true
+                    title="Success"
+                    r#type={ AlertType::Success }
+                >
+                    <p style="white-space: pre-line;">
+                        { msg }
+                    </p>
                 </Alert>
             </Content>
         }

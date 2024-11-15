@@ -23,7 +23,7 @@ workspace = true
 default = ["full-local"]
 full = ["full-gateway", "full-local"]
 full-gateway = ["helm", "kubernetes"]
-full-local = ["cdl", "openai", "webcam"]
+full-local = ["openai", "webcam"]
 experimental = []
 
 # for demo ONLY
@@ -31,22 +31,6 @@ examples = ["cassette-core/examples", "dep:cassette-loader-file"]
 mock-release = ["cassette-core/mock-release"]
 
 # Plugins
-
-## Connected Data Lake (CDL)
-cdl = [
-    "cdl-catalog",
-    "cdl-dataset-browser",
-    "cdl-dataset-stream-reader",
-    "cdl-zone",
-]
-cdl-core = ["cassette-core/cdl"]
-cdl-catalog = ["dep:cassette-plugin-cdl-catalog", "cdl-core"]
-cdl-dataset-browser = ["dep:cassette-plugin-cdl-dataset-browser", "cdl-core"]
-cdl-dataset-stream-reader = [
-    "dep:cassette-plugin-cdl-dataset-stream-reader",
-    "cdl-core",
-]
-cdl-zone = ["dep:cassette-plugin-cdl-zone", "cdl-core"]
 
 ## Helm
 helm = ["dep:cassette-plugin-helm-core"]
@@ -69,10 +53,6 @@ built = { workspace = true }
 [dependencies]
 cassette-core = { path = "../cassette-core", features = ["ui"] }
 cassette-loader-file = { path = "../cassette-loader-file", optional = true }
-cassette-plugin-cdl-catalog = { path = "../cassette-plugin-cdl-catalog", optional = true }
-cassette-plugin-cdl-dataset-browser = { path = "../cassette-plugin-cdl-dataset-browser", optional = true }
-cassette-plugin-cdl-dataset-stream-reader = { path = "../cassette-plugin-cdl-dataset-stream-reader", optional = true }
-cassette-plugin-cdl-zone = { path = "../cassette-plugin-cdl-zone", optional = true }
 cassette-plugin-helm-core = { path = "../cassette-plugin-helm-core", optional = true }
 cassette-plugin-kubernetes-core = { path = "../cassette-plugin-kubernetes-core", optional = true }
 cassette-plugin-kubernetes-list = { path = "../cassette-plugin-kubernetes-list", optional = true }

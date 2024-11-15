@@ -20,6 +20,9 @@ pub fn build_form(handle: &CassetteTaskHandle<Value>, spec: SchemaArray, disable
             SchemaType::String(spec) => {
                 super::string::build_form(handle, name, path, spec, default, disabled)
             }
+            SchemaType::Enum(spec) => {
+                super::r#enum::build_form(handle, name, path, spec, default, disabled)
+            }
         }
     });
 

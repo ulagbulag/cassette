@@ -1,0 +1,52 @@
+---
+apiVersion: cassette.ulagbulag.io/v1alpha1
+kind: Cassette
+metadata:
+  name: cdl-pond-create-remote
+spec:
+  component: cdl-pond-create-remote
+  group: Connected Data Lake
+  title: Data Pond | Create Remote
+---
+apiVersion: cassette.ulagbulag.io/v1alpha1
+kind: CassetteComponent
+metadata:
+  name: cdl-pond-create-remote
+spec:
+  tasks:
+    - name: act
+      kind: Actor
+      spec:
+        create: true
+        uri: /helm
+        schema:
+          create:
+            - name: Name
+              path: /name
+              string: {}
+            - name: Namespace
+              path: /namespace
+              string: {}
+            - name: Endpoint URL
+              path: /values/remote/endpoint
+              string: {}
+            - name: Access Key
+              path: /values/secret/value/accessKey
+              string: {}
+            - name: Secret Key
+              path: /values/secret/value/secretKey
+              string: {}
+        default:
+          chartName: data-pond
+          repo: https://smartx-team.github.io/mobilex-api
+          name: ""
+          namespace: name-twin
+          values:
+            remote:
+              endpoint: https://s3.amazonaws.com
+            secret:
+              value:
+                enabled: true
+                accessKey: ""
+                secretKey: ""
+            storageType: Remote

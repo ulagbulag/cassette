@@ -29,18 +29,6 @@ impl TaskRenderer for RootCassetteTask<'_> {
 
         match kind.as_str() {
             "Actor" => self::actor::State::render_with(ctx, spec),
-            #[cfg(feature = "cdl-catalog")]
-            "CdlCatalog" => ::cassette_plugin_cdl_catalog::State::render_with(ctx, spec),
-            #[cfg(feature = "cdl-dataset-browser")]
-            "CdlDatasetBrowser" => {
-                ::cassette_plugin_cdl_dataset_browser::State::render_with(ctx, spec)
-            }
-            #[cfg(feature = "cdl-dataset-stream-reader")]
-            "CdlDatasetStreamReader" => {
-                ::cassette_plugin_cdl_dataset_stream_reader::State::render_with(ctx, spec)
-            }
-            #[cfg(feature = "cdl-zone")]
-            "CdlZoneActor" => ::cassette_plugin_cdl_zone::actor::State::render_with(ctx, spec),
             "FileUpload" => self::file_upload::State::render_with(ctx, spec),
             #[cfg(feature = "kubernetes-list")]
             "KubernetesList" => ::cassette_plugin_kubernetes_list::State::render_with(ctx, spec),

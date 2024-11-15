@@ -28,31 +28,17 @@ unsafe-mock = ["cassette-plugin-kubernetes-api?/unsafe-mock"]
 
 # TLS
 default-tls = ["rustls-tls"]
-openssl-tls = [
-    "actix-web/openssl",
-    "cassette-plugin-cdl-api?/openssl-tls",
-    "kube/openssl-tls",
-    "reqwest?/native-tls",
-]
-rustls-tls = [
-    "actix-web/rustls",
-    "cassette-plugin-cdl-api?/rustls-tls",
-    "kube/rustls-tls",
-    "reqwest?/rustls-tls",
-]
+openssl-tls = ["actix-web/openssl", "kube/openssl-tls", "reqwest?/native-tls"]
+rustls-tls = ["actix-web/rustls", "kube/rustls-tls", "reqwest?/rustls-tls"]
 
 # OpenARK
 
 vine = [
-    "cassette-plugin-cdl-api?/vine",
     "cassette-plugin-helm-api?/vine",
     "cassette-plugin-kubernetes-api?/vine",
 ]
 
 # Plugins
-
-## Connected Data Lake (CDL)
-cdl = ["cassette-core/cdl", "dep:cassette-plugin-cdl-api"]
 
 ## Helm
 helm = ["dep:cassette-plugin-helm-api", "dep:reqwest"]
@@ -63,7 +49,6 @@ kubernetes = ["dep:cassette-plugin-kubernetes-api"]
 [dependencies]
 cassette-core = { path = "../cassette-core", features = ["api"] }
 cassette-loader-core = { path = "../cassette-loader-core" }
-cassette-plugin-cdl-api = { path = "../cassette-plugin-cdl-api", optional = true }
 cassette-plugin-helm-api = { path = "../cassette-plugin-helm-api", optional = true }
 cassette-plugin-kubernetes-api = { path = "../cassette-plugin-kubernetes-api", optional = true }
 

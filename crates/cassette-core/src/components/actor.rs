@@ -26,7 +26,11 @@ pub fn base_actor(props: &Props) -> Html {
 
     html! {
         <Content>
-            <Alert inline=true title="Error" r#type={ AlertType::Danger }>
+            <Alert
+                inline=true
+                title="Error"
+                r#type={ AlertType::Danger }
+            >
             </Alert>
         </Content>
     }

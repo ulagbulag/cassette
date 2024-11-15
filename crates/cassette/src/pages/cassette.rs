@@ -86,8 +86,14 @@ fn cassette_data(props: &DataProps) -> Html {
                 }
                 Err(error) => {
                     let body = html! {
-                        <Alert inline=true title="Error" r#type={AlertType::Danger}>
-                            { error }
+                        <Alert
+                            inline=true
+                            title="Error"
+                            r#type={AlertType::Danger}
+                        >
+                            <p style="white-space: pre-line;">
+                                { error }
+                            </p>
                         </Alert>
                     };
                     contents.push(body);
@@ -121,8 +127,14 @@ fn cassette_fallback(props: &FallbackProps) -> Html {
         .as_deref()
         .map(|error| {
             html! {
-                <Alert inline=true title="Error" r#type={AlertType::Danger}>
-                    { error }
+                <Alert
+                    inline=true
+                    title="Error"
+                    r#type={AlertType::Danger}
+                >
+                    <p style="white-space: pre-line;">
+                        { error }
+                    </p>
                 </Alert>
             }
         })

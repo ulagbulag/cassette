@@ -24,6 +24,8 @@ pub type HelmDeleteOutput = String;
 #[serde(rename_all = "camelCase")]
 pub struct HelmList {
     #[serde(default)]
+    pub chart_name: Option<String>,
+    #[serde(default)]
     pub namespace: Option<String>,
 }
 

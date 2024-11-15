@@ -1,0 +1,43 @@
+---
+apiVersion: cassette.ulagbulag.io/v1alpha1
+kind: Cassette
+metadata:
+  name: cdl-endpoint-create-external
+spec:
+  component: cdl-endpoint-create-external
+  group: Connected Data Lake
+  title: Endpoint | Create External
+---
+apiVersion: cassette.ulagbulag.io/v1alpha1
+kind: CassetteComponent
+metadata:
+  name: cdl-endpoint-create-external
+spec:
+  tasks:
+    - name: act
+      kind: Actor
+      spec:
+        create: true
+        uri: /helm
+        schema:
+          create:
+            - name: Namespace
+              path: /namespace
+              string: {}
+            - name: Endpoint IP
+              path: /values/service/endpoint/loadBalancerIP
+              string: {}
+            - name: Hostname
+              path: /values/ingress/hostname
+              string: {}
+        default:
+          chartName: cdl-endpoint
+          repo: https://smartx-team.github.io/mobilex-api
+          name: object-storage
+          namespace: name-twin
+          values:
+            service:
+              endpoint:
+                loadBalancerIP: ""
+            ingress:
+              hostname: "twin.pond.openark.ai"

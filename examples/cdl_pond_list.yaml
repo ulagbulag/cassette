@@ -2,16 +2,16 @@
 apiVersion: cassette.ulagbulag.io/v1alpha1
 kind: Cassette
 metadata:
-  name: helm-list
+  name: cdl-pond-list
 spec:
-  component: helm-list
-  group: MobileX
-  title: List All
+  component: cdl-pond-list
+  group: Connected Data Lake
+  title: Data Pond | List
 ---
 apiVersion: cassette.ulagbulag.io/v1alpha1
 kind: CassetteComponent
 metadata:
-  name: helm-list
+  name: cdl-pond-list
 spec:
   tasks:
     - name: list
@@ -19,7 +19,7 @@ spec:
       spec:
         uri: /helm
         query:
-          namespace: name-twin
+          chartName: data-pond
 
     - name: filtered
       kind: Table

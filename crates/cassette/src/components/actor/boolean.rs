@@ -27,12 +27,14 @@ pub fn build_form(
     };
 
     html! {
-        <Switch
-            { id }
-            label={ name }
-            { disabled }
-            { onchange }
-            { checked }
-        />
+        <div style="margin-bottom: 16px;">
+            <Switch
+                { id }
+                label={ name }
+                { disabled }
+                { onchange }
+                { checked }
+            />
+        </div>
     }
 }

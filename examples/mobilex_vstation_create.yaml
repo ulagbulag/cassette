@@ -2,16 +2,16 @@
 apiVersion: cassette.ulagbulag.io/v1alpha1
 kind: Cassette
 metadata:
-  name: helm-actor-mobilex-vstation
+  name: mobilex-vstation-create
 spec:
-  component: helm-actor-mobilex-vstation
+  component: mobilex-vstation-create
   group: MobileX
   title: MobileX vStation
 ---
 apiVersion: cassette.ulagbulag.io/v1alpha1
 kind: CassetteComponent
 metadata:
-  name: helm-actor-mobilex-vstation
+  name: mobilex-vstation-create
 spec:
   tasks:
     - name: act
@@ -40,6 +40,9 @@ spec:
             - name: Amount of Memory
               path: /values/resources/limits/memory
               string: {}
+            - name: Amount of Storage
+              path: /values/storage/resources/requests/storage
+              string: {}
             - name: Number of GPUs
               path: /values/resources/limits/nvidia.com~1gpu
               number: {}
@@ -58,3 +61,7 @@ spec:
               type: LoadBalancer
             serviceAccount:
               password: "myPassword!"
+            storage:
+              resources:
+                requests:
+                  storage: 10Ti

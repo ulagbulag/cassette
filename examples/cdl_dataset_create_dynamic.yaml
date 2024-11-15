@@ -1,0 +1,67 @@
+---
+apiVersion: cassette.ulagbulag.io/v1alpha1
+kind: Cassette
+metadata:
+  name: cdl-dataset-create-dynamic
+spec:
+  component: cdl-dataset-create-dynamic
+  group: Connected Data Lake
+  title: Dataset | Create Dynamic
+---
+apiVersion: cassette.ulagbulag.io/v1alpha1
+kind: CassetteComponent
+metadata:
+  name: cdl-dataset-create-dynamic
+spec:
+  tasks:
+    - name: act
+      kind: Actor
+      spec:
+        create: true
+        uri: /helm
+        schema:
+          create:
+            - name: Name
+              path: /name
+              string: {}
+            - name: Namespace
+              path: /namespace
+              string: {}
+            - name: Allow Replacement
+              path: /values/claim/allowReplacement
+              boolean: {}
+            - name: Binding Policy
+              path: /values/claim/bindingPolicy
+              enum:
+                choices:
+                  - Balanced
+                  - LowestCopy
+                  - LowestLatency
+            - name: Deletion Policy
+              path: /values/deletionPolicy
+              enum:
+                choices:
+                  - Delete
+                  - Retain
+            - name: Total Quota
+              path: /values/resources/requests/storage
+              string: {}
+            - name: Target Storage Name (optional)
+              path: /values/static/targetStorageName
+              string: {}
+        default:
+          chartName: cdl-dataset
+          repo: https://smartx-team.github.io/mobilex-api
+          name: ""
+          namespace: name-twin
+          values:
+            claim:
+              enabled: true
+              allowReplacement: true
+              bindingPolicy: LowestCopy
+            deletionPolicy: Delete
+            resources:
+              requests:
+                storage: 1Ti
+            static:
+              targetStorageName: ""

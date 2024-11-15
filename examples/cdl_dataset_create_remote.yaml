@@ -1,0 +1,80 @@
+---
+apiVersion: cassette.ulagbulag.io/v1alpha1
+kind: Cassette
+metadata:
+  name: cdl-dataset-create-remote
+spec:
+  component: cdl-dataset-create-remote
+  group: Connected Data Lake
+  title: Dataset | Create Remote
+---
+apiVersion: cassette.ulagbulag.io/v1alpha1
+kind: CassetteComponent
+metadata:
+  name: cdl-dataset-create-remote
+spec:
+  tasks:
+    - name: act
+      kind: Actor
+      spec:
+        create: true
+        uri: /helm
+        schema:
+          create:
+            - name: Name
+              path: /name
+              string: {}
+            - name: Namespace
+              path: /namespace
+              string: {}
+            - name: Deletion Policy
+              path: /values/deletionPolicy
+              enum:
+                choices:
+                  - Delete
+                  - Retain
+            - name: Total Quota
+              path: /values/resources/requests/storage
+              string: {}
+            - name: Source Storage Name
+              path: /values/static/sourceStorageName
+              string: {}
+            - name: Source Storage Dataset Name (optional)
+              path: /values/static/sourceBindingName
+              string: {}
+            - name: Target Storage Name
+              path: /values/static/targetStorageName
+              string: {}
+            - name: Dataset Pull Policy
+              path: /values/static/syncPolicy/pull
+              enum:
+                choices:
+                  - Always
+                  - OnCreate
+                  - Never
+            - name: Dataset Push Policy
+              path: /values/static/syncPolicy/push
+              enum:
+                choices:
+                  - Always
+                  - OnDelete
+                  - Never
+        default:
+          chartName: cdl-dataset
+          repo: https://smartx-team.github.io/mobilex-api
+          name: ""
+          namespace: name-twin
+          values:
+            claim:
+              enabled: false
+            deletionPolicy: Delete
+            resources:
+              requests:
+                storage: 1Ti
+            static:
+              sourceStorageName: ""
+              sourceBindingName: ""
+              targetStorageName: ""
+              syncPolicy:
+                pull: OnCreate
+                push: Never

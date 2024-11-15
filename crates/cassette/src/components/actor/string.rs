@@ -30,9 +30,9 @@ pub fn build_form(
     };
 
     html! {
-        <>
+        <div style="margin-bottom: 16px;">
             { name }
-            <TextInputGroup style="padding: 4px; margin-bottom: 8px;">
+            <TextInputGroup>
                 <TextInputGroupMain
                     { id }
                     { disabled }
@@ -41,6 +41,6 @@ pub fn build_form(
                     { value }
                 />
             </TextInputGroup>
-        </>
+        </div>
     }
 }

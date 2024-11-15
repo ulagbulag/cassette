@@ -13,7 +13,11 @@ pub fn todo<T>() -> TaskResult<Option<T>> {
 #[function_component(Todo)]
 pub fn todo() -> Html {
     html! {
-        <Alert inline=true title="Unimplemented" r#type={AlertType::Warning}>
+        <Alert
+            inline=true
+            title="Unimplemented"
+            r#type={AlertType::Warning}
+        >
             { "Not implemented yet!" }
         </Alert>
     }

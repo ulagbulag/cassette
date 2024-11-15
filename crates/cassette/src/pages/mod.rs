@@ -52,8 +52,12 @@ pub fn page_body(props: &Props) -> Html {
 
     let alert_warning = |msg| {
         html! {
-            <Alert inline=true title="Warning" r#type={AlertType::Warning}>
-                <p>{ msg }</p>
+            <Alert
+                inline=true
+                title="Warning"
+                r#type={AlertType::Warning}
+            >
+                { msg }
             </Alert>
         }
     };
@@ -77,7 +81,11 @@ We strongly suggest not using it for production purposes.",
     let alert_experimental = || {
         html! {
             <PageSection>
-                <Alert inline=true title="Experimental feature" r#type={AlertType::Info}>
+                <Alert
+                    inline=true
+                    title="Experimental feature"
+                    r#type={AlertType::Info}
+                >
                     { Html::from_html_unchecked(r#"
 <p>
 This functionality is considered experimental. This means that the whole idea of it might be
