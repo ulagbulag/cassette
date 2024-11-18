@@ -38,6 +38,7 @@ spec:
           values:
             service:
               endpoint:
+                type: LoadBalancer
                 loadBalancerIP: ""
             ingress:
               hostname: "twin.pond.openark.ai"
