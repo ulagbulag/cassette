@@ -44,7 +44,7 @@ spec:
               number: {}
         default:
           chartName: data-pond
-          repo: https://smartx-team.github.io/mobilex-api
+          repo: https://smartx-team.github.io/connected-data-lake
           name: object-storage-pool
           namespace: name-twin
           values:

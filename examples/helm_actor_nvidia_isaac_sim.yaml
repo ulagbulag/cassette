@@ -39,7 +39,7 @@ spec:
                 default: 1
         default:
           chartName: nvidia-isaac-sim
-          repo: https://smartx-team.github.io/mobilex-api
+          repo: https://smartx-team.github.io/connected-data-lake
           name: omni01
           namespace: name-twin
           values:

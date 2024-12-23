@@ -26,6 +26,6 @@ spec:
               string: {}
         default:
           chartName: cdl-endpoint
-          repo: https://smartx-team.github.io/mobilex-api
+          repo: https://smartx-team.github.io/connected-data-lake
           name: object-storage
           namespace: name-twin

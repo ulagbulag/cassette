@@ -48,7 +48,7 @@ spec:
               number: {}
         default:
           chartName: mobilex-vstation
-          repo: https://smartx-team.github.io/mobilex-api
+          repo: https://smartx-team.github.io/connected-data-lake
           name: vstation01
           namespace: name-twin
           values:
